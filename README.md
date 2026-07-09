@@ -1,27 +1,27 @@
-# TunaChain (참치 초저온 콜드체인 모니터링 및 AI 재고·수요 예측 시스템)
+# Tuna Cold Chain Ledger (참치 초저온 콜드체인 모니터링 시스템)
 
 ## 1. Overview
-TunaChain은 참치 유통 경로 및 초저온 보관 상태($-60^\circ\text{C}$)를 실시간으로 추적·모니터링하고, 데이터 위·변조를 방지하는 가상 블록체인 기반의 콜드체인 모니터링 시스템입니다.
+Tuna Cold Chain Ledger는 참치 유통 경로 및 초저온 보관 상태($-60^\circ\text{C}$)를 실시간으로 추적·모니터링하고, 데이터 위·변조를 방지하는 가상 블록체인 기반의 콜드체인 모니터링 시스템입니다.
 
-본 프로젝트는 IoT 시뮬레이터에서 주기적으로 생성되는 온도와 GPS 위치 정보를 실시간 대시보드에 매핑하여 제공하며, 임계값($-55^\circ\text{C}$) 초과 시 즉각적인 예외 경고를 알립니다. 또한, 수집된 데이터를 블록체인 온체인(On-chain) 해시 검증을 통해 유통 이력의 무결성을 소비자에게 QR 코드로 공개합니다.
-
-이후 Phase 2 단계에서, 축적된 실시간 및 이력 데이터를 ETL 파이프라인으로 적재하고 ML 모델(XGBoost, LightGBM)을 활용해 신선도 저하로 인한 재고 손실률 및 장기 수요를 정밀하게 예측하는 시스템으로 완성됩니다.
+* **프로젝트 배경**: 참치와 같은 최고급 횟감용 수산물은 가공 및 유통 과정에서 초저온 보관 온도($-60^\circ\text{C}$)가 엄격히 유지되어야 신선도가 보존되고 폐기 손실을 막을 수 있습니다. 유통 이력에 대한 투명하고 신뢰도 높은 데이터를 확보하기 위해 블록체인 스마트 계약 기술을 접목하였습니다.
+* **프로젝트 범위**: 본 리드미는 실시간 IoT 센서 데이터 수집 파이프라인 및 모니터링 경고, 그리고 블록체인을 통한 데이터 무결성 검증을 다루는 **Phase 1** 명세서입니다.
+* **Phase 2 로드맵**: 수집된 데이터를 바탕으로 AI 기반 재고 및 수요 예측을 연동하는 고도화 과정은 [PHASE2-OVERVIEW.md](file:///Users/somui/workplace/ml-demand-analyzer/PHASE2-OVERVIEW.md) 파일에 명세되어 있습니다.
 
 ---
 
 ## 2. Key Features
-
-| Phase | 기능 | 설명 |
-| :--- | :--- | :--- |
-| **Phase 1** | **IoT 센서 데이터 시뮬레이션** | 가상의 GPS 위치 및 보관 온도 데이터를 주기적(5초 간격)으로 생성하고 백엔드로 전송하는 시뮬레이터 스크립트 구축 |
-| **Phase 1** | **실시간 대시보드 모니터링** | React 프론트엔드 및 Socket.io를 통해 실시간 이동 경로 및 온도 추이 그래프(Recharts) 표시 |
-| **Phase 1** | **초저온 임계치 실시간 경고** | 보관 온도 임계치($-55^\circ\text{C}$) 이탈 감지 시 즉각적인 실시간 웹 푸시 알림 및 경고 상태 표시 |
-| **Phase 1** | **블록체인 무결성 기록 (On-chain)** | 어획 완료, 하역 완료, 가공 완료, 배송 완료 등 주요 마일스톤 도달 시 데이터를 해싱하여 스마트 계약에 영구 기록 |
-| **Phase 1** | **소비자용 QR 이력 조회 및 검증** | 소비자 모바일 뷰에서 QR 코드 스캔 시 오프체인 DB 정보와 온체인 스마트 계약 해시값을 대조하여 데이터 무결성을 실시간 검증 및 시각화 |
-| **Phase 1** | **기본 재고 및 발주 관리** | 백엔드(NestJS + TypeORM) 기반의 기본 재고 상태 추적 및 다역할(OPERATOR, MANAGER, ADMIN) 결재 워크플로우 관리 |
-| **Phase 2** | **ETL 데이터 파이프라인** | 시계열 센서 정보 및 발주 데이터를 Mart 테이블 형태로 가공하는 정기 Python ETL 파이프라인 구축 |
-| **Phase 2** | **AI 수요 및 재고 폐기 예측** | XGBoost/LightGBM 기반의 7/14/30일 예측 모델 및 온도 이탈 빈도에 따른 신선도 저하/재고 손실 확률 예측 |
-| **Phase 2** | **예측 결과 XAI 시각화** | SHAP 피처 중요도를 활용하여 예측 결과에 대한 기여 원인을 대시보드에 직관적으로 시각화 |
+* **IoT 센서 데이터 시뮬레이션**
+  * Node.js 백엔드 스크립트를 활용해 5초 주기로 가상의 GPS 위치(위·경도) 및 온도 데이터를 무작위로 생성하여 전송하는 환경 구축.
+* **실시간 대시보드 및 모니터링**
+  * React 및 Socket.io 웹소켓 통신을 이용해 차량 및 선박의 이동 경로와 실시간 온도 그래프(Recharts)를 렌더링.
+* **초저온 임계치 실시간 경고**
+  * 보관 온도가 안전 임계치인 $-55^\circ\text{C}$를 초과하여 이탈할 경우 프론트엔드 대시보드에 즉각적인 위험 감지 알림 이벤트 전송.
+* **블록체인 무결성 기록 (On-chain)**
+  * 어획 완료, 하역 완료, 가공 완료, 배송 완료 등 주요 체크포인트 마일스톤 도달 시 핵심 요약본과 데이터 해시(Hash) 값을 Hardhat 기반 로컬 EVM 스마트 계약에 기록.
+* **소비자용 QR 이력 조회 및 무결성 검증**
+  * 소비자가 모바일 기기로 QR 코드를 스캔할 때 제공되는 웹 뷰로, DB 데이터의 해시와 블록체인 온체인에 기록된 해시를 비교하여 변조 여부("데이터 무결성 인증 완료")를 시각적으로 검증.
+* **기본 재고 및 발주 관리**
+  * NestJS와 TypeORM을 통해 원본 데이터를 CRUD하고 발주 결재 프로세스(DRAFT -> PENDING -> APPROVED/REJECTED -> COMPLETED) 및 역할 기반 권한 제어(RBAC) 제공.
 
 ---
 
@@ -40,7 +40,7 @@ TunaChain은 참치 유통 경로 및 초저온 보관 상태($-60^\circ\text{C}
 |   +------------------------------------+--------------------------------------+   |
 |   | Socket.io Gateway (Real-time Hub)  | Ethers.js Client (Web3 Integrator)   |   |
 |   +------------------------------------+--------------------------------------+   |
-|   | NestJS Modules (Users, Inventory,  | ETL/ML API Endpoints (Phase 2)       |   |
+|   | NestJS Modules (Users, Inventory,  | Audit-logs Engine (Tamper-proofing)  |   |
 |   |                 Orders, Audit Logs)|                                      |   |
 |   +------------------------------------+--------------------------------------+   |
 +-----------------------------------------------------------------------------------+
@@ -53,7 +53,7 @@ TunaChain은 참치 유통 경로 및 초저온 보관 상태($-60^\circ\text{C}
 |                      |      |                      |      |                       |
 | - Users & Admin Roles|      | - IoT Sensor Raw Log |      | - Solidity Smart      |
 | - Inventory & Orders |      | - Off-chain Metadata |      |   Contract            |
-| - Predictions (Ph 2) |      |                      |      | - Tamper-proof Hash   |
+| - Audit Trail Logs   |      |                      |      | - Tamper-proof Hash   |
 +----------------------+      +----------------------+      +-----------------------+
            ^                                                             ^
            | Read DB Data                                                | Read On-chain Hash
@@ -77,24 +77,19 @@ TunaChain은 참치 유통 경로 및 초저온 보관 상태($-60^\circ\text{C}
 
 ## 4. Tech Stack
 
-| 영역 (Area) | 기술 스택 (Tech Stack) | 도입 단계 (Phase) | 도입 목적 및 상세 |
-| :--- | :--- | :--- | :--- |
-| **Frontend** | React (v19) | Phase 1 | 컴포넌트 기반 상태 관리 및 SPA UI 렌더링 |
-| **Frontend** | Ant Design (v6) | Phase 1 | 관리자 대시보드 구축을 위한 엔터프라이즈급 UI 컴포넌트 라이브러리 |
-| **Frontend** | Recharts | Phase 1 | 초저온 기준 및 이상 감지선이 반영된 실시간 시각화 차트 |
-| **Backend** | NestJS (v10) | Phase 1 | 구조화된 모듈식 아키텍처 및 의존성 주입(DI) 지원을 통한 확장성 확보 |
-| **Backend** | Socket.io | Phase 1 | 백엔드-프론트엔드 간 양방향 실시간 센서 및 경고 이벤트 스트리밍 |
-| **Backend** | TypeORM | Phase 1 | PostgreSQL 데이터베이스 객체 관계 매핑(ORM) 및 스키마 마이그레이션 관리 |
-| **Backend** | Ethers.js | Phase 1 | EVM 호환 블록체인 네트워크 및 스마트 계약 트랜잭션 전송 및 조회 |
-| **Database** | PostgreSQL (v15) | Phase 1 | 사용자 정보, 발주 승인 로그, 기본 재고 메타데이터 관리 (RDBMS) |
-| **Database** | MongoDB | Phase 1 | 대용량 고주기 IoT 시계열 데이터(온도/GPS)를 적재하기 위한 오프체인 스토리지 |
-| **Database** | Redis | Phase 1 | 실시간 이상 징후 알림 캐싱 및 시뮬레이터 실시간 상태 캐시 관리 |
-| **Blockchain**| Solidity | Phase 1 | 신뢰성 검증용 해시 및 체크포인트를 기록하기 위한 스마트 계약 작성 |
-| **Blockchain**| Hardhat | Phase 1 | 로컬 개발 환경용 블록체인 테스트 네트워크 구동 및 스마트 계약 컴파일/배포 |
-| **ETL Pipeline**| Python (v3.10) | Phase 2 | Raw 및 Off-chain 데이터를 Mart 테이블로 정제하기 위한 Python 엔진 |
-| **ETL Pipeline**| SQLAlchemy | Phase 2 | 데이터 변환 및 적재 작업을 위해 데이터베이스 엔티티와 연동하는 ORM 라이브러리 |
-| **ML Engine** | XGBoost / LightGBM | Phase 2 | 과거 보관 환경 요소를 통합 분석하여 수요 및 폐기 리스크 예측 모델 구축 |
-| **ML Engine** | SHAP | Phase 2 | AI 모델 예측의 설명 가능성(Explainable AI) 확보 및 중요 피처 중요도 분석 |
+| 영역 (Area) | 기술 스택 (Tech Stack) | 도입 목적 및 상세 |
+| :--- | :--- | :--- |
+| **Frontend** | React (v19), Ant Design (v6), Recharts | 대시보드 UI 컴포넌트 빌드 및 실시간 그래프 시각화 |
+| **Frontend** | Ethers.js | 스마트 계약 검증 정보 직접 조회 및 Web3 연동 |
+| **Backend** | NestJS (v10) | 모듈식 아키텍처 및 의존성 주입(DI)으로 높은 테스트 가능성과 확장성 제공 |
+| **Backend** | Socket.io | 실시간 IoT 데이터 브로드캐스팅 및 경고 이벤트 처리 |
+| **Backend** | TypeORM | PostgreSQL 데이터 모델 매핑 및 마이그레이션 도구 |
+| **Backend** | Ethers.js | 트랜잭션 서명 및 Hardhat 로컬 블록체인 네트워크 호출 |
+| **Database** | PostgreSQL (v15) | 사용자, 권한(RBAC), 재고 마스터 데이터 관리 |
+| **Database** | MongoDB | 초 단위 수집 센서 로그 및 이력 정보의 대용량 저장을 위한 오프체인 스토리지 |
+| **Database** | Redis | 실시간 한계치 이탈 경고 발생 여부 캐싱 및 임시 세션 상태 관리 |
+| **Blockchain** | Solidity, Hardhat | 가상 로컬 EVM 환경 상에 무결성 보장용 스마트 계약 컴파일 및 로컬 배포 |
+| **DevSecOps** | Docker, Docker Compose | RDBMS, NoSQL, Redis 인프라 환경의 가상 네트워크 분리 및 격리 구동 |
 
 ---
 
@@ -112,7 +107,6 @@ TunaChain은 참치 유통 경로 및 초저온 보관 상태($-60^\circ\text{C}
 │   │   ├── inventory/              # 보관중인 참치 품목 및 재고 상태 관리
 │   │   ├── purchase-orders/        # 발주 신청, 결재(결재선 상태) 워크플로우 관리
 │   │   ├── notifications/          # 실시간 소켓 통신 게이트웨이 (Socket.io)
-│   │   ├── predictions/            # AI 예측 결과 저장용 스키마 및 서비스 (Phase 2)
 │   │   ├── audit-logs/             # 유통 과정 위변조 증적용 백업 로깅
 │   │   └── main.ts                 # 애플리케이션 진입점
 │   ├── contracts/                  # Solidity Smart Contracts (Phase 1)
@@ -134,14 +128,11 @@ TunaChain은 참치 유통 경로 및 초저온 보관 상태($-60^\circ\text{C}
 │   │   └── main.tsx                # 프론트엔드 진입점
 │   ├── package.json
 │   └── tsconfig.json
-├── etl/                            # 데이터 파이프라인 (Phase 2)
-│   ├── scripts/                    # 데이터 변환 파이프라인 (Python)
-│   └── requirements.txt            # ETL 모듈 설치 패키지 목록
-├── ml/                             # 머신러닝 모듈 (Phase 2)
-│   ├── scripts/                    # XGBoost/LightGBM 모델 훈련 및 추론 스크립트
-│   └── requirements.txt            # ML 필수 라이브러리 목록
-├── docker-compose.yml              # Local Infra (PostgreSQL 15, MongoDB, Redis 컨테이너 구성)
+├── etl/                            # 데이터 파이프라인 (Phase 2 준비 구역)
+├── ml/                             # 머신러닝 모듈 (Phase 2 준비 구역)
+├── docker-compose.yml              # Local Infra (PostgreSQL, MongoDB, Redis 컨테이너 구성)
 ├── PROJECT-OVERVIEW.md             # 프로젝트의 초기 아이디어 및 기획 명세서
+├── PHASE2-OVERVIEW.md              # Phase 2 AI 예측 시스템 오버뷰 명세서 (이후 고도화 단계)
 └── README.md                       # 메인 프로젝트 문서 (본 파일)
 ```
 
@@ -161,7 +152,6 @@ TunaChain은 참치 유통 경로 및 초저온 보관 상태($-60^\circ\text{C}
 [Solidity Smart Contract (ColdChainTracker.sol)]
        ^
        | (Read / Write for Integrity Verification)
-[ETL & ML (Phase 2)] -> (Extract) -> [PostgreSQL/MongoDB] -> (Load) -> [PostgreSQL Mart]
 ```
 
 ---
@@ -172,7 +162,6 @@ TunaChain은 참치 유통 경로 및 초저온 보관 상태($-60^\circ\text{C}
 프로젝트 실행을 위해 로컬 환경에 다음 도구들이 설치되어 있어야 합니다.
 * **Node.js**: `v18.x` 이상
 * **Docker & Docker Compose**: 로컬 데이터베이스 및 인프라 서버 구성용
-* **Python**: `v3.10` 이상 (Phase 2 실행용)
 
 ---
 
