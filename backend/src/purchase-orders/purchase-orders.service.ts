@@ -8,6 +8,8 @@ import { User } from '../entities/User';
 import { v4 as uuidv4 } from 'uuid';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { UsersService } from '../users/users.service';
+
 @Injectable()
 export class PurchaseOrdersService {
     constructor(
@@ -17,16 +19,22 @@ export class PurchaseOrdersService {
         private productRepository: Repository<Product>,
         private auditLogsService: AuditLogsService,
         private notificationsService: NotificationsService,
+        private usersService: UsersService,
     ) { }
 
     private generatePoNumber(): string {
         return 'PO-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
     }
 
-    async create(createDto: CreatePurchaseOrderDto, user: User) {
+    async create(createDto: CreatePurchaseOrderDto) {
         const product = await this.productRepository.findOne({ where: { sku: createDto.skuId } });
         if (!product) {
             throw new NotFoundException('Product not found');
+        }
+
+        const systemUser = await this.usersService.findOneByEmail('admin@example.com');
+        if (!systemUser) {
+            throw new NotFoundException('Default system admin user not found');
         }
 
         const po = this.poRepository.create({
@@ -37,14 +45,14 @@ export class PurchaseOrdersService {
             notes: createDto.notes,
             product,
             status: 'DRAFT',
-            requestedBy: user,
+            requestedBy: systemUser,
             poNumber: this.generatePoNumber(),
         });
 
         const savedPo = await this.poRepository.save(po);
 
         await this.auditLogsService.logAction(
-            user,
+            systemUser,
             'CREATE_PO',
             'PurchaseOrder',
             savedPo.id,
@@ -70,17 +78,20 @@ export class PurchaseOrdersService {
         return po;
     }
 
-    async update(id: string, updateDto: UpdatePurchaseOrderDto, user: User) {
+    async update(id: string, updateDto: UpdatePurchaseOrderDto) {
         const po = await this.findOne(id);
-
         const oldStatus = po.status;
+
+        const systemUser = await this.usersService.findOneByEmail('admin@example.com');
+        if (!systemUser) {
+            throw new NotFoundException('Default system admin user not found');
+        }
 
         // Apply updates
         if (updateDto.status) {
             po.status = updateDto.status;
             if (updateDto.status === 'APPROVED' || updateDto.status === 'REJECTED') {
-                po.approvedBy = user;
-                // po.approvedAt = new Date(); // Field doesn't exist in entity yet
+                po.approvedBy = systemUser;
             }
         }
         if (updateDto.quantity) po.quantity = updateDto.quantity;
@@ -96,7 +107,7 @@ export class PurchaseOrdersService {
 
         if (Object.keys(changes).length > 0) {
             await this.auditLogsService.logAction(
-                user,
+                systemUser,
                 'UPDATE_PO',
                 'PurchaseOrder',
                 savedPo.id,

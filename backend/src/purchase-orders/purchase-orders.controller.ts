@@ -1,21 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
 import { PurchaseOrdersService } from './purchase-orders.service';
 import { CreatePurchaseOrderDto, UpdatePurchaseOrderDto } from './dto/create-purchase-order.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-
-interface AuthenticatedRequest extends Request {
-    user: any;
-}
 
 @Controller('purchase-orders')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class PurchaseOrdersController {
     constructor(private readonly poService: PurchaseOrdersService) { }
 
     @Post()
-    create(@Body() createDto: CreatePurchaseOrderDto, @Request() req: AuthenticatedRequest) {
-        return this.poService.create(createDto, req.user);
+    create(@Body() createDto: CreatePurchaseOrderDto) {
+        return this.poService.create(createDto);
     }
 
     @Get()
@@ -29,7 +22,7 @@ export class PurchaseOrdersController {
     }
 
     @Patch(':id')
-    update(@Param('id') id: string, @Body() updateDto: UpdatePurchaseOrderDto, @Request() req: AuthenticatedRequest) {
-        return this.poService.update(id, updateDto, req.user);
+    update(@Param('id') id: string, @Body() updateDto: UpdatePurchaseOrderDto) {
+        return this.poService.update(id, updateDto);
     }
 }

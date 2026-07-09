@@ -1,12 +1,11 @@
 import React from 'react';
-import { Layout, Menu, Button, Typography, theme, Avatar, Dropdown } from 'antd';
+import { Layout, Menu, Typography, theme, Avatar, Dropdown } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
     BarChartOutlined,
     DatabaseOutlined,
     ShoppingCartOutlined,
-    UserOutlined,
-    LogoutOutlined
+    UserOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -18,8 +17,33 @@ const AppLayout: React.FC = () => {
     const location = useLocation();
     const { logout, user } = useAuth();
     const {
-        token: { colorBgContainer, borderRadiusLG },
+        token: { colorBgContainer },
     } = theme.useToken();
+
+    const userMenuItems = [
+        {
+            key: 'profile',
+            label: (
+                <div style={{ padding: '4px 8px' }}>
+                    <Text strong style={{ display: 'block' }}>{user?.name || '사용자'}</Text>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>{user?.role || 'USER'}</Text>
+                </div>
+            ),
+            disabled: true,
+        },
+        {
+            type: 'divider' as const,
+        },
+        {
+            key: 'logout',
+            label: '로그아웃',
+            danger: true,
+            onClick: () => {
+                logout();
+                navigate('/login');
+            },
+        },
+    ];
 
     const menuItems = [
         {
@@ -43,22 +67,7 @@ const AppLayout: React.FC = () => {
         navigate(info.key);
     };
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
 
-    const userMenu = {
-        items: [
-            {
-                key: 'logout',
-                label: '로그아웃',
-                icon: <LogoutOutlined />,
-                onClick: handleLogout,
-                danger: true,
-            }
-        ]
-    };
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
@@ -101,20 +110,17 @@ const AppLayout: React.FC = () => {
                     boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
                     zIndex: 1
                 }}>
-                    <Dropdown menu={userMenu} placement="bottomRight" arrow>
-                        <Button type="text" style={{ height: 'auto', padding: '4px 8px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div style={{ textAlign: 'right', marginRight: 4 }}>
-                                    <Text strong style={{ display: 'block', lineHeight: 1.2 }}>{user?.email || 'User'}</Text>
-                                    <Text type="secondary" style={{ fontSize: '11px' }}>{user?.role || 'Operator'}</Text>
-                                </div>
-                                <Avatar
-                                    style={{ backgroundColor: '#1677ff' }}
-                                    icon={<UserOutlined />}
-                                />
-                            </div>
-                        </Button>
-                    </Dropdown>
+                    <div style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', gap: '8px' }}>
+                        {user && (
+                            <Text style={{ marginRight: 4 }}>{user.name}</Text>
+                        )}
+                        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
+                            <Avatar
+                                style={{ backgroundColor: '#1677ff', cursor: 'pointer' }}
+                                icon={<UserOutlined />}
+                            />
+                        </Dropdown>
+                    </div>
                 </Header>
                 <Content style={{ margin: '24px 16px', padding: 24, minHeight: 280 }}>
                     <Outlet />
