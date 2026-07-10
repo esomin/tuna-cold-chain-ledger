@@ -79,7 +79,7 @@ Tuna Cold Chain Ledger는 참치 유통 경로 및 초저온 보관 상태($-60^
 
 | 영역 (Area) | 기술 스택 (Tech Stack) | 도입 목적 및 상세 |
 | :--- | :--- | :--- |
-| **Frontend** | React (v19), Ant Design (v6), Recharts | 대시보드 UI 컴포넌트 빌드 및 실시간 그래프 시각화 |
+| **Frontend** | React (v19), shadcn/ui, Recharts | 대시보드 UI 컴포넌트 빌드 및 실시간 그래프 시각화 |
 | **Frontend** | Ethers.js | 스마트 계약 검증 정보 직접 조회 및 Web3 연동 |
 | **Backend** | NestJS (v10) | 모듈식 아키텍처 및 의존성 주입(DI)으로 높은 테스트 가능성과 확장성 제공 |
 | **Backend** | Socket.io | 실시간 IoT 데이터 브로드캐스팅 및 경고 이벤트 처리 |
