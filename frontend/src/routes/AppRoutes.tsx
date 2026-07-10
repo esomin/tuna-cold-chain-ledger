@@ -1,21 +1,14 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
-import SKUList from '../pages/SKUList';
-import PurchaseOrders from '../pages/PurchaseOrders';
-
-const DashboardRedirect = () => {
-    return <Navigate to="/skus" replace />;
-};
+import Dashboard from '../pages/Dashboard';
 
 const AppRoutes: React.FC = () => {
     return (
         <Routes>
             {/* Direct Routes */}
             <Route path="/" element={<AppLayout />}>
-                <Route index element={<DashboardRedirect />} />
-                <Route path="skus" element={<SKUList />} />
-                <Route path="purchase-orders" element={<PurchaseOrders />} />
+                <Route index element={<Dashboard />} />
 
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
@@ -25,3 +18,4 @@ const AppRoutes: React.FC = () => {
 };
 
 export default AppRoutes;
+

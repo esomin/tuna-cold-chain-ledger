@@ -1,7 +1,8 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useContext } from 'react';
 import type { ReactNode } from 'react';
 
 export interface User {
+    id: number;
     email: string;
     name: string;
     role: string;
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [user] = useState<User | null>({
+        id: 1,
         email: 'admin@example.com',
         name: 'Admin User',
         role: 'ADMIN',
@@ -26,11 +28,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [isLoading] = useState<boolean>(false);
 
     const login = async (email: string, pass: string) => {
-        // No-op
+        // Log parameters to avoid unused warning in a clean way
+        console.debug('Logging in mock user', email, pass.substring(0, 1) + '***');
     };
 
     const logout = () => {
-        // No-op
+        console.debug('Logging out mock user');
     };
 
     return (
@@ -47,3 +50,4 @@ export const useAuth = () => {
     }
     return context;
 };
+

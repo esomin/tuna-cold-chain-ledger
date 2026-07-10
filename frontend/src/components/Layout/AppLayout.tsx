@@ -1,133 +1,133 @@
-import React from 'react';
-import { Layout, Menu, Typography, theme, Avatar, Dropdown } from 'antd';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
-    BarChartOutlined,
-    DatabaseOutlined,
-    ShoppingCartOutlined,
-    UserOutlined
-} from '@ant-design/icons';
+    LayoutDashboard,
+    LogOut,
+    ChevronDown
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-
-const { Header, Sider, Content } = Layout;
-const { Title, Text } = Typography;
 
 const AppLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { logout, user } = useAuth();
-    const {
-        token: { colorBgContainer },
-    } = theme.useToken();
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const userMenuItems = [
-        {
-            key: 'profile',
-            label: (
-                <div style={{ padding: '4px 8px' }}>
-                    <Text strong style={{ display: 'block' }}>{user?.name || '사용자'}</Text>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>{user?.role || 'USER'}</Text>
-                </div>
-            ),
-            disabled: true,
-        },
-        {
-            type: 'divider' as const,
-        },
-        {
-            key: 'logout',
-            label: '로그아웃',
-            danger: true,
-            onClick: () => {
-                logout();
-                navigate('/login');
-            },
-        },
-    ];
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setUserMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const menuItems = [
         {
-            key: '/',
-            icon: <BarChartOutlined />,
+            path: '/',
+            icon: <LayoutDashboard className="w-5 h-5" />,
             label: '대시보드',
-        },
-        {
-            key: '/skus',
-            icon: <DatabaseOutlined />,
-            label: '재고(SKU) 관리',
-        },
-        {
-            key: '/purchase-orders',
-            icon: <ShoppingCartOutlined />,
-            label: '발주안 관리',
         }
     ];
 
-    const handleMenuClick = (info: { key: string }) => {
-        navigate(info.key);
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
     };
 
-
-
     return (
-        <Layout style={{ minHeight: '100vh' }}>
-            <Sider width={260} style={{ background: '#001529' }}>
-                <div style={{ padding: '24px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                        width: 32,
-                        height: 32,
-                        background: '#1677ff',
-                        borderRadius: 6,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
-                        fontWeight: 'bold',
-                        fontSize: '18px'
-                    }}>
-                        IF
+        <div className="flex min-h-screen bg-muted/20">
+            {/* Sidebar */}
+            <aside className="w-64 bg-[#121c2e] text-slate-100 flex flex-col shrink-0 border-r border-[#1a283f]">
+                {/* Logo Section */}
+                <div className="p-6 flex items-center gap-3 border-b border-[#1a283f]">
+                    <div className="w-8 h-8 bg-cyan-600 rounded-lg flex items-center justify-center text-white font-bold text-base shadow-sm">
+                        TC
                     </div>
-                    <Title level={5} style={{ color: 'white', margin: 0, fontWeight: 600 }}>
-                        Inventory<br />Forecaster
-                    </Title>
+                    <div>
+                        <h1 className="text-base font-bold tracking-tight text-white leading-none">
+                            <span className="text-[#46a5b8]">Tuna</span><span className="text-white">Chain</span>
+                        </h1>
+                    </div>
                 </div>
-                <Menu
-                    theme="dark"
-                    mode="inline"
-                    selectedKeys={[location.pathname]}
-                    items={menuItems}
-                    onClick={handleMenuClick}
-                    style={{ borderRight: 0 }}
-                />
-            </Sider>
-            <Layout>
-                <Header style={{
-                    padding: '0 24px',
-                    background: colorBgContainer,
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
-                    zIndex: 1
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', padding: '4px 8px', gap: '8px' }}>
+
+                {/* Nav Links */}
+                <nav className="flex-1 px-4 py-6 space-y-1.5">
+                    {menuItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border transition-all ${
+                                    isActive
+                                        ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20 shadow-sm font-semibold'
+                                        : 'text-slate-400 border-transparent hover:text-slate-100 hover:bg-[#1a283f]/60'
+                                }`}
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
+                            </Link>
+                        );
+                    })}
+                </nav>
+            </aside>
+
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-w-0">
+                {/* Header */}
+                <header className="h-16 bg-[#121c2e] border-b border-[#1a283f] px-6 flex items-center justify-end relative z-10 shadow-lg">
+                    <div className="flex items-center gap-4">
                         {user && (
-                            <Text style={{ marginRight: 4 }}>{user.name}</Text>
+                            <span className="text-sm text-slate-200 font-medium hidden sm:inline">
+                                {user.name}
+                            </span>
                         )}
-                        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
-                            <Avatar
-                                style={{ backgroundColor: '#1677ff', cursor: 'pointer' }}
-                                icon={<UserOutlined />}
-                            />
-                        </Dropdown>
+
+                        {/* User Menu Dropdown */}
+                        <div className="relative" ref={dropdownRef}>
+                            <button
+                                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                className="flex items-center gap-2 p-1.5 rounded-full hover:bg-[#1a283f] transition-all focus:outline-none"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-cyan-600 text-primary-foreground flex items-center justify-center font-bold text-sm shadow-sm select-none">
+                                    {user?.name ? user.name[0].toUpperCase() : 'U'}
+                                </div>
+                                <ChevronDown className="w-4 h-4 text-slate-400" />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {userMenuOpen && (
+                                <div className="absolute right-0 mt-2 w-56 bg-[#1a283f] border border-[#25395c] rounded-xl shadow-xl py-1.5 z-20">
+                                    <div className="px-4 py-2 border-b border-[#25395c]">
+                                        <p className="text-sm font-semibold text-slate-100 leading-none">{user?.name || '사용자'}</p>
+                                        <p className="text-xs text-slate-400 mt-1.5">{user?.role || 'USER'}</p>
+                                    </div>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-all text-left font-medium"
+                                    >
+                                        <LogOut className="w-4 h-4" />
+                                        <span>로그아웃</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </Header>
-                <Content style={{ margin: '24px 16px', padding: 24, minHeight: 280 }}>
+                </header>
+
+                {/* Subpage Content */}
+                <main className="flex-1 overflow-auto p-6">
                     <Outlet />
-                </Content>
-            </Layout>
-        </Layout>
+                </main>
+            </div>
+        </div>
     );
 };
 
 export default AppLayout;
+
