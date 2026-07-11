@@ -44,21 +44,26 @@ src/
 ---
 
 ## 4. Environment Variables
-로컬 개발 및 운영 서버를 실행하기 위해 `backend/.env` 파일에 아래 변수 목록을 구성해야 합니다.
+로컬 개발 및 운영 서버를 실행하고 Docker 인프라를 구동하기 위해 아래 명령어를 실행하여 `backend/.env`를 구성하고 프로젝트 루트 디렉토리에 심볼릭 링크를 생성합니다.
 
-* **`PORT`**: API 서버 포트 번호 (기본값: `3000`)
-* **`DB_HOST`**: PostgreSQL 데이터베이스 호스트
-* **`DB_PORT`**: PostgreSQL 데이터베이스 포트 (기본값: `5432`)
-* **`DB_USERNAME`**: PostgreSQL 계정명
-* **`DB_PASSWORD`**: PostgreSQL 패스워드
-* **`DB_DATABASE`**: PostgreSQL 데이터베이스 이름 (`inventory_db`)
-* **`JWT_SECRET`**: 사용자 세션 인증 토큰 생성용 JWT 시크릿 키
-* **`MONGO_URI`**: MongoDB 연결 스트링 (예: `mongodb://localhost:27017/coldchain`)
-* **`REDIS_HOST`**: Redis 서버 호스트 (예: `localhost`)
-* **`REDIS_PORT`**: Redis 서버 포트 (기본값: `6379`)
-* **`BLOCKCHAIN_RPC_URL`**: Hardhat 로컬 EVM RPC 엔드포인트 URL (예: `http://localhost:8545`)
-* **`CONTRACT_ADDRESS`**: 온체인 해시 기록을 위해 로컬망에 배포된 스마트 계약 주소
-* **`CONTRACT_PRIVATE_KEY`**: 스마트 계약에 트랜잭션을 전송하여 가스비를 소모할 서버 측 지갑의 비밀키
+```bash
+# 1. 예시 설정 파일을 복사하여 실제 .env 생성
+cp backend/.env.example backend/.env
+
+# 2. 루트 디렉토리에 심볼릭 링크 생성 (Mac / Linux 기준)
+ln -sf backend/.env .env
+```
+
+`backend/.env` 파일에 설정해야 하는 주요 변수 목록은 다음과 같습니다.
+
+* **`PORT`** (기본값: `3000`)
+* **`DB_HOST`**, **`DB_PORT`**, **`DB_USERNAME`**, **`DB_PASSWORD`**, **`DB_DATABASE`**
+* **`JWT_SECRET`** (사용자 인증 토큰 키)
+* **`MONGO_URI`** (MongoDB 연결 URI)
+* **`REDIS_HOST`**, **`REDIS_PORT`** (Redis 연결 정보)
+* **`BLOCKCHAIN_RPC_URL`** (로컬 Hardhat EVM의 RPC 엔드포인트 URL, 예: `http://localhost:8545`)
+* **`CONTRACT_ADDRESS`** (온체인 해시 기록을 위해 로컬망에 배포된 스마트 계약 주소)
+* **`CONTRACT_PRIVATE_KEY`** (트랜잭션을 발행하고 가스비를 소모할 서버 측 지갑의 개인키(Private Key))
 
 ---
 
