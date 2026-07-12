@@ -61,3 +61,8 @@ yarn-error.log*
 tmp/
 temp/
 .cache/
+
+# Hardhat (Blockchain local artifacts)
+backend/artifacts/
+backend/cache/
+backend/typechain-types/
