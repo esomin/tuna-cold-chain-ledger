@@ -5,6 +5,9 @@ import { PurchaseOrder } from '../entities/PurchaseOrder';
 import { Product } from '../entities/Product';
 import { CreatePurchaseOrderDto, UpdatePurchaseOrderDto } from './dto/create-purchase-order.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { InjectModel } from '@nestjs/mongoose/dist/common';
+import { Model } from 'mongoose';
+import { SensorRawLog } from './schemas/sensor-raw-log.schema';
 
 @Injectable()
 export class PurchaseOrdersService {
@@ -13,6 +16,8 @@ export class PurchaseOrdersService {
         private poRepository: Repository<PurchaseOrder>,
         @InjectRepository(Product)
         private productRepository: Repository<Product>,
+        @InjectModel(SensorRawLog.name)
+        private sensorLogModel: Model<SensorRawLog>,
         private auditLogsService: AuditLogsService,
     ) { }
 
@@ -77,5 +82,16 @@ export class PurchaseOrdersService {
         );
 
         return savedPo;
+    }
+
+    // 실시간 로그 저장 함수
+    async recordSensorLog(poNumber: string, temp: number, lat: number, lng: number) {
+        const newLog = new this.sensorLogModel({
+            poNumber,
+            temperature: temp,
+            latitude: lat,
+            longitude: lng,
+        });
+        return await newLog.save();
     }
 }
