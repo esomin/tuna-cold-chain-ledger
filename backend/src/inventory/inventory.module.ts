@@ -1,9 +1,0 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Inventory } from '../entities/Inventory';
-
-@Module({
-    imports: [TypeOrmModule.forFeature([Inventory])],
-    exports: [TypeOrmModule],
-})
-export class InventoryModule { }

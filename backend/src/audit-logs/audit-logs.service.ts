@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuditLog } from '../entities/AuditLog';
-import { User } from '../entities/User';
 
 @Injectable()
 export class AuditLogsService {
@@ -11,28 +10,24 @@ export class AuditLogsService {
         private auditLogRepository: Repository<AuditLog>,
     ) { }
 
-    async logAction(user: User, action: string, entityType: string, entityId: string, metadata?: Record<string, any>) {
+    async logAction(action: string, dataHash: string, txHash: string) {
         const log = this.auditLogRepository.create({
-            user,
             action,
-            entityType,
-            entityId,
-            metadata,
+            dataHash,
+            txHash,
         });
         return this.auditLogRepository.save(log);
     }
 
     async findAll() {
         return this.auditLogRepository.find({
-            relations: ['user'],
             order: { createdAt: 'DESC' },
         });
     }
 
-    async findByEntity(entityType: string, entityId: string) {
+    async findByAction(action: string) {
         return this.auditLogRepository.find({
-            where: { entityType, entityId },
-            relations: ['user'],
+            where: { action },
             order: { createdAt: 'DESC' },
         });
     }
