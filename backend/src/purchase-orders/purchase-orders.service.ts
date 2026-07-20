@@ -5,9 +5,11 @@ import { PurchaseOrder } from '../entities/PurchaseOrder';
 import { Product } from '../entities/Product';
 import { CreatePurchaseOrderDto, UpdatePurchaseOrderDto } from './dto/create-purchase-order.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { InjectModel } from '@nestjs/mongoose/dist/common';
+import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SensorRawLog } from './schemas/sensor-raw-log.schema';
+import { BlockchainService } from '../blockchain/blockchain.service';
+import { ethers } from 'ethers';
 
 @Injectable()
 export class PurchaseOrdersService {
@@ -19,6 +21,7 @@ export class PurchaseOrdersService {
         @InjectModel(SensorRawLog.name)
         private sensorLogModel: Model<SensorRawLog>,
         private auditLogsService: AuditLogsService,
+        private blockchainService: BlockchainService,
     ) { }
 
     private generatePoNumber(): string {
@@ -41,10 +44,22 @@ export class PurchaseOrdersService {
 
         const savedPo = await this.poRepository.save(po);
 
+        // 1. 발주 정보의 Keccak256 해시 연산
+        const rawData = `${savedPo.poNumber}:${product.sku}:${savedPo.quantity}:DRAFT`;
+        const dataHash = ethers.keccak256(ethers.toUtf8Bytes(rawData));
+
+        // 2. 스마트 계약 온체인 등록 (최초 어획 단계)
+        const txHash = await this.blockchainService.registerCheckpoint(
+            savedPo.poNumber,
+            dataHash,
+            'HARVESTED'
+        );
+
+        // 3. 감사 로그 적재
         await this.auditLogsService.logAction(
-            'CREATE_PO',
-            '0x' + '0'.repeat(64),
-            '0x' + '0'.repeat(64)
+            'CREATE_PO_HARVESTED',
+            dataHash,
+            txHash
         );
 
         return savedPo;
@@ -69,17 +84,33 @@ export class PurchaseOrdersService {
     async update(id: string, updateDto: UpdatePurchaseOrderDto) {
         const po = await this.findOne(id);
 
+        const oldStatus = po.status;
         if (updateDto.status) po.status = updateDto.status;
         if (updateDto.quantity) po.quantity = updateDto.quantity;
         if (updateDto.notes) po.notes = updateDto.notes;
 
         const savedPo = await this.poRepository.save(po);
 
-        await this.auditLogsService.logAction(
-            'UPDATE_PO',
-            '0x' + '0'.repeat(64),
-            '0x' + '0'.repeat(64)
-        );
+        // 상태값 업데이트 시 블록체인 및 감사 로그 동기화
+        if (updateDto.status && oldStatus !== updateDto.status) {
+            const checkpointId = `${savedPo.poNumber}-${updateDto.status}`;
+            const rawData = `${savedPo.poNumber}:${updateDto.status}:${new Date().toISOString()}`;
+            const dataHash = ethers.keccak256(ethers.toUtf8Bytes(rawData));
+
+            // 스마트 계약 온체인 등록
+            const txHash = await this.blockchainService.registerCheckpoint(
+                checkpointId,
+                dataHash,
+                updateDto.status
+            );
+
+            // 감사 로그 적재
+            await this.auditLogsService.logAction(
+                `UPDATE_PO_STATUS_${updateDto.status}`,
+                dataHash,
+                txHash
+            );
+        }
 
         return savedPo;
     }
