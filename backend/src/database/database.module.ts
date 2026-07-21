@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -17,6 +18,10 @@ import { ConfigModule } from '@nestjs/config';
         synchronize: false,
       }),
     }),
+    MongooseModule.forRoot(
+      process.env.MONGO_URI || 'mongodb://localhost:27018/coldchain',
+    ),
   ],
 })
 export class DatabaseModule {}
+
