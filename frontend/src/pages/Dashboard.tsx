@@ -9,7 +9,7 @@ import {
 import { OrderListPanel } from '../components/OrderListPanel';
 import { DistributionTimeline } from '../components/Timeline/DistributionTimeline';
 import { LiveMaplibreMap } from '../components/Map/LiveMaplibreMap';
-import { io } from 'socket.io-client';
+import { useTelemetry } from '../hooks/useTelemetry';
 
 interface PurchaseOrder {
   id: string;
@@ -24,107 +24,16 @@ interface PurchaseOrder {
   };
 }
 
-interface TelemetryData {
-  poNumber: string;
-  temperature: number;
-  latitude: number;
-  longitude: number;
-  timestamp: string;
-}
-
-interface AlertData {
-  poNumber: string;
-  temperature: number;
-  message: string;
-  timestamp: string;
-}
-
 const Dashboard: React.FC = () => {
   const [selectedPo, setSelectedPo] = useState<PurchaseOrder | null>(null);
-  const [liveTelemetry, setLiveTelemetry] = useState<TelemetryData | null>(null);
-  const [alerts, setAlerts] = useState<AlertData[]>([]);
-  const [simTemperature, setSimTemperature] = useState<number>(-58); // 기본값 -58도
-  const [socket, setSocket] = useState<any>(null);
-
-  // 웹소켓 연결 수립
-  useEffect(() => {
-    const socketUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:3000';
-    const newSocket = io(socketUrl);
-    setSocket(newSocket);
-
-    newSocket.on('live_telemetry', (data: TelemetryData) => {
-      // 현재 선택된 발주 건에 한해 실시간 수신 매핑
-      if (selectedPo && data.poNumber === selectedPo.poNumber) {
-        setLiveTelemetry(data);
-      }
-    });
-
-    newSocket.on('temperature_alert', (data: AlertData) => {
-      setAlerts((prev) => [data, ...prev].slice(0, 5)); // 최근 5개 유지
-    });
-
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [selectedPo]);
-
-  // 선택된 발주 시나리오에 따른 맵/차트 초기값 바인딩
-  useEffect(() => {
-    if (!selectedPo) return;
-
-    if (selectedPo.poNumber === 'PO-2026-SCENARIO-A') {
-      // 완료 시나리오: 고정 위치와 정상 온도 매핑
-      setLiveTelemetry({
-        poNumber: selectedPo.poNumber,
-        temperature: -57.5,
-        latitude: 37.5665,
-        longitude: 126.9780,
-        timestamp: new Date().toISOString(),
-      });
-      setSimTemperature(-57.5);
-    } else if (selectedPo.poNumber === 'PO-2026-SCENARIO-B') {
-      // 위험 이탈 시나리오: 고온 경고 데이터 강제 바인딩
-      setLiveTelemetry({
-        poNumber: selectedPo.poNumber,
-        temperature: -52.0,
-        latitude: 35.1796,
-        longitude: 129.0756,
-        timestamp: new Date().toISOString(),
-      });
-      setSimTemperature(-52.0);
-    } else {
-      // PO-2026-SCENARIO-C 및 기타 라이브 운송 상태: 중간 이동 경로 좌표 및 정상 온도 초기 바인딩
-      setLiveTelemetry({
-        poNumber: selectedPo.poNumber,
-        temperature: -58.0,
-        latitude: 36.5000,
-        longitude: 127.8000,
-        timestamp: new Date().toISOString(),
-      });
-      setSimTemperature(-58.0);
-    }
-  }, [selectedPo]);
-
-  // IoT 온도 시뮬레이터 조작 시 가상 센서 패킷 쏴주기
-  const handleSimulateTemperature = (newTemp: number) => {
-    setSimTemperature(newTemp);
-    if (!selectedPo || !socket) return;
-
-    const mockGps = {
-      'PO-2026-SCENARIO-A': { lat: 37.5665, lng: 126.9780 },
-      'PO-2026-SCENARIO-B': { lat: 35.1796, lng: 129.0756 },
-      'PO-2026-SCENARIO-C': { lat: 36.5, lng: 127.8 }
-    };
-    const gps = mockGps[selectedPo.poNumber as keyof typeof mockGps] || { lat: 37.5, lng: 127.5 };
-
-    // 소켓으로 실시간 텔레메트리 전송
-    socket.emit('send_telemetry', {
-      poNumber: selectedPo.poNumber,
-      temperature: newTemp,
-      latitude: gps.lat,
-      longitude: gps.lng,
-    });
-  };
+  
+  // 관심사의 분리를 위해 추상화된 useTelemetry 커스텀 훅 사용
+  const {
+    telemetry: liveTelemetry,
+    alerts,
+    simTemperature,
+    handleSimulateTemperature,
+  } = useTelemetry(selectedPo?.poNumber);
 
   return (
     <div
