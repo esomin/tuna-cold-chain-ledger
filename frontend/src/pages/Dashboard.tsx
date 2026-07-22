@@ -93,9 +93,15 @@ const Dashboard: React.FC = () => {
       });
       setSimTemperature(-52.0);
     } else {
-      // 라이브 시나리오: 초기 센서 대기 상태
-      setLiveTelemetry(null);
-      setSimTemperature(-58);
+      // PO-2026-SCENARIO-C 및 기타 라이브 운송 상태: 중간 이동 경로 좌표 및 정상 온도 초기 바인딩
+      setLiveTelemetry({
+        poNumber: selectedPo.poNumber,
+        temperature: -58.0,
+        latitude: 36.5000,
+        longitude: 127.8000,
+        timestamp: new Date().toISOString(),
+      });
+      setSimTemperature(-58.0);
     }
   }, [selectedPo]);
 
