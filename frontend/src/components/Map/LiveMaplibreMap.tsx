@@ -94,8 +94,8 @@ export const LiveMaplibreMap: React.FC<LiveMapProps> = ({ lat, lng, poNumber }) 
   }, [lat, lng]);
 
   return (
-    <div className="w-full h-full min-h-[300px] rounded-lg overflow-hidden relative">
-      <div ref={mapContainer} className="w-full h-full min-h-[300px]" />
+    <div className="w-full h-[380px] rounded-lg overflow-hidden relative">
+      <div ref={mapContainer} className="w-full h-[380px]" />
     </div>
   );
 };

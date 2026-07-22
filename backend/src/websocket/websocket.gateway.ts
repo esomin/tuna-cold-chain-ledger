@@ -17,11 +17,15 @@ import { PurchaseOrdersService } from '../purchase-orders/purchase-orders.servic
 })
 export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly logger = new Logger(WebsocketGateway.name);
+    private autoStreamInterval: NodeJS.Timeout | null = null;
+    private stepCount = 0;
 
     @WebSocketServer()
     server: Server;
 
-    constructor(private readonly poService: PurchaseOrdersService) { }
+    constructor(private readonly poService: PurchaseOrdersService) {
+        this.startAutoStreamingEngine();
+    }
 
     handleConnection(client: Socket) {
         this.logger.log(`Client connected: ${client.id}`);
@@ -32,7 +36,61 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
     }
 
     /**
-     * IoT 시뮬레이터가 전송하는 센서 데이터를 수신하여 처리합니다.
+     * PO-2026-SCENARIO-C (라이브 운송건) 전용 자동 센서 스트리밍 엔진
+     * 2.5초마다 파동 온도를 브로드캐스트하며, 15초마다(6번째 틱) -51.5°C 이탈 경고 패킷 발생
+     */
+    private startAutoStreamingEngine() {
+        if (this.autoStreamInterval) return;
+
+        this.autoStreamInterval = setInterval(async () => {
+            if (!this.server) return;
+
+            this.stepCount++;
+            const targetPo = 'PO-2026-SCENARIO-C';
+
+            // 15초에 한번씩(6번째 스텝) 온도 이탈 위험 파동 (-51.5°C) 발생, 평소에는 -58°C 근방 정상 사인파
+            const isAnomalyStep = this.stepCount % 6 === 0;
+            const temperature = isAnomalyStep 
+                ? Number((-51.5 + (Math.random() * 0.8)).toFixed(1))
+                : Number((-58.0 + Math.sin(this.stepCount * 0.5) * 0.8).toFixed(1));
+
+            // 경도/위도 미세 이동 시뮬레이션 (대전 -> 수도권 이동 경로)
+            const latitude = 36.5 + (this.stepCount % 50) * 0.005;
+            const longitude = 127.8 + (this.stepCount % 50) * 0.003;
+
+            try {
+                // MongoDB 적재
+                await this.poService.recordSensorLog(targetPo, temperature, latitude, longitude);
+
+                // 실시간 대시보드 브로드캐스트
+                this.server.emit('live_telemetry', {
+                    poNumber: targetPo,
+                    temperature,
+                    latitude,
+                    longitude,
+                    timestamp: new Date(),
+                });
+
+                // -55°C 임계치 초과 시 경고 이벤트 발송
+                if (temperature > -55) {
+                    const alertMsg = `⚠️ 경고: [${targetPo}] 참치 보관 온도 위험! 현재 온도 ${temperature}°C (기준 임계치: -55°C)`;
+                    this.logger.warn(alertMsg);
+
+                    this.server.emit('temperature_alert', {
+                        poNumber: targetPo,
+                        temperature,
+                        message: alertMsg,
+                        timestamp: new Date().toISOString(),
+                    });
+                }
+            } catch (err) {
+                // 무시 또는 로깅
+            }
+        }, 2500); // 2.5초 간격
+    }
+
+    /**
+     * IoT 시뮬레이터 수동 패킷 수신 처리
      */
     @SubscribeMessage('send_telemetry')
     async handleTelemetry(@MessageBody() data: {
@@ -65,7 +123,7 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
                     poNumber,
                     temperature,
                     message: alertMsg,
-                    timestamp: new Date(),
+                    timestamp: new Date().toISOString(),
                 });
             }
         } catch (error) {

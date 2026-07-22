@@ -73,7 +73,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
     return (
         <div className="space-y-4">
             <h3 className="text-lg font-semibold" style={{ color: 'var(--theme-cream)' }}>운송 목록 피드</h3>
-            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
                 {orders.map((order) => {
                     const isSelected = selectedPoId === order.id;
                     return (

@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   QrCode,
   MapPin,
   Thermometer,
-  Sliders,
   AlertTriangle
 } from 'lucide-react';
 import { OrderListPanel } from '../components/OrderListPanel';
@@ -26,18 +25,17 @@ interface PurchaseOrder {
 
 const Dashboard: React.FC = () => {
   const [selectedPo, setSelectedPo] = useState<PurchaseOrder | null>(null);
-  
+
   // 관심사의 분리를 위해 추상화된 useTelemetry 커스텀 훅 사용
   const {
     telemetry: liveTelemetry,
     alerts,
     simTemperature,
-    handleSimulateTemperature,
   } = useTelemetry(selectedPo?.poNumber);
 
   return (
     <div
-      className="min-h-screen p-6 -m-6"
+      className="p-6 -m-6"
       style={{
         backgroundColor: 'var(--theme-night)',
         color: 'var(--theme-cream)'
@@ -77,7 +75,6 @@ const Dashboard: React.FC = () => {
               color: 'var(--theme-aqua)'
             }}
           >
-            <QrCode className="w-4 h-4" />
             <span>소비자 모바일 검증 뷰어 ↗</span>
           </a>
 
@@ -88,8 +85,8 @@ const Dashboard: React.FC = () => {
               color: 'var(--theme-cream)'
             }}
           >
-            <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: 'var(--theme-aqua)' }} />
-            <span className="font-medium" style={{ color: 'rgba(var(--theme-cream-rgb), 0.9)' }}>Ethers.js Local Node Connected</span>
+            <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: '#10B981' }} />
+            <span>실시간 블록체인 락업 활성화</span>
           </div>
         </div>
       </div>
@@ -177,7 +174,7 @@ const Dashboard: React.FC = () => {
 
           {/* Live Map Panel */}
           <div
-            className="rounded-xl p-5 shadow-lg flex flex-col gap-4 flex-1"
+            className="rounded-xl p-5 shadow-lg flex flex-col gap-4"
             style={{
               backgroundColor: 'var(--theme-card-bg)'
             }}
@@ -199,13 +196,13 @@ const Dashboard: React.FC = () => {
 
             {/* Real MapLibre GL Vector Map */}
             <div
-              className="flex-1 rounded-lg min-h-[300px] flex flex-col justify-between relative overflow-hidden"
+              className="rounded-lg h-[380px] flex flex-col justify-between relative overflow-hidden shrink-0"
               style={{
                 backgroundColor: 'var(--theme-card-inner-bg)'
               }}
             >
               {liveTelemetry ? (
-                <div className="relative w-full h-full min-h-[300px]">
+                <div className="relative w-full h-[380px]">
                   <LiveMaplibreMap
                     lat={liveTelemetry.latitude}
                     lng={liveTelemetry.longitude}
@@ -284,48 +281,6 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* IoT Simulator Controls */}
-          {selectedPo && (
-            <div
-              className="rounded-xl p-5 shadow-lg flex flex-col gap-4"
-              style={{
-                backgroundColor: 'var(--theme-card-bg)'
-              }}
-            >
-              <div className="flex justify-between items-center">
-                <h2 className="text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>
-                  <Sliders className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
-                  IoT Simulator Controls
-                </h2>
-                <span className="text-[10px] font-medium" style={{ color: 'var(--theme-aqua)' }}>가상 온도 조절 슬라이더</span>
-              </div>
-              <div
-                className="rounded-lg p-5 flex flex-col gap-3"
-                style={{
-                  backgroundColor: 'var(--theme-card-inner-bg)'
-                }}
-              >
-                <div className="flex justify-between text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
-                  <span>최저 (-60°C)</span>
-                  <span className="font-bold" style={{ color: 'var(--theme-cream)' }}>설정값: {simTemperature}°C</span>
-                  <span>최고 (-45°C)</span>
-                </div>
-                <input
-                  type="range"
-                  min="-60"
-                  max="-45"
-                  value={simTemperature}
-                  onChange={(e) => handleSimulateTemperature(Number(e.target.value))}
-                  className="w-full h-1.5 rounded-lg appearance-none cursor-pointer"
-                  style={{ accentColor: 'var(--theme-aqua)' }}
-                />
-                <p className="text-[9px] leading-normal text-center mt-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>
-                  슬라이더를 조작해 온도를 **-55°C 초과**로 올리면 웹소켓을 통해 실시간으로 경고(Alert) 피드가 발행됩니다.
-                </p>
-              </div>
-            </div>
-          )}
 
         </div>
 
