@@ -48,8 +48,8 @@ export class WebsocketGateway implements OnGatewayConnection, OnGatewayDisconnec
             this.stepCount++;
             const targetPo = 'PO-2026-SCENARIO-C';
 
-            // 15초에 한번씩(6번째 스텝) 온도 이탈 위험 파동 (-51.5°C) 발생, 평소에는 -58°C 근방 정상 사인파
-            const isAnomalyStep = this.stepCount % 6 === 0;
+            // 30초에 한번씩(12번째 스텝) 온도 이탈 위험 파동 (-51.5°C) 발생, 평소에는 -58°C 근방 정상 사인파
+            const isAnomalyStep = this.stepCount > 0 && this.stepCount % 12 === 0;
             const temperature = isAnomalyStep 
                 ? Number((-51.5 + (Math.random() * 0.8)).toFixed(1))
                 : Number((-58.0 + Math.sin(this.stepCount * 0.5) * 0.8).toFixed(1));

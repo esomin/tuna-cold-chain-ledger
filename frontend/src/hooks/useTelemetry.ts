@@ -43,6 +43,9 @@ export const useTelemetry = (selectedPoNumber?: string) => {
 
   // 2. 웹소켓 연결 및 실시간 텔레메트리 / 알림 수신
   useEffect(() => {
+    // 발주 선택 변경 시 이전 경고 피드 비우기
+    setAlerts([]);
+
     const socketUrl = import.meta.env.VITE_API_URL
       ? import.meta.env.VITE_API_URL.replace('/api', '')
       : 'http://localhost:3000';
@@ -58,7 +61,10 @@ export const useTelemetry = (selectedPoNumber?: string) => {
     });
 
     newSocket.on('temperature_alert', (data: AlertData) => {
-      setAlerts((prev) => [data, ...prev].slice(0, 5));
+      // 현재 선택된 발주건에 관한 경고일 경우에만 피드에 수신 추가
+      if (selectedPoNumber && data.poNumber === selectedPoNumber) {
+        setAlerts((prev) => [data, ...prev].slice(0, 5));
+      }
     });
 
     return () => {
@@ -86,9 +92,15 @@ export const useTelemetry = (selectedPoNumber?: string) => {
     });
   };
 
+  // 4. 경고 피드 초기화/삭제 핸들러
+  const clearAlerts = () => {
+    setAlerts([]);
+  };
+
   return {
     telemetry,
     alerts,
+    clearAlerts,
     simTemperature,
     handleSimulateTemperature,
   };

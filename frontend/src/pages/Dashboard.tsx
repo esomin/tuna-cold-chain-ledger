@@ -30,6 +30,7 @@ const Dashboard: React.FC = () => {
   const {
     telemetry: liveTelemetry,
     alerts,
+    clearAlerts,
     simTemperature,
   } = useTelemetry(selectedPo?.poNumber);
 
@@ -301,7 +302,16 @@ const Dashboard: React.FC = () => {
                 <AlertTriangle className="w-4 h-4 text-rose-400 animate-pulse" />
                 Quality Alerts
               </h2>
-              <span className="text-[10px] text-rose-400 font-medium">경고 피드</span>
+              {alerts.length > 0 ? (
+                <button
+                  onClick={clearAlerts}
+                  className="text-[10px] text-rose-400 hover:text-rose-300 hover:underline transition-colors font-medium cursor-pointer"
+                >
+                  지우기 ({alerts.length})
+                </button>
+              ) : (
+                <span className="text-[10px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>경고 피드</span>
+              )}
             </div>
 
             <div className="flex flex-col gap-3 max-h-[220px] overflow-y-auto pr-1">
