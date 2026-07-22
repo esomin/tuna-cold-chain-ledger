@@ -119,7 +119,7 @@ const ConsumerVerify: React.FC = () => {
         >
             {/* Mobile View Container */}
             <div 
-                className="w-full max-w-md flex flex-col min-h-screen relative shadow-2xl overflow-hidden pb-12"
+                className="w-full max-w-lg flex flex-col min-h-screen relative shadow-2xl overflow-hidden pb-12"
                 style={{
                     backgroundColor: 'var(--theme-night)',
                     borderLeft: '1px solid rgba(var(--theme-cream-rgb), 0.15)',
@@ -268,7 +268,7 @@ const ConsumerVerify: React.FC = () => {
                                 <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>유통 파이프라인 타임라인</h3>
 
                                 <div className="space-y-3 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5" style={{ '--tw-before-bg': 'rgba(var(--theme-cream-rgb), 0.15)' } as any}>
-                                    {/* Step 1 */}
+                                    {/* Step 1: Harvested */}
                                     <div className="flex items-start gap-3 relative z-10">
                                         <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" style={{ backgroundColor: 'var(--theme-aqua)', color: 'var(--theme-night)' }}>
                                             <Anchor className="w-4 h-4" />
@@ -279,7 +279,7 @@ const ConsumerVerify: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Step 2 */}
+                                    {/* Step 2: Processing */}
                                     <div className="flex items-start gap-3 relative z-10">
                                         <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" style={{ backgroundColor: 'var(--theme-aqua)', color: 'var(--theme-night)' }}>
                                             <Box className="w-4 h-4" />
@@ -290,25 +290,53 @@ const ConsumerVerify: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Step 3 */}
+                                    {/* Step 3: In-Transit */}
                                     <div className="flex items-start gap-3 relative z-10">
-                                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" style={{ backgroundColor: 'var(--theme-aqua)', color: 'var(--theme-night)' }}>
+                                        <div 
+                                            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" 
+                                            style={{ 
+                                                backgroundColor: data.purchaseOrder.status !== 'COMPLETED' ? '#10B981' : 'var(--theme-aqua)', 
+                                                color: data.purchaseOrder.status !== 'COMPLETED' ? 'white' : 'var(--theme-night)' 
+                                            }}
+                                        >
                                             <Truck className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold" style={{ color: 'var(--theme-cream)' }}>3단계: 콜드체인 운송 (In-Transit)</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-xs font-bold" style={{ color: 'var(--theme-cream)' }}>3단계: 운송중 (In-Transit)</p>
+                                                {data.purchaseOrder.status !== 'COMPLETED' && (
+                                                    <span className="text-[9px] bg-[#10B981]/15 text-[#10B981] px-1.5 py-0.5 rounded border border-[#10B981]/30 font-bold animate-pulse">
+                                                        현재 진행 단계
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>IoT 센서 실시간 위치/온도 스트리밍 관제</p>
                                         </div>
                                     </div>
 
-                                    {/* Step 4 */}
+                                    {/* Step 4: Delivered */}
                                     <div className="flex items-start gap-3 relative z-10">
-                                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" style={{ backgroundColor: '#10B981', color: 'white' }}>
+                                        <div 
+                                            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" 
+                                            style={{ 
+                                                backgroundColor: data.purchaseOrder.status === 'COMPLETED' ? '#10B981' : 'rgba(var(--theme-cream-rgb), 0.15)', 
+                                                color: data.purchaseOrder.status === 'COMPLETED' ? 'white' : 'rgba(var(--theme-cream-rgb), 0.4)' 
+                                            }}
+                                        >
                                             <Store className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold" style={{ color: 'var(--theme-cream)' }}>4단계: 매장 입고 & 검증 (Delivered)</p>
-                                            <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>최종 소비자 정품 인증 씰 발급 완료</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-xs font-bold" style={{ color: data.purchaseOrder.status === 'COMPLETED' ? 'var(--theme-cream)' : 'rgba(var(--theme-cream-rgb), 0.5)' }}>
+                                                    4단계: 매장 입고 & 검증 (Delivered)
+                                                </p>
+                                                {data.purchaseOrder.status === 'COMPLETED' && (
+                                                    <span className="text-[9px] bg-[#10B981]/15 text-[#10B981] px-1.5 py-0.5 rounded border border-[#10B981]/30 font-bold">
+                                                        최종 완료
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>최종 소비자 정품 인증 씰 발급 완료</p>
                                         </div>
                                     </div>
                                 </div>
