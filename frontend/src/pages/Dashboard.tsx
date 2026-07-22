@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  QrCode, 
-  MapPin, 
-  Thermometer, 
-  Sliders, 
-  AlertTriangle 
+import {
+  QrCode,
+  MapPin,
+  Thermometer,
+  Sliders,
+  AlertTriangle
 } from 'lucide-react';
 import { OrderListPanel } from '../components/OrderListPanel';
 import { DistributionTimeline } from '../components/Timeline/DistributionTimeline';
+import { LiveMaplibreMap } from '../components/Map/LiveMaplibreMap';
 import { io } from 'socket.io-client';
 
 interface PurchaseOrder {
@@ -18,8 +19,8 @@ interface PurchaseOrder {
   supplierName: string;
   notes: string;
   product: {
-      sku: string;
-      name: string;
+    sku: string;
+    name: string;
   };
 }
 
@@ -120,7 +121,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen p-6 -m-6"
       style={{
         backgroundColor: 'var(--theme-night)',
@@ -128,14 +129,14 @@ const Dashboard: React.FC = () => {
       }}
     >
       {/* TOP HEADER */}
-      <div 
+      <div
         className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b"
         style={{ borderColor: 'rgba(var(--theme-aqua-rgb), 0.2)' }}
       >
         <div>
           <h1 className="text-xl font-bold tracking-tight flex items-center gap-2" style={{ color: 'var(--theme-cream)' }}>
-            <span>참치 수급예측 & 콜드체인 무결성 관제센터</span>
-            <span 
+            <span>Tuna Cold Chain Integrity Control Center</span>
+            <span
               className="text-[10px] px-2 py-0.5 rounded font-mono font-normal"
               style={{
                 backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)',
@@ -146,7 +147,7 @@ const Dashboard: React.FC = () => {
             </span>
           </h1>
           <p className="text-xs mt-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
-            원양 어획부터 모바일 소비자 무결성 검증까지 실시간 모니터링
+            Real-time monitoring from ocean harvesting to mobile consumer integrity verification
           </p>
         </div>
 
@@ -165,7 +166,7 @@ const Dashboard: React.FC = () => {
             <span>소비자 모바일 검증 뷰어 ↗</span>
           </a>
 
-          <div 
+          <div
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs"
             style={{
               backgroundColor: 'var(--theme-card-bg)',
@@ -180,25 +181,25 @@ const Dashboard: React.FC = () => {
 
       {/* Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
-        
+
         {/* ========================================================================= */}
         {/* LEFT COLUMN: 발주/운송 목록 피드 - col-span-3 */}
         {/* ========================================================================= */}
         <div className="lg:col-span-3 flex flex-col gap-6">
-          <div 
+          <div
             className="rounded-xl p-5 shadow-lg"
             style={{
               backgroundColor: 'var(--theme-card-bg)'
             }}
           >
-            <OrderListPanel 
+            <OrderListPanel
               selectedPoId={selectedPo ? selectedPo.id : null}
               onSelectPo={(po) => setSelectedPo(po)}
             />
           </div>
 
           {/* Verification Portal (QR Hover) */}
-          <div 
+          <div
             className="rounded-xl p-5 shadow-lg relative group"
             style={{
               backgroundColor: 'var(--theme-card-bg)'
@@ -211,7 +212,7 @@ const Dashboard: React.FC = () => {
               </h2>
               <span className="text-[10px] font-medium" style={{ color: 'var(--theme-aqua)' }}>QR 검증</span>
             </div>
-            <div 
+            <div
               className="rounded-lg p-4 text-center flex flex-col items-center justify-center min-h-[140px]"
               style={{
                 backgroundColor: 'var(--theme-card-inner-bg)'
@@ -223,10 +224,10 @@ const Dashboard: React.FC = () => {
                 마우스 오버시 모바일 시뮬레이터가 팝업되어 소비자용 블록체인 정품 인증서를 노출합니다.
               </p>
             </div>
-            
+
             {/* Hover Mobile Simulator Mockup */}
             {selectedPo && (
-              <div 
+              <div
                 className="absolute left-[102%] top-0 z-50 w-72 rounded-2xl p-4 shadow-2xl opacity-0 translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto transition-all duration-300"
                 style={{
                   backgroundColor: 'var(--theme-card-bg)'
@@ -234,7 +235,7 @@ const Dashboard: React.FC = () => {
               >
                 <div className="w-12 h-1 rounded-full mx-auto mb-3" style={{ backgroundColor: 'rgba(var(--theme-cream-rgb), 0.2)' }} />
                 <h4 className="text-xs font-bold text-center mb-2" style={{ color: 'var(--theme-aqua)' }}>Tuna Chain Cert (Mobile)</h4>
-                <div 
+                <div
                   className="rounded-lg p-3 text-[10px] space-y-2"
                   style={{
                     backgroundColor: 'var(--theme-card-inner-bg)'
@@ -258,9 +259,9 @@ const Dashboard: React.FC = () => {
         {/* CENTER COLUMN: 실시간 관제 지도 및 온도 추이 - col-span-6 */}
         {/* ========================================================================= */}
         <div className="lg:col-span-6 flex flex-col gap-6">
-          
+
           {/* Live Map Panel */}
-          <div 
+          <div
             className="rounded-xl p-5 shadow-lg flex flex-col gap-4 flex-1"
             style={{
               backgroundColor: 'var(--theme-card-bg)'
@@ -280,46 +281,40 @@ const Dashboard: React.FC = () => {
                 <span className="text-[10px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>대기 중</span>
               )}
             </div>
-            
-            {/* Interactive Vector / Mock map representation */}
-            <div 
-              className="flex-1 rounded-lg p-6 min-h-[300px] flex flex-col justify-center items-center relative overflow-hidden"
+
+            {/* Real MapLibre GL Vector Map */}
+            <div
+              className="flex-1 rounded-lg min-h-[300px] flex flex-col justify-between relative overflow-hidden"
               style={{
                 backgroundColor: 'var(--theme-card-inner-bg)'
               }}
             >
               {liveTelemetry ? (
-                <div className="w-full h-full flex flex-col justify-between items-center text-center py-8 z-10">
-                  <div 
-                    className="p-3 rounded-full animate-bounce"
-                    style={{
-                      backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)',
-                      color: 'var(--theme-aqua)'
-                    }}
-                  >
-                    <MapPin className="w-8 h-8" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: 'var(--theme-cream)' }}>현재 차량 실시간 GPS 좌표</p>
-                    <p className="font-mono text-xs mt-1" style={{ color: 'var(--theme-aqua)' }}>
+                <div className="relative w-full h-full min-h-[300px]">
+                  <LiveMaplibreMap
+                    lat={liveTelemetry.latitude}
+                    lng={liveTelemetry.longitude}
+                    poNumber={selectedPo ? selectedPo.poNumber : undefined}
+                  />
+                  {/* Top Floating Map HUD */}
+                  <div className="absolute top-2 left-2 z-10 text-[11px] px-2.5 py-1 rounded-md shadow-md border flex items-center gap-2" style={{ backgroundColor: 'rgba(24, 25, 26, 0.85)', borderColor: 'rgba(var(--theme-cream-rgb), 0.15)', backdropFilter: 'blur(4px)' }}>
+                    <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: 'var(--theme-aqua)' }} />
+                    <span className="font-mono text-xs font-bold" style={{ color: 'var(--theme-aqua)' }}>
                       Lat: {liveTelemetry.latitude.toFixed(4)} | Lng: {liveTelemetry.longitude.toFixed(4)}
-                    </p>
-                    <p className="text-[10px] mt-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>부산항 출발 ➜ 허브센터 물류 이동 루트</p>
+                    </span>
                   </div>
                 </div>
               ) : (
-                <div className="text-center">
+                <div className="text-center py-20">
                   <MapPin className="w-10 h-10 mx-auto mb-2" style={{ color: 'rgba(var(--theme-cream-rgb), 0.3)' }} />
                   <p className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>선택된 발주의 유통 지도가 렌더링됩니다.</p>
                 </div>
               )}
-              {/* Decorative map grids */}
-              <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] bg-[size:24px_24px]" />
             </div>
           </div>
 
           {/* Temperature Chart Panel */}
-          <div 
+          <div
             className="rounded-xl p-5 shadow-lg flex flex-col gap-4"
             style={{
               backgroundColor: 'var(--theme-card-bg)'
@@ -332,8 +327,8 @@ const Dashboard: React.FC = () => {
               </h2>
               <span className="text-[10px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>Last 24 Hours</span>
             </div>
-            
-            <div 
+
+            <div
               className="rounded-lg p-6 min-h-[200px] flex flex-col justify-center items-center text-center relative overflow-hidden"
               style={{
                 backgroundColor: 'var(--theme-card-inner-bg)'
@@ -347,7 +342,7 @@ const Dashboard: React.FC = () => {
                     </span>
                     <span className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>현재 보관 온도</span>
                   </div>
-                  <span 
+                  <span
                     className="text-[10px] px-2 py-0.5 rounded"
                     style={{
                       backgroundColor: simTemperature > -55 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(var(--theme-aqua-rgb), 0.15)',
@@ -365,7 +360,7 @@ const Dashboard: React.FC = () => {
               )}
               {/* Fake red threshold line */}
               <div className="absolute left-0 right-0 top-[60%] border-t border-rose-500/40 flex items-center justify-end pr-4 pointer-events-none">
-                <span 
+                <span
                   className="text-[8px] text-rose-400 px-1 py-0.5 rounded -mt-2.5 font-medium"
                   style={{ backgroundColor: 'var(--theme-card-bg)' }}
                 >
@@ -377,7 +372,7 @@ const Dashboard: React.FC = () => {
 
           {/* IoT Simulator Controls */}
           {selectedPo && (
-            <div 
+            <div
               className="rounded-xl p-5 shadow-lg flex flex-col gap-4"
               style={{
                 backgroundColor: 'var(--theme-card-bg)'
@@ -390,7 +385,7 @@ const Dashboard: React.FC = () => {
                 </h2>
                 <span className="text-[10px] font-medium" style={{ color: 'var(--theme-aqua)' }}>가상 온도 조절 슬라이더</span>
               </div>
-              <div 
+              <div
                 className="rounded-lg p-5 flex flex-col gap-3"
                 style={{
                   backgroundColor: 'var(--theme-card-inner-bg)'
@@ -401,10 +396,10 @@ const Dashboard: React.FC = () => {
                   <span className="font-bold" style={{ color: 'var(--theme-cream)' }}>설정값: {simTemperature}°C</span>
                   <span>최고 (-45°C)</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="-60" 
-                  max="-45" 
+                <input
+                  type="range"
+                  min="-60"
+                  max="-45"
                   value={simTemperature}
                   onChange={(e) => handleSimulateTemperature(Number(e.target.value))}
                   className="w-full h-1.5 rounded-lg appearance-none cursor-pointer"
@@ -423,9 +418,9 @@ const Dashboard: React.FC = () => {
         {/* RIGHT COLUMN: 온체인 감사 타임라인 및 실시간 경고 피드 - col-span-3 */}
         {/* ========================================================================= */}
         <div className="lg:col-span-3 flex flex-col gap-6">
-          
+
           {/* Quality Alerts Feed */}
-          <div 
+          <div
             className="rounded-xl p-5 shadow-lg flex flex-col gap-4"
             style={{
               backgroundColor: 'var(--theme-card-bg)'
@@ -438,7 +433,7 @@ const Dashboard: React.FC = () => {
               </h2>
               <span className="text-[10px] text-rose-400 font-medium">경고 피드</span>
             </div>
-            
+
             <div className="flex flex-col gap-3 max-h-[220px] overflow-y-auto pr-1">
               {alerts.length > 0 ? (
                 alerts.map((alert, idx) => (
@@ -460,13 +455,13 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Web3 Ledger Timeline */}
-          <div 
+          <div
             className="rounded-xl p-5 shadow-lg flex-1"
             style={{
               backgroundColor: 'var(--theme-card-bg)'
             }}
           >
-            <DistributionTimeline 
+            <DistributionTimeline
               poNumber={selectedPo ? selectedPo.poNumber : null}
               status={selectedPo ? selectedPo.status : null}
             />
