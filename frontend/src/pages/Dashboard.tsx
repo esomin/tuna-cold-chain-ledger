@@ -120,17 +120,32 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#080d1a] text-slate-100 p-6 -m-6">
+    <div 
+      className="min-h-screen p-6 -m-6"
+      style={{
+        backgroundColor: 'var(--theme-night)',
+        color: 'var(--theme-cream)'
+      }}
+    >
       {/* TOP HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div 
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b"
+        style={{ borderColor: 'rgba(var(--theme-aqua-rgb), 0.2)' }}
+      >
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2" style={{ color: 'var(--theme-cream)' }}>
             <span>참치 수급예측 & 콜드체인 무결성 관제센터</span>
-            <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20 font-mono font-normal">
+            <span 
+              className="text-[10px] px-2 py-0.5 rounded font-mono font-normal"
+              style={{
+                backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)',
+                color: 'var(--theme-aqua)'
+              }}
+            >
               v1.0-LIVE
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs mt-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
             원양 어획부터 모바일 소비자 무결성 검증까지 실시간 모니터링
           </p>
         </div>
@@ -140,27 +155,42 @@ const Dashboard: React.FC = () => {
             href={`/verify/${selectedPo ? selectedPo.poNumber : 'PO-2026-SCENARIO-A'}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-all shadow-sm shadow-emerald-500/10"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm"
+            style={{
+              backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)',
+              color: 'var(--theme-aqua)'
+            }}
           >
             <QrCode className="w-4 h-4" />
             <span>소비자 모바일 검증 뷰어 ↗</span>
           </a>
 
-          <div className="flex items-center gap-2 bg-[#0f172a] px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="text-slate-300 font-medium">Ethers.js Local Node Connected</span>
+          <div 
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs"
+            style={{
+              backgroundColor: 'var(--theme-card-bg)',
+              color: 'var(--theme-cream)'
+            }}
+          >
+            <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: 'var(--theme-aqua)' }} />
+            <span className="font-medium" style={{ color: 'rgba(var(--theme-cream-rgb), 0.9)' }}>Ethers.js Local Node Connected</span>
           </div>
         </div>
       </div>
 
       {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
         
         {/* ========================================================================= */}
         {/* LEFT COLUMN: 발주/운송 목록 피드 - col-span-3 */}
         {/* ========================================================================= */}
         <div className="lg:col-span-3 flex flex-col gap-6">
-          <div className="bg-[#0f172a]/80 border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div 
+            className="rounded-xl p-5 shadow-lg"
+            style={{
+              backgroundColor: 'var(--theme-card-bg)'
+            }}
+          >
             <OrderListPanel 
               selectedPoId={selectedPo ? selectedPo.id : null}
               onSelectPo={(po) => setSelectedPo(po)}
@@ -168,37 +198,57 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Verification Portal (QR Hover) */}
-          <div className="bg-[#0f172a]/80 border border-cyan-500/20 rounded-xl p-5 shadow-[0_0_15px_rgba(6,182,212,0.05)] relative group">
+          <div 
+            className="rounded-xl p-5 shadow-lg relative group"
+            style={{
+              backgroundColor: 'var(--theme-card-bg)'
+            }}
+          >
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-semibold tracking-wider text-cyan-400 uppercase flex items-center gap-1.5">
-                <QrCode className="w-4 h-4 text-cyan-400" />
+              <h2 className="text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5" style={{ color: 'var(--theme-aqua)' }}>
+                <QrCode className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
                 Verification Portal
               </h2>
-              <span className="text-[10px] text-cyan-400 font-medium">QR 검증</span>
+              <span className="text-[10px] font-medium" style={{ color: 'var(--theme-aqua)' }}>QR 검증</span>
             </div>
-            <div className="border border-cyan-500/10 rounded-lg p-4 bg-cyan-950/5 text-center flex flex-col items-center justify-center min-h-[140px]">
-              <QrCode className="w-12 h-12 text-cyan-400/80 mb-2" />
-              <p className="text-xs text-cyan-300 font-medium">소비자 검증 웹 뷰어 QR</p>
-              <p className="text-[9px] text-cyan-500/80 mt-1.5 leading-relaxed">
+            <div 
+              className="rounded-lg p-4 text-center flex flex-col items-center justify-center min-h-[140px]"
+              style={{
+                backgroundColor: 'var(--theme-card-inner-bg)'
+              }}
+            >
+              <QrCode className="w-12 h-12 mb-2" style={{ color: 'var(--theme-aqua)' }} />
+              <p className="text-xs font-medium" style={{ color: 'var(--theme-cream)' }}>소비자 검증 웹 뷰어 QR</p>
+              <p className="text-[9px] mt-1.5 leading-relaxed" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
                 마우스 오버시 모바일 시뮬레이터가 팝업되어 소비자용 블록체인 정품 인증서를 노출합니다.
               </p>
             </div>
             
             {/* Hover Mobile Simulator Mockup */}
             {selectedPo && (
-              <div className="absolute left-[102%] top-0 z-50 w-72 bg-slate-950 border border-cyan-500/30 rounded-2xl p-4 shadow-2xl opacity-0 translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto transition-all duration-300">
-                <div className="w-12 h-1 bg-slate-800 rounded-full mx-auto mb-3" />
-                <h4 className="text-xs font-bold text-center text-cyan-400 mb-2">Tuna Chain Cert (Mobile)</h4>
-                <div className="bg-slate-900 rounded-lg p-3 text-[10px] space-y-2 border border-slate-800">
-                  <p className="text-slate-400">발주 번호: <span className="text-slate-200 font-mono font-bold">{selectedPo.poNumber}</span></p>
-                  <p className="text-slate-400">품목명: <span className="text-slate-200">{selectedPo.product.name}</span></p>
-                  <p className="text-slate-400">최종 유통상태: <span className="text-emerald-400 font-bold">{selectedPo.status}</span></p>
-                  <div className="border-t border-slate-800 pt-2 flex justify-between items-center">
-                    <span className="text-slate-500">정품 보증 여부</span>
-                    <span className="text-emerald-400 font-bold">✓ VERIFIED</span>
+              <div 
+                className="absolute left-[102%] top-0 z-50 w-72 rounded-2xl p-4 shadow-2xl opacity-0 translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto transition-all duration-300"
+                style={{
+                  backgroundColor: 'var(--theme-card-bg)'
+                }}
+              >
+                <div className="w-12 h-1 rounded-full mx-auto mb-3" style={{ backgroundColor: 'rgba(var(--theme-cream-rgb), 0.2)' }} />
+                <h4 className="text-xs font-bold text-center mb-2" style={{ color: 'var(--theme-aqua)' }}>Tuna Chain Cert (Mobile)</h4>
+                <div 
+                  className="rounded-lg p-3 text-[10px] space-y-2"
+                  style={{
+                    backgroundColor: 'var(--theme-card-inner-bg)'
+                  }}
+                >
+                  <p style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>발주 번호: <span className="font-mono font-bold" style={{ color: 'var(--theme-cream)' }}>{selectedPo.poNumber}</span></p>
+                  <p style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>품목명: <span style={{ color: 'var(--theme-cream)' }}>{selectedPo.product.name}</span></p>
+                  <p style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>최종 유통상태: <span className="font-bold" style={{ color: 'var(--theme-aqua)' }}>{selectedPo.status}</span></p>
+                  <div className="border-t pt-2 flex justify-between items-center" style={{ borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
+                    <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>정품 보증 여부</span>
+                    <span className="font-bold" style={{ color: 'var(--theme-aqua)' }}>✓ VERIFIED</span>
                   </div>
                 </div>
-                <p className="text-[8px] text-slate-500 mt-2 text-center">QR스캔시 브라우저를 통해 직접 접속하실 수 있습니다.</p>
+                <p className="text-[8px] mt-2 text-center" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>QR스캔시 브라우저를 통해 직접 접속하실 수 있습니다.</p>
               </div>
             )}
           </div>
@@ -210,41 +260,57 @@ const Dashboard: React.FC = () => {
         <div className="lg:col-span-6 flex flex-col gap-6">
           
           {/* Live Map Panel */}
-          <div className="bg-[#0f172a]/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col gap-4 flex-1">
+          <div 
+            className="rounded-xl p-5 shadow-lg flex flex-col gap-4 flex-1"
+            style={{
+              backgroundColor: 'var(--theme-card-bg)'
+            }}
+          >
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-cyan-400" />
+              <h2 className="text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>
+                <MapPin className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
                 Live Monitoring Map
               </h2>
               {selectedPo ? (
-                <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1 animate-pulse">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span className="text-[10px] font-medium flex items-center gap-1 animate-pulse" style={{ color: 'var(--theme-aqua)' }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--theme-aqua)' }}></span>
                   {selectedPo.poNumber} 경로 렌더링 중
                 </span>
               ) : (
-                <span className="text-[10px] text-slate-500">대기 중</span>
+                <span className="text-[10px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>대기 중</span>
               )}
             </div>
             
             {/* Interactive Vector / Mock map representation */}
-            <div className="flex-1 border border-slate-900 rounded-lg p-6 bg-slate-950/40 min-h-[300px] flex flex-col justify-center items-center relative overflow-hidden">
+            <div 
+              className="flex-1 rounded-lg p-6 min-h-[300px] flex flex-col justify-center items-center relative overflow-hidden"
+              style={{
+                backgroundColor: 'var(--theme-card-inner-bg)'
+              }}
+            >
               {liveTelemetry ? (
                 <div className="w-full h-full flex flex-col justify-between items-center text-center py-8 z-10">
-                  <div className="p-3 bg-blue-500/10 rounded-full border border-blue-500/20 text-blue-400 animate-bounce">
+                  <div 
+                    className="p-3 rounded-full animate-bounce"
+                    style={{
+                      backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)',
+                      color: 'var(--theme-aqua)'
+                    }}
+                  >
                     <MapPin className="w-8 h-8" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-200">현재 차량 실시간 GPS 좌표</p>
-                    <p className="font-mono text-xs text-blue-400 mt-1">
+                    <p className="text-sm font-semibold" style={{ color: 'var(--theme-cream)' }}>현재 차량 실시간 GPS 좌표</p>
+                    <p className="font-mono text-xs mt-1" style={{ color: 'var(--theme-aqua)' }}>
                       Lat: {liveTelemetry.latitude.toFixed(4)} | Lng: {liveTelemetry.longitude.toFixed(4)}
                     </p>
-                    <p className="text-[10px] text-slate-500 mt-1">부산항 출발 ➜ 허브센터 물류 이동 루트</p>
+                    <p className="text-[10px] mt-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>부산항 출발 ➜ 허브센터 물류 이동 루트</p>
                   </div>
                 </div>
               ) : (
                 <div className="text-center">
-                  <MapPin className="w-10 h-10 text-slate-700 mx-auto mb-2" />
-                  <p className="text-xs text-slate-400">선택된 발주의 유통 지도가 렌더링됩니다.</p>
+                  <MapPin className="w-10 h-10 mx-auto mb-2" style={{ color: 'rgba(var(--theme-cream-rgb), 0.3)' }} />
+                  <p className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>선택된 발주의 유통 지도가 렌더링됩니다.</p>
                 </div>
               )}
               {/* Decorative map grids */}
@@ -253,59 +319,86 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Temperature Chart Panel */}
-          <div className="bg-[#0f172a]/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col gap-4">
+          <div 
+            className="rounded-xl p-5 shadow-lg flex flex-col gap-4"
+            style={{
+              backgroundColor: 'var(--theme-card-bg)'
+            }}
+          >
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
-                <Thermometer className="w-4 h-4 text-cyan-400" />
+              <h2 className="text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>
+                <Thermometer className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
                 Real-Time Temperature Trajectory
               </h2>
-              <span className="text-[10px] text-slate-400">Last 24 Hours</span>
+              <span className="text-[10px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>Last 24 Hours</span>
             </div>
             
-            <div className="border border-slate-900 rounded-lg p-6 bg-slate-950/40 min-h-[200px] flex flex-col justify-center items-center text-center relative overflow-hidden">
+            <div 
+              className="rounded-lg p-6 min-h-[200px] flex flex-col justify-center items-center text-center relative overflow-hidden"
+              style={{
+                backgroundColor: 'var(--theme-card-inner-bg)'
+              }}
+            >
               {liveTelemetry ? (
                 <div className="w-full z-10 flex flex-col items-center">
                   <div className="flex items-baseline gap-2 mb-2">
-                    <span className={`text-4xl font-extrabold tracking-tight ${simTemperature > -55 ? 'text-rose-400' : 'text-cyan-400'}`}>
+                    <span className="text-4xl font-extrabold tracking-tight" style={{ color: simTemperature > -55 ? '#f87171' : 'var(--theme-aqua)' }}>
                       {simTemperature.toFixed(1)}°C
                     </span>
-                    <span className="text-xs text-slate-400">현재 보관 온도</span>
+                    <span className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>현재 보관 온도</span>
                   </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded border ${
-                    simTemperature > -55 
-                      ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' 
-                      : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
-                  }`}>
+                  <span 
+                    className="text-[10px] px-2 py-0.5 rounded"
+                    style={{
+                      backgroundColor: simTemperature > -55 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(var(--theme-aqua-rgb), 0.15)',
+                      color: simTemperature > -55 ? '#f87171' : 'var(--theme-aqua)'
+                    }}
+                  >
                     {simTemperature > -55 ? '⚠️ 이상 고온 경고 상태' : '✓ 정상 온도 범위'}
                   </span>
                 </div>
               ) : (
                 <div>
-                  <Thermometer className="w-10 h-10 text-slate-700 mx-auto mb-2" />
-                  <p className="text-xs text-slate-400">온도 모니터링 이력이 여기에 매핑됩니다.</p>
+                  <Thermometer className="w-10 h-10 mx-auto mb-2" style={{ color: 'rgba(var(--theme-cream-rgb), 0.3)' }} />
+                  <p className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>온도 모니터링 이력이 여기에 매핑됩니다.</p>
                 </div>
               )}
               {/* Fake red threshold line */}
               <div className="absolute left-0 right-0 top-[60%] border-t border-rose-500/40 flex items-center justify-end pr-4 pointer-events-none">
-                <span className="text-[8px] text-rose-400 bg-[#080d1a] px-1 py-0.5 rounded -mt-2.5 font-medium border border-rose-500/20">임계 안전선 -55°C</span>
+                <span 
+                  className="text-[8px] text-rose-400 px-1 py-0.5 rounded -mt-2.5 font-medium"
+                  style={{ backgroundColor: 'var(--theme-card-bg)' }}
+                >
+                  임계 안전선 -55°C
+                </span>
               </div>
             </div>
           </div>
 
           {/* IoT Simulator Controls */}
           {selectedPo && (
-            <div className="bg-[#0f172a]/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col gap-4">
+            <div 
+              className="rounded-xl p-5 shadow-lg flex flex-col gap-4"
+              style={{
+                backgroundColor: 'var(--theme-card-bg)'
+              }}
+            >
               <div className="flex justify-between items-center">
-                <h2 className="text-xs font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
-                  <Sliders className="w-4 h-4 text-cyan-400" />
+                <h2 className="text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>
+                  <Sliders className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
                   IoT Simulator Controls
                 </h2>
-                <span className="text-[10px] text-cyan-400 font-medium">가상 온도 조절 슬라이더</span>
+                <span className="text-[10px] font-medium" style={{ color: 'var(--theme-aqua)' }}>가상 온도 조절 슬라이더</span>
               </div>
-              <div className="border border-slate-900 rounded-lg p-5 bg-slate-950/30 flex flex-col gap-3">
-                <div className="flex justify-between text-xs text-slate-400">
+              <div 
+                className="rounded-lg p-5 flex flex-col gap-3"
+                style={{
+                  backgroundColor: 'var(--theme-card-inner-bg)'
+                }}
+              >
+                <div className="flex justify-between text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
                   <span>최저 (-60°C)</span>
-                  <span className="font-bold text-white">설정값: {simTemperature}°C</span>
+                  <span className="font-bold" style={{ color: 'var(--theme-cream)' }}>설정값: {simTemperature}°C</span>
                   <span>최고 (-45°C)</span>
                 </div>
                 <input 
@@ -314,9 +407,10 @@ const Dashboard: React.FC = () => {
                   max="-45" 
                   value={simTemperature}
                   onChange={(e) => handleSimulateTemperature(Number(e.target.value))}
-                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                  className="w-full h-1.5 rounded-lg appearance-none cursor-pointer"
+                  style={{ accentColor: 'var(--theme-aqua)' }}
                 />
-                <p className="text-[9px] text-slate-500 leading-normal text-center mt-1">
+                <p className="text-[9px] leading-normal text-center mt-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>
                   슬라이더를 조작해 온도를 **-55°C 초과**로 올리면 웹소켓을 통해 실시간으로 경고(Alert) 피드가 발행됩니다.
                 </p>
               </div>
@@ -331,9 +425,14 @@ const Dashboard: React.FC = () => {
         <div className="lg:col-span-3 flex flex-col gap-6">
           
           {/* Quality Alerts Feed */}
-          <div className="bg-[#0f172a]/80 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col gap-4">
+          <div 
+            className="rounded-xl p-5 shadow-lg flex flex-col gap-4"
+            style={{
+              backgroundColor: 'var(--theme-card-bg)'
+            }}
+          >
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+              <h2 className="text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>
                 <AlertTriangle className="w-4 h-4 text-rose-400 animate-pulse" />
                 Quality Alerts
               </h2>
@@ -348,12 +447,12 @@ const Dashboard: React.FC = () => {
                       <span className="px-1.5 py-0.5 rounded text-[8px] bg-rose-500 text-white uppercase font-black">CRITICAL</span>
                       <span>{alert.poNumber} TEMP EXCEEDED</span>
                     </div>
-                    <span className="text-slate-400">{alert.message}</span>
-                    <span className="text-slate-500 text-[8px] mt-1">{new Date(alert.timestamp).toLocaleTimeString()}</span>
+                    <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>{alert.message}</span>
+                    <span className="text-[8px] mt-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>{new Date(alert.timestamp).toLocaleTimeString()}</span>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-6 text-xs text-slate-500 italic">
+                <div className="text-center py-6 text-xs italic" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>
                   경고 이벤트 로그 없음
                 </div>
               )}
@@ -361,7 +460,12 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Web3 Ledger Timeline */}
-          <div className="bg-[#0f172a]/80 border border-slate-800 rounded-xl p-5 shadow-lg flex-1">
+          <div 
+            className="rounded-xl p-5 shadow-lg flex-1"
+            style={{
+              backgroundColor: 'var(--theme-card-bg)'
+            }}
+          >
             <DistributionTimeline 
               poNumber={selectedPo ? selectedPo.poNumber : null}
               status={selectedPo ? selectedPo.status : null}

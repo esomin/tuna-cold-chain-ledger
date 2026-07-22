@@ -45,9 +45,9 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
     const getStatusColor = (status: string) => {
         switch (status.toUpperCase()) {
             case 'COMPLETED':
-                return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                return 'bg-[#10B981]/20 text-[#10B981] border-[#10B981]/40 font-bold';
             case 'PENDING':
-                return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                return 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/40 font-bold';
             case 'DRAFT':
             default:
                 return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
@@ -72,7 +72,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
 
     return (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-slate-200">운송 목록 피드</h3>
+            <h3 className="text-lg font-semibold" style={{ color: 'var(--theme-cream)' }}>운송 목록 피드</h3>
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
                 {orders.map((order) => {
                     const isSelected = selectedPoId === order.id;
@@ -80,24 +80,25 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                         <div
                             key={order.id}
                             onClick={() => onSelectPo(order)}
-                            className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer ${
-                                isSelected
-                                    ? 'bg-blue-600/10 border-blue-500 shadow-lg shadow-blue-500/5'
-                                    : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/80'
-                            }`}
+                            className="p-4 rounded-xl transition-all duration-200 cursor-pointer"
+                            style={{
+                                backgroundColor: isSelected ? '#18191a' : 'var(--theme-card-inner-bg)',
+                                border: 'none',
+                                boxShadow: isSelected ? 'inset 0 2px 6px rgba(0, 0, 0, 0.4)' : 'none'
+                            }}
                         >
                             <div className="flex justify-between items-start mb-2">
-                                <span className="font-mono text-sm font-semibold text-slate-300">
+                                <span className="font-mono text-sm font-semibold" style={{ color: 'var(--theme-cream)' }}>
                                     {order.poNumber}
                                 </span>
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getStatusColor(order.status)}`}>
                                     {order.status}
                                 </span>
                             </div>
-                            <div className="text-xs text-slate-400 space-y-1">
-                                <p className="text-slate-300 font-medium">{order.product.name}</p>
+                            <div className="text-xs space-y-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>
+                                <p className="font-medium" style={{ color: 'var(--theme-cream)' }}>{order.product.name}</p>
                                 <p>수량: {order.quantity}kg | 공급사: {order.supplierName}</p>
-                                <p className="text-[10px] text-slate-500 mt-1 italic line-clamp-1">{order.notes}</p>
+                                <p className="text-[10px] mt-1 italic line-clamp-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>{order.notes}</p>
                             </div>
                         </div>
                     );

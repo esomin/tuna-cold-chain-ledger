@@ -137,7 +137,7 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
                             {/* 노드 포인트 마커 */}
                             <div className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 transition-all duration-300 ${
                                 stepStatus === 'VERIFIED'
-                                    ? 'bg-emerald-500 border-emerald-400 shadow-md shadow-emerald-500/50'
+                                    ? 'bg-[#10B981] border-[#34D399] shadow-md shadow-[#10B981]/50'
                                     : stepStatus === 'WARNING'
                                     ? 'bg-rose-500 border-rose-400 shadow-md shadow-rose-500/50'
                                     : 'bg-slate-950 border-slate-800'
@@ -146,12 +146,12 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
                             <div className="space-y-1.5">
                                 <div className="flex items-center gap-2">
                                     <h4 className={`text-sm font-semibold transition-colors duration-200 ${
-                                        stepStatus === 'VERIFIED' ? 'text-emerald-400' : 'text-slate-300'
+                                        stepStatus === 'VERIFIED' ? 'text-[#10B981]' : 'text-slate-300'
                                     }`}>
                                         {step.label}
                                     </h4>
                                     {stepStatus === 'VERIFIED' && (
-                                        <span className="text-[9px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/20 font-bold">
+                                        <span className="text-[9px] bg-[#10B981]/15 text-[#10B981] px-1.5 py-0.5 rounded border border-[#10B981]/30 font-bold">
                                             SIGNATURE VERIFIED
                                         </span>
                                     )}

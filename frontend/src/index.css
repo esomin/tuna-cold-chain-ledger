@@ -19,8 +19,28 @@ body {
   .theme {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
+    --theme-aqua: #5cd5fb;
+    --theme-night: #292621;
+    --theme-cream: #FBF8F4;
+    --theme-card-bg: #2d3135;
+    --theme-card-inner-bg: #232629;
+    --theme-card-border: transparent;
+    --theme-aqua-rgb: 92, 213, 251;
+    --theme-night-rgb: 24, 26, 27;
+    --theme-cream-rgb: 251, 248, 244;
   }
+
   :root {
+    --theme-aqua: #5cd5fb;
+    --theme-night: #292621;
+    --theme-cream: #FBF8F4;
+    --theme-card-bg: #2d3135;
+    --theme-card-inner-bg: #232629;
+    --theme-card-border: transparent;
+    --theme-aqua-rgb: 92, 213, 251;
+    --theme-night-rgb: 24, 26, 27;
+    --theme-cream-rgb: 251, 248, 244;
+
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -54,6 +74,7 @@ body {
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
   }
+
   .dark {
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
@@ -87,12 +108,15 @@ body {
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
   }
+
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
