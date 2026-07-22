@@ -49,7 +49,9 @@ const Dashboard: React.FC = () => {
       >
         <div>
           <h1 className="text-xl font-bold tracking-tight flex items-center gap-2" style={{ color: 'var(--theme-cream)' }}>
-            <span>Tuna Cold Chain Integrity Control Center</span>
+            <span title="참치 수급예측 & 콜드체인 무결성 관제센터" className="cursor-help transition-colors hover:text-[var(--theme-aqua)]">
+              Tuna Cold Chain Integrity Control Center
+            </span>
             <span
               className="text-[10px] px-2 py-0.5 rounded font-mono font-normal"
               style={{

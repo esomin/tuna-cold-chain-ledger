@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
     LayoutDashboard,
+    Database,
     LogOut,
     ChevronDown
 } from 'lucide-react';
@@ -29,7 +30,14 @@ const AppLayout: React.FC = () => {
         {
             path: '/',
             icon: <LayoutDashboard className="w-5 h-5" />,
-            label: '대시보드',
+            label: 'Dashboard',
+            tooltip: '대시보드'
+        },
+        {
+            path: '/blockchain-ledger',
+            icon: <Database className="w-5 h-5" />,
+            label: 'Ledger Explorer',
+            tooltip: '온체인 감사 원장 탐색기'
         }
     ];
 
@@ -79,7 +87,8 @@ const AppLayout: React.FC = () => {
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border transition-all"
+                                title={item.tooltip}
+                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border transition-all cursor-pointer hover:text-[var(--theme-aqua)]"
                                 style={{
                                     backgroundColor: isActive ? 'rgba(var(--theme-aqua-rgb), 0.15)' : 'transparent',
                                     color: isActive ? 'var(--theme-aqua)' : 'rgba(var(--theme-cream-rgb), 0.7)',
