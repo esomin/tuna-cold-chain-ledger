@@ -236,19 +236,29 @@ const ConsumerVerify: React.FC = () => {
                                         <Thermometer className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
                                         콜드체인 초저온 보관 상태
                                     </h3>
-                                    <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10B981' }}>
-                                        최적 유지 중 (-22°C 표준)
+                                    <span 
+                                        className="text-xs font-bold px-2 py-0.5 rounded" 
+                                        style={{ 
+                                            backgroundColor: data.temperatureStats.hasAnomaly ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)', 
+                                            color: data.temperatureStats.hasAnomaly ? '#f87171' : '#10B981' 
+                                        }}
+                                    >
+                                        {data.temperatureStats.hasAnomaly ? '운송 중 주의 필요 (-55°C 표준)' : '최적 유지 중 (-55°C 표준)'}
                                     </span>
                                 </div>
 
                                 <div className="p-3 rounded-xl flex items-center justify-between" style={{ backgroundColor: 'var(--theme-card-inner-bg)' }}>
                                     <div>
                                         <p className="text-[11px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>최근 실시간 감지 온도</p>
-                                        <p className="text-2xl font-black font-mono mt-0.5" style={{ color: 'var(--theme-aqua)' }}>{data.temperatureStats.latestTemp}°C</p>
+                                        <p className="text-2xl font-black font-mono mt-0.5" style={{ color: data.temperatureStats.latestTemp > -55 ? '#f87171' : 'var(--theme-aqua)' }}>
+                                            {data.temperatureStats.latestTemp}°C
+                                        </p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[11px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>온도 이탈 건수</p>
-                                        <p className="text-sm font-semibold mt-1" style={{ color: '#10B981' }}>0건 (안전 규격 준수)</p>
+                                        <p className="text-sm font-semibold mt-1" style={{ color: data.temperatureStats.hasAnomaly ? '#f87171' : '#10B981' }}>
+                                            {data.temperatureStats.hasAnomaly ? '1건 (콜드체인 임계 이탈)' : '0건 (안전 규격 준수)'}
+                                        </p>
                                     </div>
                                 </div>
                             </section>
