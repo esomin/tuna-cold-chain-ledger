@@ -19,7 +19,7 @@ export const SCENARIO_PRESETS: Record<string, ScenarioPreset> = {
     defaultTemperature: -52.0,
     latitude: 35.1796,
     longitude: 129.0756,
-    description: '위험 이탈 시나리오: 부산항 하역 지점',
+    description: '과거 운송 이탈 건: 운송 중 -52°C 고온 이탈 기록',
   },
   DEFAULT: {
     poNumber: 'PO-2026-SCENARIO-C',

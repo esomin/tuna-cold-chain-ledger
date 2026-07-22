@@ -39,7 +39,7 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
         },
         {
             key: 'SHIPPED',
-            label: '배송중 (Shipped)',
+            label: '운송중 (In-Transit)',
             description: '초저온 유통 차량 매핑 및 온도 이탈 경고 여부 체크포인트 등록',
             statusTrigger: ['PENDING', 'COMPLETED'],
         },

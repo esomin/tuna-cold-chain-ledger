@@ -253,7 +253,11 @@ const Dashboard: React.FC = () => {
                     <span className="text-4xl font-extrabold tracking-tight" style={{ color: simTemperature > -55 ? '#f87171' : 'var(--theme-aqua)' }}>
                       {simTemperature.toFixed(1)}°C
                     </span>
-                    <span className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>현재 보관 온도</span>
+                    <span className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
+                      {selectedPo?.status === 'COMPLETED' 
+                        ? '운송 중 기록 온도 (Latest Value)' 
+                        : '현재 보관 온도 (Latest Value)'}
+                    </span>
                   </div>
                   <span
                     className="text-[10px] px-2 py-0.5 rounded"
