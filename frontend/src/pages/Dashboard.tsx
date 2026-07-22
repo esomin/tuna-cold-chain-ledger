@@ -121,19 +121,35 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#080d1a] text-slate-100 p-6 -m-6">
-      {/* Upper header summary */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-6 border-b border-slate-800">
+      {/* TOP HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            Tuna Cold Chain Ledger <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-normal">Control Center</span>
+          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            <span>참치 수급예측 & 콜드체인 무결성 관제센터</span>
+            <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20 font-mono font-normal">
+              v1.0-LIVE
+            </span>
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            참치 초저온 유통망 블록체인 위·변조 방지 원본 증명 및 관제 포털
+          <p className="text-xs text-slate-400 mt-1">
+            원양 어획부터 모바일 소비자 무결성 검증까지 실시간 모니터링
           </p>
         </div>
-        <div className="flex items-center gap-3 bg-slate-900/60 border border-slate-800 rounded-lg px-4 py-2 text-sm">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span className="text-slate-300">운영 권한: <strong className="text-white font-medium">로지스틱스 운영자 (Operator)</strong></span>
+
+        <div className="flex items-center gap-3">
+          <a
+            href={`/verify/${selectedPo ? selectedPo.poNumber : 'PO-2026-SCENARIO-A'}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold transition-all shadow-sm shadow-emerald-500/10"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>소비자 모바일 검증 뷰어 ↗</span>
+          </a>
+
+          <div className="flex items-center gap-2 bg-[#0f172a] px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="text-slate-300 font-medium">Ethers.js Local Node Connected</span>
+          </div>
         </div>
       </div>
 

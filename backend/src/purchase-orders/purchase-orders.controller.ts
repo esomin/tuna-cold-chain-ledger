@@ -16,6 +16,11 @@ export class PurchaseOrdersController {
         return this.poService.findAll();
     }
 
+    @Get(':id/verify')
+    verify(@Param('id') id: string) {
+        return this.poService.verifyPo(id);
+    }
+
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.poService.findOne(id);
