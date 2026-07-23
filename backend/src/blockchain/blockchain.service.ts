@@ -31,7 +31,10 @@ export class BlockchainService implements OnModuleInit {
             this.wallet = new ethers.Wallet(privateKey, this.provider);
 
             // 3. ABI 로드
-            const artifactPath = path.resolve(__dirname, '../../../artifacts/contracts/ColdChainTracker.sol/ColdChainTracker.json');
+            let artifactPath = path.join(process.cwd(), 'artifacts/contracts/ColdChainTracker.sol/ColdChainTracker.json');
+            if (!fs.existsSync(artifactPath)) {
+                artifactPath = path.resolve(__dirname, '../../../artifacts/contracts/ColdChainTracker.sol/ColdChainTracker.json');
+            }
             if (!fs.existsSync(artifactPath)) {
                 this.logger.error(`Hardhat artifact not found at ${artifactPath}. Please compile the contract first.`);
                 return;
