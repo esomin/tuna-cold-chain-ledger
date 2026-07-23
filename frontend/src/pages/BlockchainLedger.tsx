@@ -39,37 +39,7 @@ const BlockchainLedger: React.FC = () => {
             setAuditLogs(response.data);
         } catch (error) {
             console.error('Failed to fetch audit logs:', error);
-            // Mock fallback audit logs for demo
-            setAuditLogs([
-                {
-                    id: '101',
-                    action: 'CREATE_PO_HARVESTED [PO-2026-SCENARIO-A]',
-                    dataHash: '0xa7f83e291b8d6412093a1c8f420e981bc92348ef5091219b182e7a63',
-                    txHash: '0x8b31a29f801c4e723910f2c8d19a4e8039e1028374619b0271542a193481239c',
-                    createdAt: new Date(Date.now() - 3600000 * 5).toISOString()
-                },
-                {
-                    id: '102',
-                    action: 'UPDATE_PO_STATUS_PROCESSING [PO-2026-SCENARIO-A]',
-                    dataHash: '0xb8f94e302c9e7523104b2d9f531f092cd03459fa6102320c293f8b74',
-                    txHash: '0x9c42b30a912d5f834021a3d9e20b5f9140f2039485720c1382653b204592340d',
-                    createdAt: new Date(Date.now() - 3600000 * 3).toISOString()
-                },
-                {
-                    id: '103',
-                    action: 'UPDATE_PO_STATUS_IN_TRANSIT [PO-2026-SCENARIO-B]',
-                    dataHash: '0xc9a05f413da08634215c3ea0642a103de14560ab7213431d304a9c85',
-                    txHash: '0x0d53c41b023e6a945132b4eaf31c6a02510a304956831d2493764c315603451e',
-                    createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
-                },
-                {
-                    id: '104',
-                    action: 'UPDATE_PO_STATUS_DELIVERED [PO-2026-SCENARIO-A]',
-                    dataHash: '0xd0b16a524eb19745326d4fb1753b214ef25671bc8324542e405ba096',
-                    txHash: '0x1e64d52c134f7b056243c5fb042d7b13621b405067942e3504875d426714562f',
-                    createdAt: new Date(Date.now() - 3600000 * 1).toISOString()
-                }
-            ]);
+            setAuditLogs([]);
         } finally {
             setLoading(false);
         }
