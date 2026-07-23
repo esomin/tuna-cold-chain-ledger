@@ -15,6 +15,14 @@ import {
     X
 } from 'lucide-react';
 import axios from 'axios';
+import {
+    Table,
+    TableHeader,
+    TableBody,
+    TableHead,
+    TableRow,
+    TableCell,
+} from '@/components/ui/table';
 
 interface AuditLog {
     id: string;
@@ -66,7 +74,7 @@ const BlockchainLedger: React.FC = () => {
 
     return (
         <div 
-            className="space-y-6 min-h-screen p-6 -m-6"
+            className="dark space-y-6 min-h-screen p-6 -m-6"
             style={{
                 backgroundColor: 'var(--theme-night)',
                 color: 'var(--theme-cream)'
@@ -107,7 +115,7 @@ const BlockchainLedger: React.FC = () => {
 
             {/* Top Metric Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="rounded-xl p-4 shadow-lg border" style={{ backgroundColor: 'var(--theme-card-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
+                <div className="rounded-xl p-4 shadow-lg" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
                     <div className="flex items-center justify-between">
                         <span className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>총 등록 트랜잭션</span>
                         <Boxes className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
@@ -115,7 +123,7 @@ const BlockchainLedger: React.FC = () => {
                     <p className="text-2xl font-black font-mono mt-2" style={{ color: 'var(--theme-cream)' }}>{auditLogs.length} Blocks</p>
                 </div>
 
-                <div className="rounded-xl p-4 shadow-lg border" style={{ backgroundColor: 'var(--theme-card-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
+                <div className="rounded-xl p-4 shadow-lg" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
                     <div className="flex items-center justify-between">
                         <span className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>스마트 계약 상태</span>
                         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -126,7 +134,7 @@ const BlockchainLedger: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="rounded-xl p-4 shadow-lg border" style={{ backgroundColor: 'var(--theme-card-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
+                <div className="rounded-xl p-4 shadow-lg" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
                     <div className="flex items-center justify-between">
                         <span className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>해시 검증 무결성</span>
                         <ShieldAlert className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
@@ -134,7 +142,7 @@ const BlockchainLedger: React.FC = () => {
                     <p className="text-2xl font-black font-mono mt-2" style={{ color: 'var(--theme-aqua)' }}>100% VERIFIED</p>
                 </div>
 
-                <div className="rounded-xl p-4 shadow-lg border" style={{ backgroundColor: 'var(--theme-card-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
+                <div className="rounded-xl p-4 shadow-lg" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
                     <div className="flex items-center justify-between">
                         <span className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>최초 원장 등록 시각</span>
                         <Clock className="w-4 h-4" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }} />
@@ -146,7 +154,7 @@ const BlockchainLedger: React.FC = () => {
             </div>
 
             {/* Filter & Search Bar */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-xl shadow-lg border" style={{ backgroundColor: 'var(--theme-card-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-xl shadow-lg" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
                 {/* Search Input */}
                 <div className="relative w-full md:w-96">
                     <Search className="w-4 h-4 absolute left-3 top-2.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }} />
@@ -185,73 +193,71 @@ const BlockchainLedger: React.FC = () => {
             </div>
 
             {/* Main Ledger Table */}
-            <div className="rounded-xl shadow-lg border overflow-hidden" style={{ backgroundColor: 'var(--theme-card-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="text-[11px] uppercase tracking-wider border-b" style={{ backgroundColor: 'var(--theme-card-inner-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)', color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
-                                <th className="p-4">Tx Hash (트랜잭션)</th>
-                                <th className="p-4">이벤트 / 단계</th>
-                                <th className="p-4">Keccak256 Data Hash</th>
-                                <th className="p-4">생성 일시</th>
-                                <th className="p-4 text-right">상세조회</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y text-xs" style={{ borderColor: 'rgba(var(--theme-cream-rgb), 0.08)' }}>
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={5} className="p-12 text-center text-slate-400">
-                                        <div className="w-8 h-8 border-2 rounded-full animate-spin mx-auto mb-2" style={{ borderColor: 'rgba(var(--theme-aqua-rgb), 0.2)', borderTopColor: 'var(--theme-aqua)' }}></div>
-                                        온체인 원장 데이터 로딩 중...
-                                    </td>
-                                </tr>
-                            ) : filteredLogs.length > 0 ? (
-                                filteredLogs.map((log) => (
-                                    <tr 
-                                        key={log.id} 
-                                        className="hover:bg-slate-800/40 transition-colors cursor-pointer"
-                                        onClick={() => setSelectedLog(log)}
-                                    >
-                                        <td className="p-4 font-mono text-cyan-400 max-w-[180px] truncate" title={log.txHash}>
-                                            <div className="flex items-center gap-1.5">
-                                                <Hash className="w-3.5 h-3.5 shrink-0 text-slate-500" />
-                                                <span className="truncate">{log.txHash}</span>
-                                            </div>
-                                        </td>
-                                        <td className="p-4">
-                                            <span className="px-2 py-1 rounded text-[10px] font-bold border" style={{ backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.1)', color: 'var(--theme-aqua)', borderColor: 'rgba(var(--theme-aqua-rgb), 0.2)' }}>
-                                                {log.action}
-                                            </span>
-                                        </td>
-                                        <td className="p-4 font-mono max-w-[220px] truncate" style={{ color: 'rgba(var(--theme-cream-rgb), 0.8)' }} title={log.dataHash}>
-                                            {log.dataHash}
-                                        </td>
-                                        <td className="p-4 font-mono text-[11px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
-                                            {new Date(log.createdAt).toLocaleString('ko-KR')}
-                                        </td>
-                                        <td className="p-4 text-right">
-                                            <button 
-                                                className="p-1.5 rounded hover:bg-slate-700 transition-colors text-slate-400 hover:text-white"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSelectedLog(log);
-                                                }}
-                                            >
-                                                <ChevronRight className="w-4 h-4" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={5} className="p-12 text-center text-slate-400">
-                                        일치하는 온체인 감사 로그가 없습니다.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+            <div className="rounded-xl shadow-lg overflow-hidden" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
+                <Table>
+                    <TableHeader className="bg-[var(--theme-card-inner-bg)]">
+                        <TableRow>
+                            <TableHead className="uppercase">Tx Hash (트랜잭션)</TableHead>
+                            <TableHead className="uppercase">이벤트 / 단계</TableHead>
+                            <TableHead className="uppercase">Keccak256 Data Hash</TableHead>
+                            <TableHead className="uppercase">생성 일시</TableHead>
+                            <TableHead className="uppercase text-right">상세조회</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="p-12 text-center text-slate-400">
+                                    <div className="w-8 h-8 border-2 rounded-full animate-spin mx-auto mb-2" style={{ borderColor: 'rgba(var(--theme-aqua-rgb), 0.2)', borderTopColor: 'var(--theme-aqua)' }}></div>
+                                    온체인 원장 데이터 로딩 중...
+                                </TableCell>
+                            </TableRow>
+                        ) : filteredLogs.length > 0 ? (
+                            filteredLogs.map((log) => (
+                                <TableRow 
+                                    key={log.id} 
+                                    className="cursor-pointer"
+                                    onClick={() => setSelectedLog(log)}
+                                >
+                                    <TableCell className="font-mono text-cyan-400 max-w-[180px] truncate" title={log.txHash}>
+                                        <div className="flex items-center gap-1.5">
+                                            <Hash className="w-3.5 h-3.5 shrink-0 text-slate-500" />
+                                            <span className="truncate">{log.txHash}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="px-2 py-1 rounded text-[10px] font-bold border" style={{ backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.1)', color: 'var(--theme-aqua)', borderColor: 'rgba(var(--theme-aqua-rgb), 0.2)' }}>
+                                            {log.action}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell className="font-mono max-w-[220px] truncate" title={log.dataHash}>
+                                        {log.dataHash}
+                                    </TableCell>
+                                    <TableCell className="font-mono text-[11px]">
+                                        {new Date(log.createdAt).toLocaleString('ko-KR')}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <button 
+                                            className="p-1.5 rounded hover:bg-slate-700 transition-colors text-slate-400 hover:text-white"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedLog(log);
+                                            }}
+                                        >
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={5} className="p-12 text-center text-slate-400">
+                                    일치하는 온체인 감사 로그가 없습니다.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
             </div>
 
             {/* Log Detail Modal */}
