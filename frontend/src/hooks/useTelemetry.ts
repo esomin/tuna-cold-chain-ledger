@@ -80,8 +80,6 @@ export const useTelemetry = (selectedPoNumber?: string) => {
     const preset = getPresetByPoNumber(selectedPoNumber);
     const mockGps = {
       'PO-2026-SCENARIO-A': { lat: 37.5665, lng: 126.9780 },
-      'PO-2026-SCENARIO-B': { lat: 35.1796, lng: 129.0756 },
-      'PO-2026-SCENARIO-C': { lat: 36.5, lng: 127.8 },
     }[selectedPoNumber] || { lat: preset.latitude, lng: preset.longitude };
 
     socket.emit('send_telemetry', {

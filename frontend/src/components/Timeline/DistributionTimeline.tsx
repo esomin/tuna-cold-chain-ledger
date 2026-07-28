@@ -64,8 +64,6 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
                     const filtered = data.filter((log: AuditLog) =>
                         log.action.includes(poNumber) ||
                         (poNumber === 'PO-2026-SCENARIO-A' && log.action.includes('A')) ||
-                        (poNumber === 'PO-2026-SCENARIO-B' && log.action.includes('B')) ||
-                        (poNumber === 'PO-2026-SCENARIO-C' && log.action.includes('C')) ||
                         log.action === 'CREATE_PO_HARVESTED' // 기본 모킹 이력 매핑용
                     );
                     setAuditLogs(filtered);
@@ -83,7 +81,7 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
         return () => clearInterval(interval);
     }, [poNumber, status]);
 
-    const getStepStatus = (step: StepInfo) => {
+    const getStepStatus = (step: StepInfo): 'VERIFIED' | 'WARNING' | 'WAITING' => {
         if (!status) return 'WAITING';
 
         // COMPLETED 단계이고, status가 COMPLETED이면 성공
@@ -93,15 +91,6 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
         // 다른 단계들의 트리거 매칭
         const isTriggered = step.statusTrigger.includes(status.toUpperCase());
         if (isTriggered) {
-            // 시나리오별로 A는 전부 온체인 검증 완료, B도 완료되었으나 온도 위험 포함, C는 배송중 상태
-            if (poNumber === 'PO-2026-SCENARIO-A') return 'VERIFIED';
-            if (poNumber === 'PO-2026-SCENARIO-B') {
-                return step.key === 'SHIPPED' ? 'WARNING' : 'VERIFIED';
-            }
-            if (poNumber === 'PO-2026-SCENARIO-C') {
-                if (step.key === 'COMPLETED') return 'WAITING';
-                return 'VERIFIED';
-            }
             return 'VERIFIED';
         }
         return 'WAITING';

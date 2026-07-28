@@ -148,12 +148,6 @@ export class PurchaseOrdersService {
                 }
             }
 
-            // 시나리오 B인 경우 과거 온도 이탈 건수 기본 1건 설정
-            if (po.poNumber === 'PO-2026-SCENARIO-B' && anomalyCount === 0) {
-                anomalyCount = 1;
-                tempReadings = [-52.0, -57.5, -58.1];
-            }
-
             // 2. DB 차원의 현재 상태 데이터 해시 재계산
             const dbRawData = `${po.poNumber}:${po.product?.sku || ''}:${po.quantity}:${po.status}`;
             const calculatedHash = ethers.keccak256(ethers.toUtf8Bytes(dbRawData));
@@ -221,7 +215,7 @@ export class PurchaseOrdersService {
                     hasAnomaly: anomalyCount > 0,
                     anomalyCount: anomalyCount,
                     recentReadings: tempReadings,
-                    latestTemp: po.poNumber === 'PO-2026-SCENARIO-B' ? -52.0 : (tempReadings.length > 0 ? tempReadings[0] : -58.0),
+                    latestTemp: tempReadings.length > 0 ? tempReadings[0] : -58.0,
                 },
                 verifiedAt: new Date().toISOString(),
                 isVerified: true,

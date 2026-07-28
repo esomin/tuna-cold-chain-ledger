@@ -55,12 +55,12 @@ gantt
 - **목표:** DB의 데이터 해시를 추출하여 로컬 이더리움 노드로 트랜잭션을 발행하고, 실시간 온도 이상 상태를 프론트엔드로 전송하는 API 파이프라인을 구축합니다.
 - **주요 작업:**
   - NestJS와 Ethers.js 연동: 백엔드 서버 기동 시 배포된 스마트 계약을 인스턴스화하고 트랜잭션 서명 지갑 매핑.
-  - Socket.io 기반 실시간 알림 게이트웨이를 열어 라이브 운송 건(시나리오 C)의 실시간 상태 변화 및 임계 온도 이탈 감지 전송.
+  - Socket.io 기반 실시간 알림 게이트웨이를 열어 라이브 운송 건의 실시간 상태 변화 및 임계 온도 이탈 감지 전송.
 
 #### **Step 5: 단일 종합 관제 대시보드 UI 및 타임라인 연동**
 - **목표:** 운영자가 복잡한 페이지 이동 없이, 단일 와이드 뷰 화면에서 모든 이력과 검증 상태를 직관적으로 제어할 수 있는 관제 센터를 제작합니다.
 - **주요 작업:**
-  - 좌측 패널: 시나리오 A, B, C 발주 목록을 기본 표기하고 선택(클릭) 제어 구현.
+  - 좌측 패널: 시나리오 A 및 실시간 등록 발주 목록을 기본 표기하고 선택(클릭) 제어 구현.
   - 중앙 패널: 선택된 발주의 경로 지도 및 Recharts 기반 온도 그래프 렌더링.
   - 우측 패널: 어획 ➜ 가공 ➜ 배송 ➜ 입고의 4대 체크포인트 타임라인 및 실시간 블록체인 무결성 검증 배지 노출.
 
@@ -86,5 +86,14 @@ gantt
   - **3단계: `hardhat.config.ts` Sepolia 네트워크 구성 및 스마트 계약 배포 (`deploy.ts`) [COMPLETED]**
   - **4단계: 백엔드 `BlockchainService` 및 `.env` Sepolia 네트워크 연결 (Contract: `0xc4040d7Cdbc6923500A94427DB9c78156d70849A`) [COMPLETED]**
   - **5단계: `ConsumerVerify.tsx` 및 `BlockchainLedger.tsx` Etherscan ↗ 버튼 및 TxHash 클릭 링크 매핑 [COMPLETED]**
+
+#### **Step 9: 단일 모범 시나리오(시나리오 A) 통합 및 라이브 온체인 발주 생성/트랜잭션 실행 플로우 구축** [COMPLETED]
+- **목표:** 데이터 정합성 보장을 위해 시나리오 A(`PO-2026-SCENARIO-A`)를 메인 골든 시나리오로 통합하고, 발주 등록 시 이더리움 Sepolia 테스트넷에 실제 트랜잭션을 실행하는 라이브 온체인 파이프라인을 완성합니다.
+- **주요 작업:**
+  - **1단계: 시나리오 A(`PO-2026-SCENARIO-A`) 1~4단계 완전체 데이터 정합성 보장 및 탭 뷰어 연동 [COMPLETED]**
+  - **2단계: `SEPOLIA_RPC_URL`, `CONTRACT_ADDRESS`, `PRIVATE_KEY` 단일 환경변수 표준화 [COMPLETED]**
+  - **3단계: 발주 등록 API(`POST /api/purchase-orders`) 시 Sepolia 트랜잭션 전송 및 TxHash 자동 저장 파이프라인 구현 [COMPLETED]**
+  - **4단계: 소비자 검증 페이지(`ConsumerVerify.tsx`) 및 감사 원장 탐색기(`BlockchainLedger.tsx`) Etherscan 클릭 링크 연동 [COMPLETED]**
+
 
 
