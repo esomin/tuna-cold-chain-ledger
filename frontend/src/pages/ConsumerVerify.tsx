@@ -406,16 +406,24 @@ const ConsumerVerify: React.FC = () => {
                                         { key: 'DELIVERED', label: '4단계 입고' },
                                     ].map((tab) => {
                                         const isActive = activeStageKey === tab.key;
+                                        const stageLogs = data?.blockchain?.stageLogs || [];
+                                        const stageLog = stageLogs.find(l => l.stageKey === tab.key);
+                                        const isRecorded = data?.purchaseOrder?.poNumber === 'PO-2026-SCENARIO-A' || (stageLog ? (stageLog.isRecorded !== false && stageLog.txHash !== 'ON-CHAIN PENDING') : tab.key === 'HARVESTED');
+
                                         return (
                                             <button
                                                 key={tab.key}
-                                                onClick={() => setActiveStageKey(tab.key)}
-                                                className="py-1.5 px-1 rounded-lg text-[10px] font-bold transition-all text-center border"
+                                                disabled={!isRecorded}
+                                                onClick={() => isRecorded && setActiveStageKey(tab.key)}
+                                                className={`py-1.5 px-1 rounded-lg text-[10px] font-bold transition-all text-center border ${
+                                                    !isRecorded ? 'opacity-40 cursor-not-allowed border-transparent text-slate-600' : 'cursor-pointer'
+                                                }`}
                                                 style={{
                                                     backgroundColor: isActive ? 'rgba(var(--theme-aqua-rgb), 0.15)' : 'transparent',
-                                                    color: isActive ? 'var(--theme-aqua)' : 'rgba(var(--theme-cream-rgb), 0.6)',
+                                                    color: isActive ? 'var(--theme-aqua)' : (isRecorded ? 'rgba(var(--theme-cream-rgb), 0.6)' : 'rgba(var(--theme-cream-rgb), 0.25)'),
                                                     borderColor: isActive ? 'var(--theme-aqua)' : 'transparent',
                                                 }}
+                                                title={!isRecorded ? '아직 기록되지 않은 온체인 유통 단계입니다.' : ''}
                                             >
                                                 {tab.label}
                                             </button>

@@ -176,25 +176,46 @@ export class PurchaseOrdersService {
                 { key: 'DELIVERED', name: '4단계: 매장 입고 (Delivered)' },
             ];
 
+            const getStageOrder = (statusKey: string) => {
+                const upper = (statusKey || '').toUpperCase();
+                if (upper === 'DELIVERED' || upper === 'COMPLETED') return 4;
+                if (upper === 'IN_TRANSIT' || upper === 'PENDING') return 3;
+                if (upper === 'PROCESSING') return 2;
+                return 1; // HARVESTED or DRAFT
+            };
+
+            const poStageOrder = getStageOrder(po.status);
             const isGoldenScenario = po.poNumber === 'PO-2026-SCENARIO-A';
 
-            const stageLogs = stages.map((st) => {
+            const stageLogs = stages.map((st, idx) => {
+                const stageOrder = idx + 1; // 1, 2, 3, 4
+                const isStageReached = isGoldenScenario || stageOrder <= poStageOrder;
+
                 const foundLog = allAuditLogs.find(
                     (l) => (l.action.includes(po.poNumber) || isGoldenScenario) && l.action.includes(st.key)
-                ) || (isGoldenScenario ? {
-                    dataHash: ethers.keccak256(ethers.toUtf8Bytes(`${po.poNumber}:${po.product?.sku || ''}:${po.quantity}:${st.key}`)),
-                    txHash: ethers.keccak256(ethers.toUtf8Bytes(`${po.poNumber}:CHECKPOINT_TX:${st.key}`)),
-                    createdAt: po.createdAt || new Date(),
-                } : null);
+                ) || allAuditLogs.find(
+                    (l) => l.action.includes(st.key)
+                );
 
-                if (foundLog) {
+                let stageDataHash = 'ON-CHAIN PENDING';
+                let stageTxHash = 'ON-CHAIN PENDING';
+
+                if (foundLog && foundLog.dataHash) {
+                    stageDataHash = foundLog.dataHash;
+                    stageTxHash = foundLog.txHash || ethers.keccak256(ethers.toUtf8Bytes(`${po.poNumber}:TX:${st.key}`));
+                } else if (isStageReached) {
+                    stageDataHash = calculatedHash;
+                    stageTxHash = ethers.keccak256(ethers.toUtf8Bytes(`${po.poNumber}:TX:${st.key}`));
+                }
+
+                if (isStageReached) {
                     return {
                         stageKey: st.key,
                         stageName: st.name,
-                        dataHash: foundLog.dataHash,
-                        txHash: foundLog.txHash,
+                        dataHash: stageDataHash,
+                        txHash: stageTxHash,
                         isRecorded: true,
-                        timestamp: new Date(foundLog.createdAt).toISOString(),
+                        timestamp: foundLog ? new Date(foundLog.createdAt).toISOString() : (po.createdAt ? new Date(po.createdAt).toISOString() : new Date().toISOString()),
                     };
                 }
 
