@@ -78,13 +78,13 @@ gantt
   - 온체인 트랜잭션, Keccak256 데이터 해시, 블록 번호, 상태 필터링 및 시각적 탐색기 UI 구현.
   - 온체인 원장 상세 모달 및 스마트 계약 검증 결과 뷰어 연동.
 
-#### **Step 8: Sepolia 테스트넷 연동 및 Etherscan 외부 링크/TxHash 검증 기능 고도화** [IN_PROGRESS]
+#### **Step 8: Sepolia 테스트넷 연동 및 Etherscan 외부 링크/TxHash 검증 기능 고도화** [COMPLETED]
 - **목표:** 로컬 Hardhat 노드 환경을 넘어 실제 이더리움 Sepolia 테스트넷에 스마트 계약을 배포하고, Etherscan(↗) 외부 링크 및 클릭 가능한 TxHash를 제공하여 면접관과 사용자가 실시간 온체인 데이터를 즉시 검증할 수 있도록 연동을 고도화합니다.
 - **주요 작업:**
   - **1단계: 테스트용 지갑 준비 (Rabby Wallet) 및 Sepolia ETH 수령 (Sepolia PoW Faucet 0.15 ETH) [COMPLETED]**
   - **2단계: Sepolia RPC Provider (Alchemy) 및 환경변수 설정 (.env / Rabby Private Key) [COMPLETED]**
   - **3단계: `hardhat.config.ts` Sepolia 네트워크 구성 및 스마트 계약 배포 (`deploy.ts`) [COMPLETED]**
   - **4단계: 백엔드 `BlockchainService` 및 `.env` Sepolia 네트워크 연결 (Contract: `0xc4040d7Cdbc6923500A94427DB9c78156d70849A`) [COMPLETED]**
-  - **5단계: `ConsumerVerify.tsx` 및 `BlockchainLedger.tsx` Etherscan ↗ 버튼 및 TxHash 클릭 링크 매핑**
+  - **5단계: `ConsumerVerify.tsx` 및 `BlockchainLedger.tsx` Etherscan ↗ 버튼 및 TxHash 클릭 링크 매핑 [COMPLETED]**
 
 

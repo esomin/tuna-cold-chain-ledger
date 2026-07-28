@@ -8,7 +8,6 @@ import {
     Calendar,
     Sparkles,
     ArrowLeft,
-    ExternalLink,
     Anchor,
     Box,
     Truck,
@@ -53,12 +52,10 @@ const ConsumerVerify: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [loading, setLoading] = useState<boolean>(true);
     const [data, setData] = useState<VerificationData | null>(null);
-    const [error, setError] = useState<string | null>(null);
     const [isAnimating, setIsAnimating] = useState<boolean>(true);
 
     const fetchVerificationData = async () => {
         setLoading(true);
-        setError(null);
         setIsAnimating(true);
         try {
             const targetId = id || 'demo-order';
@@ -344,10 +341,20 @@ const ConsumerVerify: React.FC = () => {
 
                             {/* Blockchain Raw Proof Card */}
                             <section className="rounded-2xl p-4 space-y-2" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
-                                <h3 className="text-xs font-bold uppercase tracking-wider flex items-center justify-between" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
-                                    <span>온체인 블록체인 검증 데이터</span>
-                                    <ExternalLink className="w-3.5 h-3.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }} />
-                                </h3>
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
+                                        온체인 블록체인 검증 데이터
+                                    </h3>
+                                    <a
+                                        href="https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1 text-[11px] font-semibold hover:underline"
+                                        style={{ color: 'var(--theme-aqua)' }}
+                                    >
+                                        <span>Etherscan ↗</span>
+                                    </a>
+                                </div>
                                 <div className="space-y-1.5 text-[11px] font-mono break-all p-2.5 rounded-lg" style={{ backgroundColor: 'var(--theme-card-inner-bg)', color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
                                     <div>
                                         <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>Target PO: </span>
@@ -359,7 +366,15 @@ const ConsumerVerify: React.FC = () => {
                                     </div>
                                     <div>
                                         <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>Smart Contract: </span>
-                                        <span style={{ color: 'var(--theme-aqua)' }}>0x5FbDB2315678afecb367f032d93F642f64180aa3</span>
+                                        <a
+                                            href="https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="hover:underline font-bold"
+                                            style={{ color: 'var(--theme-aqua)' }}
+                                        >
+                                            0xc4040d7Cdbc6923500A94427DB9c78156d70849A ↗
+                                        </a>
                                     </div>
                                 </div>
                             </section>

@@ -9,7 +9,6 @@ import {
     RefreshCw,
     Hash,
     Clock,
-    FileText,
     Boxes,
     ChevronRight,
     X
@@ -98,6 +97,20 @@ const BlockchainLedger: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <a
+                        href="https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border hover:border-[var(--theme-aqua)]"
+                        style={{
+                            backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)',
+                            color: 'var(--theme-aqua)',
+                            borderColor: 'rgba(var(--theme-aqua-rgb), 0.3)'
+                        }}
+                    >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Sepolia Etherscan ↗</span>
+                    </a>
                     <button
                         onClick={fetchAuditLogs}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border"
@@ -130,7 +143,14 @@ const BlockchainLedger: React.FC = () => {
                     </div>
                     <p className="text-sm font-bold mt-2 text-emerald-400 flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                        <span>ColdChainTracker (Active)</span>
+                        <a
+                            href="https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline flex items-center gap-1"
+                        >
+                            <span>ColdChainTracker (Active) ↗</span>
+                        </a>
                     </p>
                 </div>
 
@@ -222,7 +242,16 @@ const BlockchainLedger: React.FC = () => {
                                     <TableCell className="font-mono text-cyan-400 max-w-[180px] truncate" title={log.txHash}>
                                         <div className="flex items-center gap-1.5">
                                             <Hash className="w-3.5 h-3.5 shrink-0 text-slate-500" />
-                                            <span className="truncate">{log.txHash}</span>
+                                            <a
+                                                href={log.txHash.startsWith('0x') && !log.txHash.includes('ffffff') ? `https://sepolia.etherscan.io/tx/${log.txHash}` : `https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="truncate hover:underline font-bold flex items-center gap-1"
+                                            >
+                                                <span>{log.txHash}</span>
+                                                <ExternalLink className="w-3 h-3 shrink-0 text-cyan-400" />
+                                            </a>
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -271,9 +300,20 @@ const BlockchainLedger: React.FC = () => {
                             <X className="w-5 h-5" />
                         </button>
 
-                        <div className="flex items-center gap-2">
-                            <Database className="w-5 h-5" style={{ color: 'var(--theme-aqua)' }} />
-                            <h3 className="text-base font-bold">온체인 트랜잭션 상세 원장</h3>
+                        <div className="flex items-center justify-between pr-8">
+                            <div className="flex items-center gap-2">
+                                <Database className="w-5 h-5" style={{ color: 'var(--theme-aqua)' }} />
+                                <h3 className="text-base font-bold">온체인 트랜잭션 상세 원장</h3>
+                            </div>
+                            <a
+                                href={selectedLog.txHash.startsWith('0x') && !selectedLog.txHash.includes('ffffff') ? `https://sepolia.etherscan.io/tx/${selectedLog.txHash}` : `https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded transition-colors"
+                                style={{ backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)', color: 'var(--theme-aqua)' }}
+                            >
+                                <span>Sepolia Etherscan ↗</span>
+                            </a>
                         </div>
 
                         <div className="space-y-3 pt-2">
@@ -283,7 +323,18 @@ const BlockchainLedger: React.FC = () => {
                             </div>
 
                             <div className="p-3 rounded-lg border space-y-1" style={{ backgroundColor: 'var(--theme-card-inner-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
-                                <p className="text-[10px] uppercase font-bold text-slate-400">Transaction Hash (TxHash)</p>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-[10px] uppercase font-bold text-slate-400">Transaction Hash (TxHash)</p>
+                                    <a
+                                        href={selectedLog.txHash.startsWith('0x') && !selectedLog.txHash.includes('ffffff') ? `https://sepolia.etherscan.io/tx/${selectedLog.txHash}` : `https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[10px] font-bold hover:underline flex items-center gap-1"
+                                        style={{ color: 'var(--theme-aqua)' }}
+                                    >
+                                        <span>Etherscan에서 트랜잭션 보기 ↗</span>
+                                    </a>
+                                </div>
                                 <p className="text-xs font-mono text-cyan-400 break-all">{selectedLog.txHash}</p>
                             </div>
 
@@ -295,7 +346,15 @@ const BlockchainLedger: React.FC = () => {
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3 rounded-lg border space-y-1" style={{ backgroundColor: 'var(--theme-card-inner-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
                                     <p className="text-[10px] uppercase font-bold text-slate-400">스마트 계약 주소</p>
-                                    <p className="text-xs font-mono text-cyan-400 truncate">0x5FbDB2315678afecb367f...</p>
+                                    <a
+                                        href="https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs font-mono text-cyan-400 truncate hover:underline block font-bold"
+                                        title="0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
+                                    >
+                                        0xc4040d7C...849A ↗
+                                    </a>
                                 </div>
                                 <div className="p-3 rounded-lg border space-y-1" style={{ backgroundColor: 'var(--theme-card-inner-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
                                     <p className="text-[10px] uppercase font-bold text-slate-400">서명 상태</p>
