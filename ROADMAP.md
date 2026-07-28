@@ -87,15 +87,15 @@ gantt
   - **4단계: 백엔드 `BlockchainService` 및 `.env` Sepolia 네트워크 연결 (Contract: `0xc4040d7Cdbc6923500A94427DB9c78156d70849A`) [COMPLETED]**
   - **5단계: `ConsumerVerify.tsx` 및 `BlockchainLedger.tsx` Etherscan ↗ 버튼 및 TxHash 클릭 링크 매핑 [COMPLETED]**
 
-#### **Step 9: 대시보드 운송 목록 피드 기반 신규 발주/운송 정보 등록 기능 구축 및 온체인 파이프라인 연동**
+#### **Step 9: 대시보드 운송 목록 피드 기반 신규 발주/운송 정보 등록 기능 구축 및 온체인 파이프라인 연동** [COMPLETED]
 - **목표:** 단일 관제 대시보드 좌측 `OrderListPanel` 패널에 신규 운송/발주 등록 모달 UI를 추가하고, 등록 시 오프체인 DB 적재부터 이더리움 Sepolia 테스트넷 온체인 서명까지 완료되는 실시간 파이프라인을 구축합니다.
 - **주요 작업:**
-  - **1단계: 프론트엔드 신규 운송 등록 모달 UI 구현 (`OrderCreateModal.tsx`)**
+  - **1단계: 프론트엔드 신규 운송 등록 모달 UI 구현 (`OrderCreateModal.tsx`) [COMPLETED]**
     - 상품 SKU 선택, 발주 수량, 공급사명, 비고 입력 폼 및 유효성 검증 모달 제작.
     - 대시보드 `OrderListPanel` 상단 `[+ 신규 운송 등록]` 버튼 연동.
-  - **2단계: 백엔드 발주 생성 API (`POST /api/purchase-orders`) 파이프라인 확장**
+  - **2단계: 백엔드 발주 생성 API (`POST /api/purchase-orders`) 파이프라인 확장 [COMPLETED]**
     - 고유 발주번호(`PO-YYYYMMDD-XXXX`) 자동 생성 및 PostgreSQL DB 적재.
-  - **3단계: Sepolia 이더리움 실시간 서명 및 `txHash` 자동 기록**
+  - **3단계: Sepolia 이더리움 실시간 서명 및 `txHash` 자동 기록 [COMPLETED]**
     - 발주 데이터 Keccak256 해시 연산 ➔ `BlockchainService.registerCheckpoint` 호출 ➔ Sepolia `txHash` 반환 ➔ `audit_logs` 저장.
-  - **4단계: 대시보드 실시간 반응형 갱신 및 감사 원장 탐색기 동기화**
+  - **4단계: 대시보드 실시간 반응형 갱신 및 감사 원장 탐색기 동기화 [COMPLETED]**
     - 등록 완료 시 운송 목록 피드 즉시 갱신 및 생성된 신규 발주 자동 선택(Focus) 처리.

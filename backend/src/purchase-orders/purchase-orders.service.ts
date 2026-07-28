@@ -25,7 +25,9 @@ export class PurchaseOrdersService {
     ) { }
 
     private generatePoNumber(): string {
-        return 'PO-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const rand = Math.floor(1000 + Math.random() * 9000);
+        return `PO-${dateStr}-${rand}`;
     }
 
     async create(createDto: CreatePurchaseOrderDto) {
@@ -37,32 +39,38 @@ export class PurchaseOrdersService {
         const po = new PurchaseOrder();
         po.poNumber = this.generatePoNumber();
         po.quantity = createDto.quantity;
-        po.status = 'DRAFT';
+        po.status = 'HARVESTED';
         po.supplierName = createDto.supplierName || '';
         po.notes = createDto.notes || '';
         po.product = product;
 
         const savedPo = await this.poRepository.save(po);
 
-        // 1. 발주 정보의 Keccak256 해시 연산
-        const rawData = `${savedPo.poNumber}:${product.sku}:${savedPo.quantity}:DRAFT`;
-        const dataHash = ethers.keccak256(ethers.toUtf8Bytes(rawData));
+        try {
+            // 1. 발주 정보의 Keccak256 해시 연산
+            const rawData = `${savedPo.poNumber}:${product.sku}:${savedPo.quantity}:HARVESTED`;
+            const dataHash = ethers.keccak256(ethers.toUtf8Bytes(rawData));
 
-        // 2. 스마트 계약 온체인 등록 (최초 어획 단계)
-        const txHash = await this.blockchainService.registerCheckpoint(
-            savedPo.poNumber,
-            dataHash,
-            'HARVESTED'
-        );
+            // 2. 스마트 계약 온체인 등록 (최초 어획 단계)
+            const txHash = await this.blockchainService.registerCheckpoint(
+                savedPo.poNumber,
+                dataHash,
+                'HARVESTED'
+            );
 
-        // 3. 감사 로그 적재
-        await this.auditLogsService.logAction(
-            'CREATE_PO_HARVESTED',
-            dataHash,
-            txHash
-        );
+            // 3. 감사 로그 적재
+            await this.auditLogsService.logAction(
+                `CREATE_PO_HARVESTED:${savedPo.poNumber}`,
+                dataHash,
+                txHash
+            );
 
-        return savedPo;
+            return savedPo;
+        } catch (err) {
+            // 온체인 서명 또는 실패 시 DB 임시 저장 레코드 자동 삭제(롤백)
+            await this.poRepository.remove(savedPo);
+            throw err;
+        }
     }
 
     async findAll() {
