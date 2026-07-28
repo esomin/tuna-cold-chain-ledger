@@ -15,9 +15,9 @@ export class BlockchainService implements OnModuleInit {
 
     onModuleInit() {
         try {
-            const rpcUrl = this.configService.get<string>('BLOCKCHAIN_RPC_URL') || 'http://127.0.0.1:8545';
+            const rpcUrl = this.configService.get<string>('SEPOLIA_RPC_URL') || 'http://127.0.0.1:8545';
             const contractAddress = this.configService.get<string>('CONTRACT_ADDRESS');
-            const privateKey = this.configService.get<string>('CONTRACT_PRIVATE_KEY');
+            const privateKey = this.configService.get<string>('PRIVATE_KEY');
 
             if (!contractAddress || !privateKey) {
                 this.logger.warn('Blockchain variables are not fully set in .env. Web3 integration will run in mock mode.');

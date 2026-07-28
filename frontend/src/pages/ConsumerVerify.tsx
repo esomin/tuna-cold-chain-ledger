@@ -15,6 +15,15 @@ import {
     RefreshCw,
 } from 'lucide-react';
 import axios from 'axios';
+import { CONTRACT_ADDRESS, ETHERSCAN_BASE_URL } from '../config';
+
+interface StageLog {
+    stageKey: string;
+    stageName: string;
+    dataHash: string;
+    txHash: string;
+    timestamp: string;
+}
 
 interface VerificationData {
     purchaseOrder: {
@@ -35,9 +44,11 @@ interface VerificationData {
     calculatedHash: string;
     blockchain: {
         dataHash: string;
+        txHash?: string;
         timestamp: number;
         stepName: string;
         isValid: boolean;
+        stageLogs?: StageLog[];
     };
     temperatureStats: {
         hasAnomaly: boolean;
@@ -53,6 +64,7 @@ const ConsumerVerify: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [data, setData] = useState<VerificationData | null>(null);
     const [isAnimating, setIsAnimating] = useState<boolean>(true);
+    const [activeStageKey, setActiveStageKey] = useState<string>('HARVESTED');
 
     const fetchVerificationData = async () => {
         setLoading(true);
@@ -170,13 +182,13 @@ const ConsumerVerify: React.FC = () => {
                                 <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl pointer-events-none" style={{ backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)' }}></div>
 
                                 {/* Animated Seal */}
-                                <div className={`relative mb-4 transition-transform duration-700 ${isAnimating ? 'scale-110 rotate-6' : 'scale-100 rotate-0'}`}>
+                                <div className={`relative mb-4 transition-transform duration-700 ${isAnimating ? 'scale-110' : 'scale-100'}`}>
                                     <div className="w-24 h-24 rounded-full flex items-center justify-center p-2 relative shadow-lg" style={{ backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)', border: '2px solid var(--theme-aqua)' }}>
                                         <div className="w-full h-full rounded-full border border-dashed flex items-center justify-center" style={{ borderColor: 'rgba(var(--theme-aqua-rgb), 0.6)', backgroundColor: 'var(--theme-card-inner-bg)' }}>
-                                            <ShieldCheck className="w-12 h-12 animate-bounce" style={{ color: 'var(--theme-aqua)' }} />
+                                            <ShieldCheck className="w-11 h-11 animate-pulse" style={{ color: 'var(--theme-aqua)' }} />
                                         </div>
                                     </div>
-                                    <div className="absolute -bottom-2 right-0 p-1.5 rounded-full" style={{ backgroundColor: 'var(--theme-aqua)', color: 'var(--theme-night)' }}>
+                                    <div className="absolute bottom-0 right-0 p-1.5 rounded-full shadow-md" style={{ backgroundColor: 'var(--theme-aqua)', color: 'var(--theme-night)' }}>
                                         <CheckCircle2 className="w-4 h-4" />
                                     </div>
                                 </div>
@@ -340,43 +352,97 @@ const ConsumerVerify: React.FC = () => {
                             </section>
 
                             {/* Blockchain Raw Proof Card */}
-                            <section className="rounded-2xl p-4 space-y-2" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
+                            <section className="rounded-2xl p-4 space-y-3" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
-                                        온체인 블록체인 검증 데이터
+                                        온체인 블록체인 검증 데이터 (단계별)
                                     </h3>
-                                    <a
-                                        href="https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-1 text-[11px] font-semibold hover:underline"
-                                        style={{ color: 'var(--theme-aqua)' }}
-                                    >
-                                        <span>Etherscan ↗</span>
-                                    </a>
                                 </div>
-                                <div className="space-y-1.5 text-[11px] font-mono break-all p-2.5 rounded-lg" style={{ backgroundColor: 'var(--theme-card-inner-bg)', color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
-                                    <div>
-                                        <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>Target PO: </span>
-                                        <span style={{ color: 'var(--theme-cream)' }}>{data.purchaseOrder.poNumber}</span>
-                                    </div>
-                                    <div>
-                                        <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>Data Keccak256 Hash: </span>
-                                        <span style={{ color: '#10B981' }}>{data.calculatedHash}</span>
-                                    </div>
-                                    <div>
-                                        <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>Smart Contract: </span>
-                                        <a
-                                            href="https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="hover:underline font-bold"
-                                            style={{ color: 'var(--theme-aqua)' }}
-                                        >
-                                            0xc4040d7Cdbc6923500A94427DB9c78156d70849A ↗
-                                        </a>
-                                    </div>
+
+                                {/* Stage Tabs (1단계 ~ 4단계) */}
+                                <div className="grid grid-cols-4 gap-1 p-1 rounded-xl" style={{ backgroundColor: 'var(--theme-card-inner-bg)' }}>
+                                    {[
+                                        { key: 'HARVESTED', label: '1단계 어획' },
+                                        { key: 'PROCESSING', label: '2단계 가공' },
+                                        { key: 'IN_TRANSIT', label: '3단계 운송' },
+                                        { key: 'DELIVERED', label: '4단계 입고' },
+                                    ].map((tab) => {
+                                        const isActive = activeStageKey === tab.key;
+                                        return (
+                                            <button
+                                                key={tab.key}
+                                                onClick={() => setActiveStageKey(tab.key)}
+                                                className="py-1.5 px-1 rounded-lg text-[10px] font-bold transition-all text-center border"
+                                                style={{
+                                                    backgroundColor: isActive ? 'rgba(var(--theme-aqua-rgb), 0.15)' : 'transparent',
+                                                    color: isActive ? 'var(--theme-aqua)' : 'rgba(var(--theme-cream-rgb), 0.6)',
+                                                    borderColor: isActive ? 'var(--theme-aqua)' : 'transparent',
+                                                }}
+                                            >
+                                                {tab.label}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
+
+                                {/* Selected Stage Hash & Tx Info */}
+                                {(() => {
+                                    const stageLogs = data.blockchain.stageLogs || [];
+                                    const currentStageLog = stageLogs.find(l => l.stageKey === activeStageKey) || {
+                                        stageKey: activeStageKey,
+                                        stageName: activeStageKey === 'HARVESTED' ? '1단계: 원양 어획 (Harvested)' : (activeStageKey === 'PROCESSING' ? '2단계: 급속 동결 가공 (Processing)' : (activeStageKey === 'IN_TRANSIT' ? '3단계: 운송중 (In-Transit)' : '4단계: 매장 입고 (Delivered)')),
+                                        dataHash: data.calculatedHash,
+                                        txHash: CONTRACT_ADDRESS,
+                                        timestamp: data.verifiedAt
+                                    };
+
+                                    return (
+                                        <div className="space-y-1.5 text-[11px] font-mono p-3 rounded-xl" style={{ backgroundColor: 'var(--theme-card-inner-bg)', color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
+                                            <div className="flex items-center justify-between pb-1.5 border-b" style={{ borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
+                                                <span className="font-bold font-sans text-xs" style={{ color: 'var(--theme-cream)' }}>{currentStageLog.stageName}</span>
+                                                <span className="text-[10px] text-emerald-400 font-bold">ON-CHAIN VERIFIED</span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="shrink-0" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>PO:</span>
+                                                <span className="font-bold" style={{ color: 'var(--theme-cream)' }}>{data.purchaseOrder.poNumber}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="shrink-0" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>TxHash:</span>
+                                                <a
+                                                    href={currentStageLog.txHash.startsWith('0x') && !currentStageLog.txHash.includes('ffffff')
+                                                        ? `${ETHERSCAN_BASE_URL}/tx/${currentStageLog.txHash}`
+                                                        : `${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="hover:underline font-bold truncate text-right max-w-[260px]"
+                                                    style={{ color: 'var(--theme-aqua)' }}
+                                                    title={currentStageLog.txHash}
+                                                >
+                                                    {currentStageLog.txHash.length > 24 ? `${currentStageLog.txHash.slice(0, 10)}...${currentStageLog.txHash.slice(-8)}` : currentStageLog.txHash} ↗
+                                                </a>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="shrink-0" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>Data Hash:</span>
+                                                <span className="font-bold truncate text-right max-w-[260px]" style={{ color: '#10B981' }} title={currentStageLog.dataHash}>
+                                                    {currentStageLog.dataHash.length > 24 ? `${currentStageLog.dataHash.slice(0, 10)}...${currentStageLog.dataHash.slice(-8)}` : currentStageLog.dataHash}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="shrink-0" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>Contract:</span>
+                                                <a
+                                                    href={`${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="hover:underline font-bold truncate text-right"
+                                                    style={{ color: 'var(--theme-aqua)' }}
+                                                    title={CONTRACT_ADDRESS}
+                                                >
+                                                    {CONTRACT_ADDRESS.slice(0, 10)}...{CONTRACT_ADDRESS.slice(-4)} ↗
+                                                </a>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </section>
 
                             <button

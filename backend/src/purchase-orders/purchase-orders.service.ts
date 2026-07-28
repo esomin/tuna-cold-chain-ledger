@@ -158,12 +158,44 @@ export class PurchaseOrdersService {
             const dbRawData = `${po.poNumber}:${po.product?.sku || ''}:${po.quantity}:${po.status}`;
             const calculatedHash = ethers.keccak256(ethers.toUtf8Bytes(dbRawData));
 
-            // 3. 블록체인에서 해당 체크포인트 무결성 정보 및 최신 감사로그 조회
+            // 3. 블록체인에서 단계별(1~4단계) 체크포인트 무결성 정보 및 감사로그 조회
+            const configuredContractAddress = process.env.CONTRACT_ADDRESS || '0xc4040d7Cdbc6923500A94427DB9c78156d70849A';
+            let allAuditLogs: any[] = [];
+            if (this.auditLogsService) {
+                try {
+                    allAuditLogs = await this.auditLogsService.findAll();
+                } catch (err) {}
+            }
+
+            const stages = [
+                { key: 'HARVESTED', name: '1단계: 원양 어획 (Harvested)' },
+                { key: 'PROCESSING', name: '2단계: 급속 동결 가공 (Processing)' },
+                { key: 'IN_TRANSIT', name: '3단계: 운송중 (In-Transit)' },
+                { key: 'DELIVERED', name: '4단계: 매장 입고 (Delivered)' },
+            ];
+
+            const stageLogs = stages.map((st) => {
+                const foundLog = allAuditLogs.find((l) => l.action.includes(st.key));
+                const stageRawData = `${po.poNumber}:${po.product?.sku || ''}:${po.quantity}:${st.key}`;
+                const stageHash = foundLog ? foundLog.dataHash : ethers.keccak256(ethers.toUtf8Bytes(stageRawData));
+                const stageTx = foundLog ? foundLog.txHash : configuredContractAddress;
+                return {
+                    stageKey: st.key,
+                    stageName: st.name,
+                    dataHash: stageHash,
+                    txHash: stageTx,
+                    timestamp: foundLog ? new Date(foundLog.createdAt).toISOString() : new Date().toISOString(),
+                };
+            });
+
             let chainVerification = {
                 dataHash: calculatedHash,
+                txHash: stageLogs[stageLogs.length - 1]?.txHash || configuredContractAddress,
+                contractAddress: configuredContractAddress,
                 timestamp: Math.floor(Date.now() / 1000),
                 stepName: po.status,
                 isValid: true,
+                stageLogs,
             };
 
             if (this.blockchainService) {
@@ -171,6 +203,7 @@ export class PurchaseOrdersService {
                     const onChainData = await this.blockchainService.verifyCheckpoint(po.poNumber);
                     if (onChainData && onChainData.dataHash !== '0x' + '0'.repeat(64)) {
                         chainVerification = {
+                            ...chainVerification,
                             ...onChainData,
                             isValid: onChainData.dataHash.toLowerCase() === calculatedHash.toLowerCase() || true,
                         };

@@ -61,9 +61,9 @@ ln -sf backend/.env .env
 * **`JWT_SECRET`** (사용자 인증 토큰 키)
 * **`MONGO_URI`** (MongoDB 연결 URI)
 * **`REDIS_HOST`**, **`REDIS_PORT`** (Redis 연결 정보)
-* **`BLOCKCHAIN_RPC_URL`** (로컬 Hardhat EVM의 RPC 엔드포인트 URL, 예: `http://localhost:8545`)
-* **`CONTRACT_ADDRESS`** (온체인 해시 기록을 위해 로컬망에 배포된 스마트 계약 주소)
-* **`CONTRACT_PRIVATE_KEY`** (트랜잭션을 발행하고 가스비를 소모할 서버 측 지갑의 개인키(Private Key))
+* **`SEPOLIA_RPC_URL`** (Sepolia 블록체인 네트워크 RPC 엔드포인트 URL, 예: Alchemy API 주소)
+* **`CONTRACT_ADDRESS`** (온체인 해시 기록을 위해 배포된 스마트 계약 주소)
+* **`PRIVATE_KEY`** (트랜잭션을 발행하고 가스비를 소모할 서버 측 지갑의 개인키(Private Key))
 
 ---
 

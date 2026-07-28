@@ -14,6 +14,7 @@ import {
     X
 } from 'lucide-react';
 import axios from 'axios';
+import { CONTRACT_ADDRESS, ETHERSCAN_BASE_URL } from '../config';
 import {
     Table,
     TableHeader,
@@ -98,7 +99,7 @@ const BlockchainLedger: React.FC = () => {
 
                 <div className="flex items-center gap-3">
                     <a
-                        href="https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
+                        href={`${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border hover:border-[var(--theme-aqua)]"
@@ -144,7 +145,7 @@ const BlockchainLedger: React.FC = () => {
                     <p className="text-sm font-bold mt-2 text-emerald-400 flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                         <a
-                            href="https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
+                            href={`${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="hover:underline flex items-center gap-1"
@@ -243,7 +244,7 @@ const BlockchainLedger: React.FC = () => {
                                         <div className="flex items-center gap-1.5">
                                             <Hash className="w-3.5 h-3.5 shrink-0 text-slate-500" />
                                             <a
-                                                href={log.txHash.startsWith('0x') && !log.txHash.includes('ffffff') ? `https://sepolia.etherscan.io/tx/${log.txHash}` : `https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A`}
+                                                href={log.txHash.startsWith('0x') && !log.txHash.includes('ffffff') ? `${ETHERSCAN_BASE_URL}/tx/${log.txHash}` : `${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 onClick={(e) => e.stopPropagation()}
@@ -306,7 +307,7 @@ const BlockchainLedger: React.FC = () => {
                                 <h3 className="text-base font-bold">온체인 트랜잭션 상세 원장</h3>
                             </div>
                             <a
-                                href={selectedLog.txHash.startsWith('0x') && !selectedLog.txHash.includes('ffffff') ? `https://sepolia.etherscan.io/tx/${selectedLog.txHash}` : `https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A`}
+                                href={selectedLog.txHash.startsWith('0x') && !selectedLog.txHash.includes('ffffff') ? `${ETHERSCAN_BASE_URL}/tx/${selectedLog.txHash}` : `${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded transition-colors"
@@ -326,7 +327,7 @@ const BlockchainLedger: React.FC = () => {
                                 <div className="flex items-center justify-between">
                                     <p className="text-[10px] uppercase font-bold text-slate-400">Transaction Hash (TxHash)</p>
                                     <a
-                                        href={selectedLog.txHash.startsWith('0x') && !selectedLog.txHash.includes('ffffff') ? `https://sepolia.etherscan.io/tx/${selectedLog.txHash}` : `https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A`}
+                                        href={selectedLog.txHash.startsWith('0x') && !selectedLog.txHash.includes('ffffff') ? `${ETHERSCAN_BASE_URL}/tx/${selectedLog.txHash}` : `${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-[10px] font-bold hover:underline flex items-center gap-1"
@@ -347,13 +348,13 @@ const BlockchainLedger: React.FC = () => {
                                 <div className="p-3 rounded-lg border space-y-1" style={{ backgroundColor: 'var(--theme-card-inner-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
                                     <p className="text-[10px] uppercase font-bold text-slate-400">스마트 계약 주소</p>
                                     <a
-                                        href="https://sepolia.etherscan.io/address/0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
+                                        href={`${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-xs font-mono text-cyan-400 truncate hover:underline block font-bold"
-                                        title="0xc4040d7Cdbc6923500A94427DB9c78156d70849A"
+                                        title={CONTRACT_ADDRESS}
                                     >
-                                        0xc4040d7C...849A ↗
+                                        {CONTRACT_ADDRESS.slice(0, 10)}...{CONTRACT_ADDRESS.slice(-4)} ↗
                                     </a>
                                 </div>
                                 <div className="p-3 rounded-lg border space-y-1" style={{ backgroundColor: 'var(--theme-card-inner-bg)', borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
