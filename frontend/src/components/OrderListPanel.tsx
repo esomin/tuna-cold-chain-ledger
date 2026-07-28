@@ -53,13 +53,33 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
     const getStatusColor = (status: string) => {
         switch (status.toUpperCase()) {
             case 'COMPLETED':
+            case 'DELIVERED':
                 return 'bg-[#10B981]/20 text-[#10B981] border-[#10B981]/40 font-bold';
             case 'PENDING':
+            case 'IN_TRANSIT':
                 return 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/40 font-bold';
-            case 'DRAFT':
             case 'HARVESTED':
+            case 'DRAFT':
             default:
                 return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40 font-bold';
+        }
+    };
+
+    const getStatusBadgeLabel = (status: string) => {
+        switch (status.toUpperCase()) {
+            case 'COMPLETED':
+            case 'DELIVERED':
+                return 'COMPLETED';
+            case 'HARVESTED':
+                return 'HARVESTED';
+            case 'PROCESSING':
+                return 'PROCESSING';
+            case 'IN_TRANSIT':
+            case 'PENDING':
+                return 'IN_TRANSIT';
+            case 'DRAFT':
+            default:
+                return 'HARVESTED';
         }
     };
 
@@ -111,7 +131,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                                     {order.poNumber}
                                 </span>
                                 <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getStatusColor(order.status)}`}>
-                                    {order.status}
+                                    {getStatusBadgeLabel(order.status)}
                                 </span>
                             </div>
                             <div className="text-xs space-y-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>

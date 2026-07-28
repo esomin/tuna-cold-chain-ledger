@@ -22,7 +22,8 @@ interface StageLog {
     stageName: string;
     dataHash: string;
     txHash: string;
-    timestamp: string;
+    isRecorded?: boolean;
+    timestamp: string | null;
 }
 
 interface VerificationData {
@@ -277,77 +278,114 @@ const ConsumerVerify: React.FC = () => {
                                 <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>유통 파이프라인 타임라인</h3>
 
                                 <div className="space-y-3 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5" style={{ '--tw-before-bg': 'rgba(var(--theme-cream-rgb), 0.15)' } as any}>
-                                    {/* Step 1: Harvested */}
-                                    <div className="flex items-start gap-3 relative z-10">
-                                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" style={{ backgroundColor: 'var(--theme-aqua)', color: 'var(--theme-night)' }}>
-                                            <Anchor className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold" style={{ color: 'var(--theme-cream)' }}>1단계: 원양 어획 (Harvested)</p>
-                                            <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>남태평양 청정 수역 어획 완료 및 스마트 계약 1차 서명</p>
-                                        </div>
-                                    </div>
+                                    {/* Dynamic stage status helper */}
+                                    {(() => {
+                                        const poStatus = (data.purchaseOrder.status || '').toUpperCase();
+                                        const isHarvestedActive = poStatus === 'HARVESTED' || poStatus === 'DRAFT';
+                                        const isProcessingActive = poStatus === 'PROCESSING';
+                                        const isInTransitActive = poStatus === 'IN_TRANSIT' || poStatus === 'PENDING';
+                                        const isDeliveredActive = poStatus === 'COMPLETED' || poStatus === 'DELIVERED';
 
-                                    {/* Step 2: Processing */}
-                                    <div className="flex items-start gap-3 relative z-10">
-                                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" style={{ backgroundColor: 'var(--theme-aqua)', color: 'var(--theme-night)' }}>
-                                            <Box className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold" style={{ color: 'var(--theme-cream)' }}>2단계: 급속 동결 가공 (Processing)</p>
-                                            <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>선상 -50°C 급속 동결 처리 및 HACCP 품질 검사</p>
-                                        </div>
-                                    </div>
+                                        return (
+                                            <>
+                                                {/* Step 1: Harvested */}
+                                                <div className="flex items-start gap-3 relative z-10">
+                                                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" style={{ backgroundColor: 'var(--theme-aqua)', color: 'var(--theme-night)' }}>
+                                                        <Anchor className="w-4 h-4" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-xs font-bold" style={{ color: 'var(--theme-cream)' }}>1단계: 원양 어획 (Harvested)</p>
+                                                            {isHarvestedActive && (
+                                                                <span className="text-[9px] bg-[#10B981]/15 text-[#10B981] px-1.5 py-0.5 rounded border border-[#10B981]/30 font-bold animate-pulse">
+                                                                    현재 진행 단계
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>남태평양 청정 수역 어획 완료 및 스마트 계약 1차 서명</p>
+                                                    </div>
+                                                </div>
 
-                                    {/* Step 3: In-Transit */}
-                                    <div className="flex items-start gap-3 relative z-10">
-                                        <div 
-                                            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" 
-                                            style={{ 
-                                                backgroundColor: data.purchaseOrder.status !== 'COMPLETED' ? '#10B981' : 'var(--theme-aqua)', 
-                                                color: data.purchaseOrder.status !== 'COMPLETED' ? 'white' : 'var(--theme-night)' 
-                                            }}
-                                        >
-                                            <Truck className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <p className="text-xs font-bold" style={{ color: 'var(--theme-cream)' }}>3단계: 운송중 (In-Transit)</p>
-                                                {data.purchaseOrder.status !== 'COMPLETED' && (
-                                                    <span className="text-[9px] bg-[#10B981]/15 text-[#10B981] px-1.5 py-0.5 rounded border border-[#10B981]/30 font-bold animate-pulse">
-                                                        현재 진행 단계
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>IoT 센서 실시간 위치/온도 스트리밍 관제</p>
-                                        </div>
-                                    </div>
+                                                {/* Step 2: Processing */}
+                                                <div className="flex items-start gap-3 relative z-10">
+                                                    <div 
+                                                        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" 
+                                                        style={{ 
+                                                            backgroundColor: isProcessingActive || isInTransitActive || isDeliveredActive ? 'var(--theme-aqua)' : 'rgba(var(--theme-cream-rgb), 0.15)', 
+                                                            color: isProcessingActive || isInTransitActive || isDeliveredActive ? 'var(--theme-night)' : 'rgba(var(--theme-cream-rgb), 0.4)' 
+                                                        }}
+                                                    >
+                                                        <Box className="w-4 h-4" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-xs font-bold" style={{ color: isProcessingActive || isInTransitActive || isDeliveredActive ? 'var(--theme-cream)' : 'rgba(var(--theme-cream-rgb), 0.5)' }}>
+                                                                2단계: 급속 동결 가공 (Processing)
+                                                            </p>
+                                                            {isProcessingActive && (
+                                                                <span className="text-[9px] bg-[#10B981]/15 text-[#10B981] px-1.5 py-0.5 rounded border border-[#10B981]/30 font-bold animate-pulse">
+                                                                    현재 진행 단계
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>선상 -50°C 급속 동결 처리 및 HACCP 품질 검사</p>
+                                                    </div>
+                                                </div>
 
-                                    {/* Step 4: Delivered */}
-                                    <div className="flex items-start gap-3 relative z-10">
-                                        <div 
-                                            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" 
-                                            style={{ 
-                                                backgroundColor: data.purchaseOrder.status === 'COMPLETED' ? '#10B981' : 'rgba(var(--theme-cream-rgb), 0.15)', 
-                                                color: data.purchaseOrder.status === 'COMPLETED' ? 'white' : 'rgba(var(--theme-cream-rgb), 0.4)' 
-                                            }}
-                                        >
-                                            <Store className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <p className="text-xs font-bold" style={{ color: data.purchaseOrder.status === 'COMPLETED' ? 'var(--theme-cream)' : 'rgba(var(--theme-cream-rgb), 0.5)' }}>
-                                                    4단계: 매장 입고 & 검증 (Delivered)
-                                                </p>
-                                                {data.purchaseOrder.status === 'COMPLETED' && (
-                                                    <span className="text-[9px] bg-[#10B981]/15 text-[#10B981] px-1.5 py-0.5 rounded border border-[#10B981]/30 font-bold">
-                                                        최종 완료
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>최종 소비자 정품 인증 씰 발급 완료</p>
-                                        </div>
-                                    </div>
+                                                {/* Step 3: In-Transit */}
+                                                <div className="flex items-start gap-3 relative z-10">
+                                                    <div 
+                                                        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" 
+                                                        style={{ 
+                                                            backgroundColor: isInTransitActive || isDeliveredActive ? (isInTransitActive ? '#10B981' : 'var(--theme-aqua)') : 'rgba(var(--theme-cream-rgb), 0.15)', 
+                                                            color: isInTransitActive || isDeliveredActive ? 'white' : 'rgba(var(--theme-cream-rgb), 0.4)' 
+                                                        }}
+                                                    >
+                                                        <Truck className="w-4 h-4" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-xs font-bold" style={{ color: isInTransitActive || isDeliveredActive ? 'var(--theme-cream)' : 'rgba(var(--theme-cream-rgb), 0.5)' }}>
+                                                                3단계: 운송중 (In-Transit)
+                                                            </p>
+                                                            {isInTransitActive && (
+                                                                <span className="text-[9px] bg-[#10B981]/15 text-[#10B981] px-1.5 py-0.5 rounded border border-[#10B981]/30 font-bold animate-pulse">
+                                                                    현재 진행 단계
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>IoT 센서 실시간 위치/온도 스트리밍 관제</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Step 4: Delivered */}
+                                                <div className="flex items-start gap-3 relative z-10">
+                                                    <div 
+                                                        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 shadow-lg" 
+                                                        style={{ 
+                                                            backgroundColor: isDeliveredActive ? '#10B981' : 'rgba(var(--theme-cream-rgb), 0.15)', 
+                                                            color: isDeliveredActive ? 'white' : 'rgba(var(--theme-cream-rgb), 0.4)' 
+                                                        }}
+                                                    >
+                                                        <Store className="w-4 h-4" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-xs font-bold" style={{ color: isDeliveredActive ? 'var(--theme-cream)' : 'rgba(var(--theme-cream-rgb), 0.5)' }}>
+                                                                4단계: 매장 입고 & 검증 (Delivered)
+                                                            </p>
+                                                            {isDeliveredActive && (
+                                                                <span className="text-[9px] bg-[#10B981]/15 text-[#10B981] px-1.5 py-0.5 rounded border border-[#10B981]/30 font-bold">
+                                                                    최종 완료
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>최종 소비자 정품 인증 씰 발급 완료</p>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </section>
 
@@ -388,19 +426,22 @@ const ConsumerVerify: React.FC = () => {
                                 {/* Selected Stage Hash & Tx Info */}
                                 {(() => {
                                     const stageLogs = data.blockchain.stageLogs || [];
-                                    const currentStageLog = stageLogs.find(l => l.stageKey === activeStageKey) || {
-                                        stageKey: activeStageKey,
-                                        stageName: activeStageKey === 'HARVESTED' ? '1단계: 원양 어획 (Harvested)' : (activeStageKey === 'PROCESSING' ? '2단계: 급속 동결 가공 (Processing)' : (activeStageKey === 'IN_TRANSIT' ? '3단계: 운송중 (In-Transit)' : '4단계: 매장 입고 (Delivered)')),
-                                        dataHash: data.calculatedHash,
-                                        txHash: data.blockchain.txHash || data.calculatedHash,
-                                        timestamp: data.verifiedAt
-                                    };
+                                    const currentStageLog = stageLogs.find(l => l.stageKey === activeStageKey);
+                                    const isRecorded = currentStageLog ? (currentStageLog.isRecorded !== false && currentStageLog.txHash !== 'ON-CHAIN PENDING') : false;
+
+                                    const stageName = activeStageKey === 'HARVESTED' ? '1단계: 원양 어획 (Harvested)' : (activeStageKey === 'PROCESSING' ? '2단계: 급속 동결 가공 (Processing)' : (activeStageKey === 'IN_TRANSIT' ? '3단계: 운송중 (In-Transit)' : '4단계: 매장 입고 (Delivered)'));
+                                    const displayTxHash: string = (isRecorded ? (currentStageLog?.txHash || data.blockchain.txHash) : 'ON-CHAIN PENDING') || 'ON-CHAIN PENDING';
+                                    const displayDataHash: string = (isRecorded ? (currentStageLog?.dataHash || data.calculatedHash) : 'ON-CHAIN PENDING') || 'ON-CHAIN PENDING';
 
                                     return (
                                         <div className="space-y-1.5 text-[11px] font-mono p-3 rounded-xl" style={{ backgroundColor: 'var(--theme-card-inner-bg)', color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
                                             <div className="flex items-center justify-between pb-1.5 border-b" style={{ borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
-                                                <span className="font-bold font-sans text-xs" style={{ color: 'var(--theme-cream)' }}>{currentStageLog.stageName}</span>
-                                                <span className="text-[10px] text-emerald-400 font-bold">ON-CHAIN VERIFIED</span>
+                                                <span className="font-bold font-sans text-xs" style={{ color: 'var(--theme-cream)' }}>{stageName}</span>
+                                                {isRecorded ? (
+                                                    <span className="text-[10px] text-emerald-400 font-bold">ON-CHAIN VERIFIED</span>
+                                                ) : (
+                                                    <span className="text-[10px] text-amber-400 font-bold border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 rounded">ON-CHAIN PENDING (진행 예정)</span>
+                                                )}
                                             </div>
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="shrink-0" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>PO:</span>
@@ -410,16 +451,20 @@ const ConsumerVerify: React.FC = () => {
                                                 <span className="shrink-0" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>TxHash:</span>
                                                 <span
                                                     className="font-bold truncate text-right max-w-[260px]"
-                                                    style={{ color: 'var(--theme-aqua)' }}
-                                                    title={currentStageLog.txHash}
+                                                    style={{ color: isRecorded ? 'var(--theme-aqua)' : 'rgba(var(--theme-cream-rgb), 0.4)' }}
+                                                    title={displayTxHash}
                                                 >
-                                                    {currentStageLog.txHash.length > 24 ? `${currentStageLog.txHash.slice(0, 10)}...${currentStageLog.txHash.slice(-8)}` : currentStageLog.txHash}
+                                                    {displayTxHash.length > 24 ? `${displayTxHash.slice(0, 10)}...${displayTxHash.slice(-8)}` : displayTxHash}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="shrink-0" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>Data Hash:</span>
-                                                <span className="font-bold truncate text-right max-w-[260px]" style={{ color: '#10B981' }} title={currentStageLog.dataHash}>
-                                                    {currentStageLog.dataHash.length > 24 ? `${currentStageLog.dataHash.slice(0, 10)}...${currentStageLog.dataHash.slice(-8)}` : currentStageLog.dataHash}
+                                                <span
+                                                    className="font-bold truncate text-right max-w-[260px]"
+                                                    style={{ color: isRecorded ? '#10B981' : 'rgba(var(--theme-cream-rgb), 0.4)' }}
+                                                    title={displayDataHash}
+                                                >
+                                                    {displayDataHash.length > 24 ? `${displayDataHash.slice(0, 10)}...${displayDataHash.slice(-8)}` : displayDataHash}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between gap-2">
