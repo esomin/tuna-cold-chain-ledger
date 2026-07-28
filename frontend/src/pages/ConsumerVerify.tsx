@@ -392,7 +392,7 @@ const ConsumerVerify: React.FC = () => {
                                         stageKey: activeStageKey,
                                         stageName: activeStageKey === 'HARVESTED' ? '1단계: 원양 어획 (Harvested)' : (activeStageKey === 'PROCESSING' ? '2단계: 급속 동결 가공 (Processing)' : (activeStageKey === 'IN_TRANSIT' ? '3단계: 운송중 (In-Transit)' : '4단계: 매장 입고 (Delivered)')),
                                         dataHash: data.calculatedHash,
-                                        txHash: CONTRACT_ADDRESS,
+                                        txHash: data.blockchain.txHash || data.calculatedHash,
                                         timestamp: data.verifiedAt
                                     };
 
@@ -408,18 +408,13 @@ const ConsumerVerify: React.FC = () => {
                                             </div>
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="shrink-0" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>TxHash:</span>
-                                                <a
-                                                    href={currentStageLog.txHash.startsWith('0x') && !currentStageLog.txHash.includes('ffffff')
-                                                        ? `${ETHERSCAN_BASE_URL}/tx/${currentStageLog.txHash}`
-                                                        : `${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="hover:underline font-bold truncate text-right max-w-[260px]"
+                                                <span
+                                                    className="font-bold truncate text-right max-w-[260px]"
                                                     style={{ color: 'var(--theme-aqua)' }}
                                                     title={currentStageLog.txHash}
                                                 >
-                                                    {currentStageLog.txHash.length > 24 ? `${currentStageLog.txHash.slice(0, 10)}...${currentStageLog.txHash.slice(-8)}` : currentStageLog.txHash} ↗
-                                                </a>
+                                                    {currentStageLog.txHash.length > 24 ? `${currentStageLog.txHash.slice(0, 10)}...${currentStageLog.txHash.slice(-8)}` : currentStageLog.txHash}
+                                                </span>
                                             </div>
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="shrink-0" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>Data Hash:</span>

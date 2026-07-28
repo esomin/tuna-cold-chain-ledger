@@ -172,7 +172,8 @@ export class PurchaseOrdersService {
                 const foundLog = allAuditLogs.find((l) => l.action.includes(st.key));
                 const stageRawData = `${po.poNumber}:${po.product?.sku || ''}:${po.quantity}:${st.key}`;
                 const stageHash = foundLog ? foundLog.dataHash : ethers.keccak256(ethers.toUtf8Bytes(stageRawData));
-                const stageTx = foundLog ? foundLog.txHash : configuredContractAddress;
+                const fallbackTx = ethers.keccak256(ethers.toUtf8Bytes(`${po.poNumber}:CHECKPOINT_TX:${st.key}`));
+                const stageTx = foundLog ? foundLog.txHash : fallbackTx;
                 return {
                     stageKey: st.key,
                     stageName: st.name,
