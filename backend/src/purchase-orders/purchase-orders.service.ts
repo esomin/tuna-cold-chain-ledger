@@ -192,9 +192,7 @@ export class PurchaseOrdersService {
                 const isStageReached = isGoldenScenario || stageOrder <= poStageOrder;
 
                 const foundLog = allAuditLogs.find(
-                    (l) => (l.action.includes(po.poNumber) || isGoldenScenario) && l.action.includes(st.key)
-                ) || allAuditLogs.find(
-                    (l) => l.action.includes(st.key)
+                    (l) => l.action.includes(po.poNumber) && l.action.includes(st.key)
                 );
 
                 let stageDataHash = 'ON-CHAIN PENDING';
