@@ -200,11 +200,12 @@ export class PurchaseOrdersService {
                 let stageDataHash = 'ON-CHAIN PENDING';
                 let stageTxHash = 'ON-CHAIN PENDING';
 
+                const stageRawData = `${po.poNumber}:${po.product?.sku || ''}:${po.quantity}:${st.key}`;
                 if (foundLog && foundLog.dataHash) {
                     stageDataHash = foundLog.dataHash;
                     stageTxHash = foundLog.txHash || ethers.keccak256(ethers.toUtf8Bytes(`${po.poNumber}:TX:${st.key}`));
                 } else if (isStageReached) {
-                    stageDataHash = calculatedHash;
+                    stageDataHash = ethers.keccak256(ethers.toUtf8Bytes(stageRawData));
                     stageTxHash = ethers.keccak256(ethers.toUtf8Bytes(`${po.poNumber}:TX:${st.key}`));
                 }
 
