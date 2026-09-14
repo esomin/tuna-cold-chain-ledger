@@ -193,21 +193,21 @@ const BlockchainLedger: React.FC = () => {
             </div>
 
             {/* Main Ledger Table */}
-            <div className="rounded-3xl glass-card overflow-hidden shadow-2xl">
-                <Table>
+            <div className="rounded-3xl glass-card overflow-hidden shadow-2xl min-h-[420px] flex flex-col">
+                <Table className="table-fixed w-full">
                     <TableHeader className="bg-white/5 border-b border-white/10">
                         <TableRow>
-                            <TableHead className="uppercase text-slate-300 text-[11px] font-bold">Tx Hash (트랜잭션)</TableHead>
-                            <TableHead className="uppercase text-slate-300 text-[11px] font-bold">이벤트 / 단계</TableHead>
-                            <TableHead className="uppercase text-slate-300 text-[11px] font-bold">Keccak256 Data Hash</TableHead>
-                            <TableHead className="uppercase text-slate-300 text-[11px] font-bold">생성 일시</TableHead>
-                            <TableHead className="uppercase text-slate-300 text-[11px] font-bold text-right">상세조회</TableHead>
+                            <TableHead className="w-[26%] uppercase text-slate-300 text-[11px] font-bold">Tx Hash (트랜잭션)</TableHead>
+                            <TableHead className="w-[18%] uppercase text-slate-300 text-[11px] font-bold">이벤트 / 단계</TableHead>
+                            <TableHead className="w-[28%] uppercase text-slate-300 text-[11px] font-bold">Keccak256 Data Hash</TableHead>
+                            <TableHead className="w-[18%] uppercase text-slate-300 text-[11px] font-bold">생성 일시</TableHead>
+                            <TableHead className="w-[10%] uppercase text-slate-300 text-[11px] font-bold text-right">상세조회</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="p-14 text-center text-slate-400">
+                                <TableCell colSpan={5} className="py-28 text-center text-slate-400">
                                     <div className="w-8 h-8 border-2 border-sky-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
                                     온체인 원장 데이터 로딩 중...
                                 </TableCell>
