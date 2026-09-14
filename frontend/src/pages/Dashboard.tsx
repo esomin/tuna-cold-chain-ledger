@@ -3,12 +3,22 @@ import {
   QrCode,
   MapPin,
   Thermometer,
-  AlertTriangle
+  Waves,
+  ShieldCheck,
+  Boxes,
+  Activity,
+  Plus,
+  Radio,
+  FileCheck,
+  Compass,
+  ChevronRight,
+  Bell
 } from 'lucide-react';
 import { OrderListPanel } from '../components/OrderListPanel';
 import { DistributionTimeline } from '../components/Timeline/DistributionTimeline';
 import { LiveMaplibreMap } from '../components/Map/LiveMaplibreMap';
 import { useTelemetry } from '../hooks/useTelemetry';
+import { OrderCreateModal } from '../components/OrderCreateModal';
 
 interface PurchaseOrder {
   id: string;
@@ -25,6 +35,8 @@ interface PurchaseOrder {
 
 const Dashboard: React.FC = () => {
   const [selectedPo, setSelectedPo] = useState<PurchaseOrder | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedTimeRange, setSelectedTimeRange] = useState('24h');
 
   // 관심사의 분리를 위해 추상화된 useTelemetry 커스텀 훅 사용
   const {
@@ -35,329 +47,479 @@ const Dashboard: React.FC = () => {
   } = useTelemetry(selectedPo?.poNumber);
 
   return (
-    <div
-      className="p-6 -m-6"
-      style={{
-        backgroundColor: 'var(--theme-night)',
-        color: 'var(--theme-cream)'
-      }}
-    >
-      {/* TOP HEADER */}
-      <div
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b"
-        style={{ borderColor: 'rgba(var(--theme-aqua-rgb), 0.2)' }}
-      >
+    <div className="p-4 sm:p-7 lg:p-8 flex flex-col gap-6 text-slate-100">
+      {/* ========================================================================= */}
+      {/* 1. TOP HEADER & SUMMARY METRIC PILLS (Matching Mockup Header) */}
+      {/* ========================================================================= */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
         <div>
-          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2" style={{ color: 'var(--theme-cream)' }}>
-            <span title="참치 수급예측 & 콜드체인 무결성 관제센터" className="cursor-help transition-colors hover:text-[var(--theme-aqua)]">
-              Tuna Cold Chain Integrity Control Center
-            </span>
-            <span
-              className="text-[10px] px-2 py-0.5 rounded font-mono font-normal"
-              style={{
-                backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)',
-                color: 'var(--theme-aqua)'
-              }}
-            >
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
+              <span>Tuna Cold Chain</span>
+              <span className="text-sky-400 font-normal text-lg sm:text-xl">Dashboard</span>
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-sky-500/20 text-sky-300 border border-sky-400/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
               v1.0-LIVE
             </span>
-          </h1>
-          <p className="text-xs mt-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
-            Real-time monitoring from ocean harvesting to mobile consumer integrity verification
+          </div>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Real-time ocean harvesting to hyper-cold distribution telemetry & on-chain integrity
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <a
-            href={`/verify/${selectedPo ? selectedPo.poNumber : 'PO-2026-SCENARIO-A'}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm"
-            style={{
-              backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)',
-              color: 'var(--theme-aqua)'
-            }}
-          >
-            <span>소비자 모바일 검증 뷰어 ↗</span>
-          </a>
+        {/* Top Summary Stat Capsule (Matching reference top balance pills) */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
+            <div className="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center">
+              <Boxes className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-semibold text-slate-400">Total Monitored</p>
+              <p className="text-sm font-bold text-white font-mono">1,480 kg <span className="text-[10px] text-sky-300 font-normal">/ 12 Batches</span></p>
+            </div>
+          </div>
 
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs"
-            style={{
-              backgroundColor: 'var(--theme-card-bg)',
-              color: 'var(--theme-cream)'
-            }}
-          >
-            <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: '#10B981' }} />
-            <span>실시간 블록체인 락업 활성화</span>
+          <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-semibold text-slate-400">Integrity Lock</p>
+              <p className="text-sm font-bold text-emerald-300 font-mono">100% <span className="text-[10px] text-emerald-400 font-normal">Verified</span></p>
+            </div>
+          </div>
+
+          <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
+            <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center">
+              <Thermometer className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-semibold text-slate-400">Target Temp</p>
+              <p className="text-sm font-bold text-cyan-300 font-mono">-55.0°C <span className="text-[10px] text-slate-400 font-normal">Ultra Cold</span></p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+      {/* ========================================================================= */}
+      {/* 2. MAIN TWO-COLUMN DASHBOARD GRID */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
 
         {/* ========================================================================= */}
-        {/* LEFT COLUMN: 발주/운송 목록 피드 - col-span-3 */}
+        {/* LEFT / CENTER COLUMN (8 of 12 Cols) */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-3 flex flex-col gap-6">
-          <div
-            className="rounded-xl p-5 shadow-lg"
-            style={{
-              backgroundColor: 'var(--theme-card-bg)'
-            }}
-          >
-            <OrderListPanel
-              selectedPoId={selectedPo ? selectedPo.id : null}
-              onSelectPo={(po) => setSelectedPo(po)}
-            />
-          </div>
+        <div className="xl:col-span-8 flex flex-col gap-6">
 
-          {/* Verification Portal (QR Hover) */}
-          <div
-            className="rounded-xl p-5 shadow-lg relative group"
-            style={{
-              backgroundColor: 'var(--theme-card-bg)'
-            }}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5" style={{ color: 'var(--theme-aqua)' }}>
-                <QrCode className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
-                Verification Portal
-              </h2>
-              <span className="text-[10px] font-medium" style={{ color: 'var(--theme-aqua)' }}>QR 검증</span>
-            </div>
-            <div
-              className="rounded-lg p-4 text-center flex flex-col items-center justify-center min-h-[140px]"
-              style={{
-                backgroundColor: 'var(--theme-card-inner-bg)'
-              }}
-            >
-              <QrCode className="w-12 h-12 mb-2" style={{ color: 'var(--theme-aqua)' }} />
-              <p className="text-xs font-medium" style={{ color: 'var(--theme-cream)' }}>소비자 검증 웹 뷰어 QR</p>
-              <p className="text-[9px] mt-1.5 leading-relaxed" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
-                마우스 오버시 모바일 시뮬레이터가 팝업되어 소비자용 블록체인 정품 인증서를 노출합니다.
-              </p>
-            </div>
+          {/* 2.1 TELEMETRY STATISTIC & TEMPERATURE TRAJECTORY GRAPH (Inspired by mockup's Statistic card) */}
+          <div className="glass-card rounded-3xl p-6 relative overflow-hidden flex flex-col gap-5">
+            {/* Ambient inner glow */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Hover Mobile Simulator Mockup */}
-            {selectedPo && (
-              <div
-                className="absolute left-[102%] top-0 z-50 w-72 rounded-2xl p-4 shadow-2xl opacity-0 translate-x-2 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto transition-all duration-300"
-                style={{
-                  backgroundColor: 'var(--theme-card-bg)'
-                }}
-              >
-                <div className="w-12 h-1 rounded-full mx-auto mb-3" style={{ backgroundColor: 'rgba(var(--theme-cream-rgb), 0.2)' }} />
-                <h4 className="text-xs font-bold text-center mb-2" style={{ color: 'var(--theme-aqua)' }}>Tuna Chain Cert (Mobile)</h4>
-                <div
-                  className="rounded-lg p-3 text-[10px] space-y-2"
-                  style={{
-                    backgroundColor: 'var(--theme-card-inner-bg)'
-                  }}
-                >
-                  <p style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>발주 번호: <span className="font-mono font-bold" style={{ color: 'var(--theme-cream)' }}>{selectedPo.poNumber}</span></p>
-                  <p style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>품목명: <span style={{ color: 'var(--theme-cream)' }}>{selectedPo.product.name}</span></p>
-                  <p style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>최종 유통상태: <span className="font-bold" style={{ color: 'var(--theme-aqua)' }}>{selectedPo.status}</span></p>
-                  <div className="border-t pt-2 flex justify-between items-center" style={{ borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
-                    <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>정품 보증 여부</span>
-                    <span className="font-bold" style={{ color: 'var(--theme-aqua)' }}>✓ VERIFIED</span>
-                  </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 z-10">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-cyan-400" />
+                  <h2 className="text-base font-bold text-white tracking-wide">Cold Chain Telemetry Trajectory</h2>
                 </div>
-                <p className="text-[8px] mt-2 text-center" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>QR스캔시 브라우저를 통해 직접 접속하실 수 있습니다.</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Continuous ultra-low temperature compliance sensor feed (-55°C benchmark)
+                </p>
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* ========================================================================= */}
-        {/* CENTER COLUMN: 실시간 관제 지도 및 온도 추이 - col-span-6 */}
-        {/* ========================================================================= */}
-        <div className="lg:col-span-6 flex flex-col gap-6">
-
-          {/* Live Map Panel */}
-          <div
-            className="rounded-xl p-5 shadow-lg flex flex-col gap-4"
-            style={{
-              backgroundColor: 'var(--theme-card-bg)'
-            }}
-          >
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>
-                <MapPin className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
-                Live Monitoring Map
-              </h2>
-              {selectedPo ? (
-                <span className="text-[10px] font-medium flex items-center gap-1 animate-pulse" style={{ color: 'var(--theme-aqua)' }}>
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--theme-aqua)' }}></span>
-                  {selectedPo.poNumber} 경로 렌더링 중
-                </span>
-              ) : (
-                <span className="text-[10px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>대기 중</span>
-              )}
-            </div>
-
-            {/* Real MapLibre GL Vector Map */}
-            <div
-              className="rounded-lg h-[380px] flex flex-col justify-between relative overflow-hidden shrink-0"
-              style={{
-                backgroundColor: 'var(--theme-card-inner-bg)'
-              }}
-            >
-              {liveTelemetry ? (
-                <div className="relative w-full h-[380px]">
-                  <LiveMaplibreMap
-                    lat={liveTelemetry.latitude}
-                    lng={liveTelemetry.longitude}
-                    poNumber={selectedPo ? selectedPo.poNumber : undefined}
-                  />
-                  {/* Top Floating Map HUD */}
-                  <div className="absolute top-2 left-2 z-10 text-[11px] px-2.5 py-1 rounded-md shadow-md border flex items-center gap-2" style={{ backgroundColor: 'rgba(24, 25, 26, 0.85)', borderColor: 'rgba(var(--theme-cream-rgb), 0.15)', backdropFilter: 'blur(4px)' }}>
-                    <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: 'var(--theme-aqua)' }} />
-                    <span className="font-mono text-xs font-bold" style={{ color: 'var(--theme-aqua)' }}>
-                      Lat: {liveTelemetry.latitude.toFixed(4)} | Lng: {liveTelemetry.longitude.toFixed(4)}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-20">
-                  <MapPin className="w-10 h-10 mx-auto mb-2" style={{ color: 'rgba(var(--theme-cream-rgb), 0.3)' }} />
-                  <p className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>선택된 발주의 유통 지도가 렌더링됩니다.</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Temperature Chart Panel */}
-          <div
-            className="rounded-xl p-5 shadow-lg flex flex-col gap-4"
-            style={{
-              backgroundColor: 'var(--theme-card-bg)'
-            }}
-          >
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>
-                <Thermometer className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
-                Real-Time Temperature Trajectory
-              </h2>
-              <span className="text-[10px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>Last 24 Hours</span>
-            </div>
-
-            <div
-              className="rounded-lg p-6 min-h-[200px] flex flex-col justify-center items-center text-center relative overflow-hidden"
-              style={{
-                backgroundColor: 'var(--theme-card-inner-bg)'
-              }}
-            >
-              {liveTelemetry ? (
-                <div className="w-full z-10 flex flex-col items-center">
-                  <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-4xl font-extrabold tracking-tight" style={{ color: simTemperature > -55 ? '#f87171' : 'var(--theme-aqua)' }}>
-                      {simTemperature.toFixed(1)}°C
-                    </span>
-                    <span className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
-                      {selectedPo?.status === 'COMPLETED' 
-                        ? '운송 중 기록 온도 (Latest Value)' 
-                        : '현재 보관 온도 (Latest Value)'}
-                    </span>
-                  </div>
-                  <span
-                    className="text-[10px] px-2 py-0.5 rounded"
-                    style={{
-                      backgroundColor: simTemperature > -55 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(var(--theme-aqua-rgb), 0.15)',
-                      color: simTemperature > -55 ? '#f87171' : 'var(--theme-aqua)'
-                    }}
+              {/* Range filter pill */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/60 border border-white/10 text-xs self-start sm:self-auto">
+                {['Live Feed', '24h Trajectory', 'Audit History'].map((tab, idx) => (
+                  <button
+                    key={tab}
+                    onClick={() => setSelectedTimeRange(tab)}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                      (idx === 0 && selectedTimeRange === 'Live Feed') || (idx === 1 && selectedTimeRange === '24h') || selectedTimeRange === tab
+                        ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
                   >
-                    {simTemperature > -55 ? '⚠️ 이상 고온 경고 상태' : '✓ 정상 온도 범위'}
-                  </span>
-                </div>
-              ) : (
-                <div>
-                  <Thermometer className="w-10 h-10 mx-auto mb-2" style={{ color: 'rgba(var(--theme-cream-rgb), 0.3)' }} />
-                  <p className="text-xs" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>온도 모니터링 이력이 여기에 매핑됩니다.</p>
-                </div>
-              )}
-              {/* Fake red threshold line */}
-              <div className="absolute left-0 right-0 top-[60%] border-t border-rose-500/40 flex items-center justify-end pr-4 pointer-events-none">
-                <span
-                  className="text-[8px] text-rose-400 px-1 py-0.5 rounded -mt-2.5 font-medium"
-                  style={{ backgroundColor: 'var(--theme-card-bg)' }}
-                >
-                  임계 안전선 -55°C
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Trajectory Highlights & Legend */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-white/10 pb-4 z-10">
+              <div className="flex items-center gap-4">
+                <span className="flex items-center gap-1.5 text-slate-300">
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
+                  <span>Real-time Log: <strong className="text-white font-mono">{simTemperature ? `${simTemperature.toFixed(1)}°C` : '-57.4°C'}</strong></span>
+                </span>
+                <span className="flex items-center gap-1.5 text-slate-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                  <span>Threshold Limit (-55°C)</span>
+                </span>
+                <span className="flex items-center gap-1.5 text-slate-400 hidden sm:flex">
+                  <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
+                  <span>Ocean Harvest Tank</span>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  {simTemperature > -55 ? '⚠️ TEMP DEVIATION' : '✓ 100% CRYOGENIC STABLE'}
                 </span>
               </div>
             </div>
+
+            {/* Glowing Spline Chart Graphic (Matching reference image spline wave aesthetics) */}
+            <div className="relative w-full h-48 sm:h-56 z-10 flex flex-col justify-end">
+              {/* Background horizontal grid lines */}
+              <div className="absolute inset-0 flex flex-col justify-between opacity-15 pointer-events-none">
+                <div className="border-b border-white border-dashed w-full" />
+                <div className="border-b border-white border-dashed w-full" />
+                <div className="border-b border-white border-dashed w-full" />
+                <div className="border-b border-white border-dashed w-full" />
+              </div>
+
+              {/* SVG Glowing Curves */}
+              <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 700 160">
+                <defs>
+                  {/* Cyan Glow Gradient */}
+                  <linearGradient id="cyanLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.8" />
+                    <stop offset="50%" stopColor="#38bdf8" stopOpacity="1" />
+                    <stop offset="100%" stopColor="#0284c7" stopOpacity="0.9" />
+                  </linearGradient>
+                  
+                  {/* Cyan Area Fill */}
+                  <linearGradient id="cyanAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.0" />
+                  </linearGradient>
+
+                  {/* Secondary Ocean Curve Gradient */}
+                  <linearGradient id="tealLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#34d399" stopOpacity="0.6" />
+                    <stop offset="50%" stopColor="#10b981" stopOpacity="0.85" />
+                    <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.7" />
+                  </linearGradient>
+                </defs>
+
+                {/* Secondary wave line */}
+                <path
+                  d="M 0,110 Q 120,60 230,95 T 460,70 T 700,105 L 700,160 L 0,160 Z"
+                  fill="url(#cyanAreaGrad)"
+                  opacity="0.5"
+                />
+                <path
+                  d="M 0,110 Q 120,60 230,95 T 460,70 T 700,105"
+                  fill="none"
+                  stroke="url(#tealLineGrad)"
+                  strokeWidth="2.5"
+                  strokeDasharray="4 3"
+                  className="opacity-70"
+                />
+
+                {/* Primary Neon Cyan Smooth Curve */}
+                <path
+                  d="M 0,90 Q 110,130 220,70 T 440,50 T 700,85"
+                  fill="none"
+                  stroke="url(#cyanLineGrad)"
+                  strokeWidth="3.5"
+                  className="filter drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]"
+                />
+
+                {/* Threshold Safety Line */}
+                <line
+                  x1="0"
+                  y1="100"
+                  x2="700"
+                  y2="100"
+                  stroke="#f43f5e"
+                  strokeWidth="1.5"
+                  strokeDasharray="6 4"
+                  opacity="0.4"
+                />
+
+                {/* Active telemetry pin badge */}
+                <g transform="translate(440, 50)">
+                  <circle r="6" fill="#00f0ff" className="animate-ping opacity-75" />
+                  <circle r="5" fill="#030e1a" stroke="#00f0ff" strokeWidth="2.5" />
+                  <rect x="-42" y="-32" width="84" height="22" rx="6" fill="#030e1a" stroke="#00f0ff" strokeWidth="1" />
+                  <text x="0" y="-18" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                    {simTemperature ? `${simTemperature.toFixed(1)}°C` : '-57.4°C'}
+                  </text>
+                </g>
+              </svg>
+
+              {/* Time axis */}
+              <div className="flex justify-between items-center text-[10px] font-mono text-slate-400 mt-2 border-t border-white/5 pt-2">
+                <span>00:00 (Harvest)</span>
+                <span>04:00 (Flash Freezing)</span>
+                <span>08:00 (In-Transit)</span>
+                <span>12:00 (Port Busan)</span>
+                <span>16:00 (Cold Storage)</span>
+                <span>20:00 (Live)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 2.2 TWO-PANEL ROW: Orders Feed & Live Map */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+            {/* Left: Orders Feed (5 cols) */}
+            <div className="md:col-span-5 glass-card rounded-3xl p-5 flex flex-col">
+              <OrderListPanel
+                selectedPoId={selectedPo ? selectedPo.id : null}
+                onSelectPo={(po) => setSelectedPo(po)}
+              />
+            </div>
+
+            {/* Right: Live Map (7 cols) */}
+            <div className="md:col-span-7 glass-card rounded-3xl p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-sky-400" />
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Live Ocean & Land GPS</h3>
+                </div>
+                {selectedPo ? (
+                  <span className="text-[10px] font-semibold text-sky-300 flex items-center gap-1.5 animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-sky-400" />
+                    {selectedPo.poNumber}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-slate-400">대기 중</span>
+                )}
+              </div>
+
+              {/* Map Container */}
+              <div className="rounded-2xl overflow-hidden border border-white/10 relative h-[300px] shadow-inner">
+                {liveTelemetry ? (
+                  <div className="relative w-full h-full">
+                    <LiveMaplibreMap
+                      lat={liveTelemetry.latitude}
+                      lng={liveTelemetry.longitude}
+                      poNumber={selectedPo ? selectedPo.poNumber : undefined}
+                    />
+                    {/* Floating HUD */}
+                    <div className="absolute top-3 left-3 z-10 text-[11px] px-3 py-1.5 rounded-xl glass-dock border border-white/20 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                      <span className="font-mono text-xs font-bold text-cyan-300">
+                        GPS {liveTelemetry.latitude.toFixed(4)}°N, {liveTelemetry.longitude.toFixed(4)}°E
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 bg-slate-950/40">
+                    <Compass className="w-10 h-10 text-slate-500 mb-2 animate-spin-slow" />
+                    <p className="text-xs text-slate-300 font-medium">선택된 발주/운송 건의 실시간 GPS 관제가 표시됩니다.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 2.3 BOTTOM ROW: Goals / Compliance Rings (Inspired by reference bottom goals & target) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            
+            {/* Card 1: Cold Chain Health */}
+            <div className="glass-card rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-semibold text-slate-400">Freshness Index</p>
+                <p className="text-2xl font-black text-white font-mono mt-1">99.8%</p>
+                <p className="text-[10px] text-emerald-400 mt-0.5">✓ Grade 1 Premium Bluefin</p>
+              </div>
+              <div className="w-12 h-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-400 flex items-center justify-center font-bold text-xs text-emerald-300">
+                A+
+              </div>
+            </div>
+
+            {/* Card 2: On-chain Verification Lock */}
+            <div className="glass-card rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-semibold text-slate-400">Smart Contract Lock</p>
+                <p className="text-2xl font-black text-white font-mono mt-1">100%</p>
+                <p className="text-[10px] text-cyan-300 mt-0.5">Keccak256 SHA-3</p>
+              </div>
+              <div className="w-12 h-12 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 flex items-center justify-center font-bold text-xs text-cyan-300">
+                L1
+              </div>
+            </div>
+
+            {/* Card 3: Target Temp Compliance (Circular ring like mockup) */}
+            <div className="glass-card rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-semibold text-slate-400">Ultra-Cold Compliance</p>
+                <p className="text-2xl font-black text-white font-mono mt-1">&lt; -55°C</p>
+                <p className="text-[10px] text-sky-400 mt-0.5">0 Temp Deviations</p>
+              </div>
+              <div className="w-12 h-12 rounded-full border-4 border-sky-500/20 border-t-sky-400 flex items-center justify-center font-bold text-xs text-sky-300">
+                100%
+              </div>
+            </div>
+
           </div>
 
         </div>
 
         {/* ========================================================================= */}
-        {/* RIGHT COLUMN: 온체인 감사 타임라인 및 실시간 경고 피드 - col-span-3 */}
+        {/* RIGHT COLUMN (4 of 12 Cols) */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-3 flex flex-col gap-6">
+        <div className="xl:col-span-4 flex flex-col gap-6">
 
-          {/* Quality Alerts Feed */}
-          <div
-            className="rounded-xl p-5 shadow-lg flex flex-col gap-4"
-            style={{
-              backgroundColor: 'var(--theme-card-bg)'
-            }}
-          >
+          {/* 3.1 OPERATOR PROFILE & QUICK ACTION PILL BUTTONS (Matching Reference Card) */}
+          <div className="glass-card rounded-3xl p-6 flex flex-col gap-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>
-                <AlertTriangle className="w-4 h-4 text-rose-400 animate-pulse" />
-                Quality Alerts
-              </h2>
-              {alerts.length > 0 ? (
+              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                MASTER LOGISTICS
+              </span>
+              <div className="flex items-center gap-2">
                 <button
                   onClick={clearAlerts}
-                  className="text-[10px] text-rose-400 hover:text-rose-300 hover:underline transition-colors font-medium cursor-pointer"
+                  title="Alert notifications"
+                  className="w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors relative"
                 >
-                  지우기 ({alerts.length})
+                  <Bell className="w-3.5 h-3.5" />
+                  {alerts.length > 0 && (
+                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                  )}
                 </button>
-              ) : (
-                <span className="text-[10px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>경고 피드</span>
-              )}
+              </div>
             </div>
 
-            <div className="flex flex-col gap-3 max-h-[220px] overflow-y-auto pr-1">
-              {alerts.length > 0 ? (
-                alerts.map((alert, idx) => (
-                  <div key={idx} className="bg-rose-950/20 border border-rose-500/20 rounded-lg p-3 text-[10px] flex flex-col gap-1">
-                    <div className="flex items-center gap-1.5 text-rose-400 font-bold">
-                      <span className="px-1.5 py-0.5 rounded text-[8px] bg-rose-500 text-white uppercase font-black">CRITICAL</span>
-                      <span>{alert.poNumber} TEMP EXCEEDED</span>
-                    </div>
-                    <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>{alert.message}</span>
-                    <span className="text-[8px] mt-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>{new Date(alert.timestamp).toLocaleTimeString()}</span>
+            {/* User Details */}
+            <div className="flex items-center gap-3.5">
+              <div className="relative">
+                <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-300 p-[2px] shadow-lg shadow-sky-500/20">
+                  <div className="w-full h-full rounded-2xl bg-slate-950 flex items-center justify-center font-black text-base text-cyan-300">
+                    TC
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-6 text-xs italic" style={{ color: 'rgba(var(--theme-cream-rgb), 0.4)' }}>
-                  경고 이벤트 로그 없음
                 </div>
-              )}
+                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-950" />
+              </div>
+
+              <div>
+                <h3 className="text-base font-bold text-white">남태평양 1등 원양선단</h3>
+                <p className="text-xs text-slate-400">Pacific Ocean Fleet No. 7</p>
+              </div>
             </div>
+
+            {/* 4 Action Pill Buttons (Matching Reference Transfer / Receive / Bill / Top up) */}
+            <div className="grid grid-cols-4 gap-2 pt-2 border-t border-white/10">
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-white/10 text-slate-300 hover:text-white transition-all group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 group-hover:border-sky-400/50 group-hover:bg-sky-500/20 flex items-center justify-center text-sky-400 transition-all">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-medium">신규등록</span>
+              </button>
+
+              <a
+                href={`/verify/${selectedPo ? selectedPo.poNumber : 'PO-2026-SCENARIO-A'}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-white/10 text-slate-300 hover:text-white transition-all group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 group-hover:border-cyan-400/50 group-hover:bg-cyan-500/20 flex items-center justify-center text-cyan-400 transition-all">
+                  <QrCode className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-medium">QR 검증</span>
+              </a>
+
+              <a
+                href="/blockchain-ledger"
+                className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-white/10 text-slate-300 hover:text-white transition-all group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 group-hover:border-emerald-400/50 group-hover:bg-emerald-500/20 flex items-center justify-center text-emerald-400 transition-all">
+                  <FileCheck className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-medium">온체인원장</span>
+              </a>
+
+              <button
+                onClick={() => window.location.reload()}
+                className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-white/10 text-slate-300 hover:text-white transition-all group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 group-hover:border-sky-400/50 group-hover:bg-sky-500/20 flex items-center justify-center text-sky-300 transition-all">
+                  <Radio className="w-4 h-4" />
+                </div>
+                <span className="text-[10px] font-medium">센서동기화</span>
+              </button>
+            </div>
+
+            {/* 3.2 HOLOGRAPHIC MARITIME LEDGER SMART CARD (Matching Reference Credit Card) */}
+            <div className="rounded-2xl p-5 ocean-card-gradient text-white flex flex-col justify-between h-48 relative overflow-hidden border border-cyan-300/30 shadow-2xl">
+              {/* Card Watermark */}
+              <Waves className="absolute right-3 top-3 w-28 h-28 text-white/10 pointer-events-none" />
+
+              <div className="flex justify-between items-start z-10">
+                <div>
+                  <p className="text-[10px] font-mono tracking-widest uppercase text-cyan-200">MARITIME INTEGRITY NFT</p>
+                  <p className="text-base font-extrabold tracking-tight mt-0.5">{selectedPo ? selectedPo.product.name : 'Pacific Bluefin Tuna'}</p>
+                </div>
+                <span className="text-sm font-black italic tracking-wider text-cyan-200">TUNA CHAIN</span>
+              </div>
+
+              <div className="z-10 flex items-center gap-3">
+                <div className="w-9 h-6 rounded-md bg-amber-400/80 border border-amber-200/60 shadow-sm" />
+                <span className="font-mono text-xs tracking-wider text-slate-200">
+                  {selectedPo ? selectedPo.poNumber : 'PO-2026-SCENARIO-A'}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-end z-10 pt-2 border-t border-white/15">
+                <div>
+                  <p className="text-[9px] uppercase text-cyan-200">Safe Target Temp</p>
+                  <p className="text-xs font-bold font-mono">-55.0°C ULTRA COLD</p>
+                </div>
+                <div>
+                  <p className="text-[9px] uppercase text-cyan-200 text-right">Batch Weight</p>
+                  <p className="text-sm font-black font-mono text-right">{selectedPo ? `${selectedPo.quantity} kg` : '150 kg'}</p>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          {/* Web3 Ledger Timeline */}
-          <div
-            className="rounded-xl p-5 shadow-lg flex-1"
-            style={{
-              backgroundColor: 'var(--theme-card-bg)'
-            }}
-          >
+          {/* 3.3 ON-CHAIN TIMELINE & ALERTS */}
+          <div className="glass-card rounded-3xl p-6 flex flex-col gap-4 flex-1">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>On-Chain Journey Timeline</span>
+              </h3>
+              <a
+                href="/blockchain-ledger"
+                className="text-[11px] text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1 hover:underline"
+              >
+                <span>전체 원장</span>
+                <ChevronRight className="w-3 h-3" />
+              </a>
+            </div>
+
             <DistributionTimeline
-              poNumber={selectedPo ? selectedPo.poNumber : null}
-              status={selectedPo ? selectedPo.status : null}
+              poNumber={selectedPo ? selectedPo.poNumber : 'PO-2026-SCENARIO-A'}
+              status={selectedPo ? selectedPo.status : 'COMPLETED'}
             />
           </div>
 
         </div>
 
       </div>
+
+      {/* New Transport Registration Modal */}
+      <OrderCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onOrderCreated={(newOrder) => {
+          setSelectedPo(newOrder);
+        }}
+      />
     </div>
   );
 };
 
 export default Dashboard;
+

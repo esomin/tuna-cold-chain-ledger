@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Truck } from 'lucide-react';
 import { OrderCreateModal } from './OrderCreateModal';
 
 interface PurchaseOrder {
@@ -50,50 +50,51 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
         onSelectPo(newOrder);
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusBadge = (status: string) => {
         switch (status.toUpperCase()) {
             case 'COMPLETED':
             case 'DELIVERED':
-                return 'bg-[#10B981]/20 text-[#10B981] border-[#10B981]/40 font-bold';
+                return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.2)]';
             case 'PENDING':
             case 'IN_TRANSIT':
-                return 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/40 font-bold';
+                return 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-[0_0_8px_rgba(56,189,248,0.2)]';
             case 'HARVESTED':
             case 'DRAFT':
             default:
-                return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40 font-bold';
+                return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.2)]';
         }
     };
 
-    const getStatusBadgeLabel = (status: string) => {
+    const getStatusLabel = (status: string) => {
         switch (status.toUpperCase()) {
             case 'COMPLETED':
             case 'DELIVERED':
-                return 'COMPLETED';
+                return '입고 완료';
             case 'HARVESTED':
-                return 'HARVESTED';
+                return '어획 완료';
             case 'PROCESSING':
-                return 'PROCESSING';
+                return '초저온 가공';
             case 'IN_TRANSIT':
             case 'PENDING':
-                return 'IN_TRANSIT';
+                return '초저온 운송중';
             case 'DRAFT':
             default:
-                return 'HARVESTED';
+                return '어획 등록';
         }
     };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
-                운송 목록을 불러오는 중...
+            <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-xs gap-2">
+                <div className="w-5 h-5 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
+                <span>운송 목록을 불러오는 중...</span>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="p-4 text-rose-400 text-sm bg-rose-500/10 rounded-lg border border-rose-500/20">
+            <div className="p-4 text-rose-300 text-xs bg-rose-500/10 rounded-2xl border border-rose-500/30">
                 ⚠️ {error}
             </div>
         );
@@ -102,42 +103,44 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold" style={{ color: 'var(--theme-cream)' }}>운송 목록 피드</h3>
+                <div className="flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-sky-400" />
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">운송 목록 피드</h3>
+                </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all shadow-md shadow-cyan-500/20"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-400 to-cyan-400 hover:from-sky-300 hover:to-cyan-300 text-slate-950 transition-all shadow-md shadow-sky-500/20 hover:scale-105 active:scale-95"
                 >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>신규 운송 등록</span>
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>신규 등록</span>
                 </button>
             </div>
 
-            <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+            <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
                 {orders.map((order) => {
                     const isSelected = selectedPoId === order.id;
                     return (
                         <div
                             key={order.id}
                             onClick={() => onSelectPo(order)}
-                            className="p-4 rounded-xl transition-all duration-200 cursor-pointer hover:border-slate-700"
-                            style={{
-                                backgroundColor: isSelected ? '#18191a' : 'var(--theme-card-inner-bg)',
-                                border: isSelected ? '1px solid var(--theme-aqua)' : 'none',
-                                boxShadow: isSelected ? '0 0 12px rgba(56, 189, 248, 0.15)' : 'none'
-                            }}
+                            className={`p-3.5 rounded-2xl transition-all duration-200 cursor-pointer border ${
+                                isSelected
+                                    ? 'bg-sky-500/15 border-sky-400/60 shadow-[0_0_15px_rgba(56,189,248,0.25)] ring-1 ring-sky-400/30'
+                                    : 'glass-card-inner border-white/5 hover:border-white/20 hover:bg-white/5'
+                            }`}
                         >
-                            <div className="flex justify-between items-start mb-2">
-                                <span className="font-mono text-sm font-semibold" style={{ color: 'var(--theme-cream)' }}>
+                            <div className="flex justify-between items-start mb-1.5">
+                                <span className="font-mono text-xs font-bold text-white tracking-wide">
                                     {order.poNumber}
                                 </span>
-                                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getStatusColor(order.status)}`}>
-                                    {getStatusBadgeLabel(order.status)}
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${getStatusBadge(order.status)}`}>
+                                    {getStatusLabel(order.status)}
                                 </span>
                             </div>
-                            <div className="text-xs space-y-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}>
-                                <p className="font-medium" style={{ color: 'var(--theme-cream)' }}>{order.product?.name || '참치 상품'}</p>
-                                <p>수량: {order.quantity}kg | 공급사: {order.supplierName}</p>
-                                <p className="text-[10px] mt-1 italic line-clamp-1" style={{ color: 'rgba(var(--theme-cream-rgb), 0.5)' }}>{order.notes}</p>
+                            <div className="text-xs space-y-0.5 text-slate-300">
+                                <p className="font-semibold text-slate-100">{order.product?.name || '참치 상품'}</p>
+                                <p className="text-[11px] text-slate-400">수량: <strong className="text-slate-200">{order.quantity}kg</strong> | {order.supplierName}</p>
+                                <p className="text-[10px] text-slate-400/80 italic line-clamp-1">{order.notes}</p>
                             </div>
                         </div>
                     );
@@ -153,3 +156,4 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
         </div>
     );
 };
+

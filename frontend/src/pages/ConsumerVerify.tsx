@@ -121,45 +121,27 @@ const ConsumerVerify: React.FC = () => {
 
     return (
         <div 
-            className="min-h-screen flex justify-center font-sans"
-            style={{
-                backgroundColor: 'var(--theme-night)',
-                color: 'var(--theme-cream)'
-            }}
+            className="min-h-screen flex justify-center items-center font-sans p-3 sm:p-6"
         >
-            {/* Mobile View Container */}
+            {/* Mobile View Glass Container */}
             <div 
-                className="w-full max-w-lg flex flex-col min-h-screen relative shadow-2xl overflow-hidden pb-12"
-                style={{
-                    backgroundColor: 'var(--theme-night)',
-                    borderLeft: '1px solid rgba(var(--theme-cream-rgb), 0.15)',
-                    borderRight: '1px solid rgba(var(--theme-cream-rgb), 0.15)'
-                }}
+                className="w-full max-w-lg flex flex-col min-h-[90vh] relative shadow-2xl rounded-3xl glass-container overflow-hidden pb-12 border border-white/20 animate-in fade-in duration-300"
             >
                 {/* Header */}
                 <header 
-                    className="p-4 backdrop-blur sticky top-0 z-30 flex items-center justify-between border-b"
-                    style={{
-                        backgroundColor: 'var(--theme-night)',
-                        borderColor: 'rgba(var(--theme-cream-rgb), 0.15)'
-                    }}
+                    className="p-4.5 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-slate-950/40"
                 >
                     <Link 
                         to="/" 
-                        className="flex items-center text-xs font-semibold gap-1.5 transition-colors"
-                        style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }}
+                        className="flex items-center text-xs font-semibold gap-1.5 transition-colors text-slate-300 hover:text-white"
                     >
                         <ArrowLeft className="w-4 h-4" />
-                        관제 센터
+                        관제 대시보드
                     </Link>
                     <div 
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-                        style={{
-                            backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)',
-                            color: 'var(--theme-aqua)'
-                        }}
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-400/30"
                     >
-                        <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                        <Sparkles className="w-3.5 h-3.5 animate-pulse text-cyan-300" />
                         <span>Smart Provenance</span>
                     </div>
                 </header>
@@ -175,97 +157,95 @@ const ConsumerVerify: React.FC = () => {
                         <>
                             {/* Verified Seal Hero Animation */}
                             <section 
-                                className="relative flex flex-col items-center justify-center p-6 rounded-3xl overflow-hidden shadow-lg"
-                                style={{
-                                    backgroundColor: 'var(--theme-card-bg)'
-                                }}
+                                className="relative flex flex-col items-center justify-center p-6 rounded-3xl overflow-hidden shadow-lg glass-card"
                             >
-                                <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl pointer-events-none" style={{ backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)' }}></div>
+                                <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl pointer-events-none bg-sky-500/15" />
 
                                 {/* Animated Seal */}
                                 <div className={`relative mb-4 transition-transform duration-700 ${isAnimating ? 'scale-110' : 'scale-100'}`}>
-                                    <div className="w-24 h-24 rounded-full flex items-center justify-center p-2 relative shadow-lg" style={{ backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)', border: '2px solid var(--theme-aqua)' }}>
-                                        <div className="w-full h-full rounded-full border border-dashed flex items-center justify-center" style={{ borderColor: 'rgba(var(--theme-aqua-rgb), 0.6)', backgroundColor: 'var(--theme-card-inner-bg)' }}>
-                                            <ShieldCheck className="w-11 h-11 animate-pulse" style={{ color: 'var(--theme-aqua)' }} />
+                                    <div className="w-24 h-24 rounded-full flex items-center justify-center p-2 relative shadow-lg bg-sky-500/20 border-2 border-sky-400 shadow-sky-500/30">
+                                        <div className="w-full h-full rounded-full border border-dashed border-sky-300/60 flex items-center justify-center glass-card-inner">
+                                            <ShieldCheck className="w-11 h-11 animate-pulse text-sky-400" />
                                         </div>
                                     </div>
-                                    <div className="absolute bottom-0 right-0 p-1.5 rounded-full shadow-md" style={{ backgroundColor: 'var(--theme-aqua)', color: 'var(--theme-night)' }}>
+                                    <div className="absolute bottom-0 right-0 p-1.5 rounded-full shadow-md bg-sky-400 text-slate-950">
                                         <CheckCircle2 className="w-4 h-4" />
                                     </div>
                                 </div>
 
-                                <h2 className="text-xl font-bold tracking-wide text-center flex items-center gap-2" style={{ color: 'var(--theme-cream)' }}>
+                                <h2 className="text-xl font-bold tracking-wide text-center flex items-center gap-2 text-white">
                                     <span>블록체인 정품 인증 완료</span>
                                 </h2>
-                                <p className="text-xs font-semibold mt-1 px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(var(--theme-aqua-rgb), 0.15)', color: 'var(--theme-aqua)' }}>
+                                <p className="text-xs font-semibold mt-1 px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30">
                                     위변조 불가 이더리움 스마트 계약 수록
                                 </p>
 
-                                <div className="mt-4 pt-4 w-full flex items-center justify-between text-xs border-t" style={{ borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
-                                    <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>검증 일시</span>
-                                    <span className="font-mono" style={{ color: 'var(--theme-cream)' }}>{new Date(data.verifiedAt).toLocaleString('ko-KR')}</span>
+                                <div className="mt-4 pt-4 w-full flex items-center justify-between text-xs border-t border-white/10">
+                                    <span className="text-slate-400">검증 일시</span>
+                                    <span className="font-mono text-slate-200">{new Date(data.verifiedAt).toLocaleString('ko-KR')}</span>
                                 </div>
                             </section>
 
                             {/* Product Info Card */}
-                            <section className="rounded-2xl p-4 space-y-3" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
-                                <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'rgba(var(--theme-cream-rgb), 0.1)' }}>
-                                    <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>제품 및 원산지 정보</h3>
-                                    <span className="px-2 py-0.5 rounded text-[11px] font-mono" style={{ backgroundColor: 'var(--theme-card-inner-bg)', color: 'var(--theme-cream)' }}>{data.purchaseOrder.poNumber}</span>
+                            <section className="rounded-2xl p-4 space-y-3 glass-card">
+                                <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">제품 및 원산지 정보</h3>
+                                    <span className="px-2 py-0.5 rounded text-[11px] font-mono glass-card-inner text-sky-300">{data.purchaseOrder.poNumber}</span>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <h4 className="text-base font-bold" style={{ color: 'var(--theme-cream)' }}>{data.purchaseOrder.product.name}</h4>
+                                    <h4 className="text-base font-bold text-white">{data.purchaseOrder.product.name}</h4>
 
                                     <div className="grid grid-cols-1 gap-2 pt-1">
                                         <div className="flex items-center gap-2 text-xs">
-                                            <MapPin className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-aqua)' }} />
-                                            <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>어획지:</span>
-                                            <span className="font-medium" style={{ color: 'var(--theme-cream)' }}>{data.purchaseOrder.product.originLocation}</span>
+                                            <MapPin className="w-4 h-4 shrink-0 text-sky-400" />
+                                            <span className="text-slate-400">어획지:</span>
+                                            <span className="font-medium text-slate-200">{data.purchaseOrder.product.originLocation}</span>
                                         </div>
 
                                         <div className="flex items-center gap-2 text-xs">
-                                            <Calendar className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-aqua)' }} />
-                                            <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>어획일자:</span>
-                                            <span className="font-medium" style={{ color: 'var(--theme-cream)' }}>{data.purchaseOrder.product.harvestDate}</span>
+                                            <Calendar className="w-4 h-4 shrink-0 text-sky-400" />
+                                            <span className="text-slate-400">어획일자:</span>
+                                            <span className="font-medium text-slate-200">{data.purchaseOrder.product.harvestDate}</span>
                                         </div>
 
                                         <div className="flex items-center gap-2 text-xs">
-                                            <Store className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-aqua)' }} />
-                                            <span style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>공급/어선:</span>
-                                            <span className="font-medium" style={{ color: 'var(--theme-cream)' }}>{data.purchaseOrder.supplierName}</span>
+                                            <Store className="w-4 h-4 shrink-0 text-sky-400" />
+                                            <span className="text-slate-400">공급/어선:</span>
+                                            <span className="font-medium text-slate-200">{data.purchaseOrder.supplierName}</span>
                                         </div>
                                     </div>
                                 </div>
                             </section>
 
                             {/* Cold Chain Integrity Stats */}
-                            <section className="rounded-2xl p-4 space-y-3" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
+                            <section className="rounded-2xl p-4 space-y-3 glass-card">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
-                                        <Thermometer className="w-4 h-4" style={{ color: 'var(--theme-aqua)' }} />
+                                    <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-slate-400">
+                                        <Thermometer className="w-4 h-4 text-sky-400" />
                                         콜드체인 초저온 보관 상태
                                     </h3>
                                     <span 
-                                        className="text-xs font-bold px-2 py-0.5 rounded" 
+                                        className="text-xs font-bold px-2 py-0.5 rounded-full border" 
                                         style={{ 
                                             backgroundColor: data.temperatureStats.hasAnomaly ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)', 
-                                            color: data.temperatureStats.hasAnomaly ? '#f87171' : '#10B981' 
+                                            color: data.temperatureStats.hasAnomaly ? '#f87171' : '#10B981',
+                                            borderColor: data.temperatureStats.hasAnomaly ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'
                                         }}
                                     >
                                         {data.temperatureStats.hasAnomaly ? '운송 중 주의 필요 (-55°C 표준)' : '최적 유지 중 (-55°C 표준)'}
                                     </span>
                                 </div>
 
-                                <div className="p-3 rounded-xl flex items-center justify-between" style={{ backgroundColor: 'var(--theme-card-inner-bg)' }}>
+                                <div className="p-3.5 rounded-xl flex items-center justify-between glass-card-inner border border-white/5">
                                     <div>
-                                        <p className="text-[11px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>최근 실시간 감지 온도</p>
-                                        <p className="text-2xl font-black font-mono mt-0.5" style={{ color: data.temperatureStats.latestTemp > -55 ? '#f87171' : 'var(--theme-aqua)' }}>
+                                        <p className="text-[11px] text-slate-400">최근 실시간 감지 온도</p>
+                                        <p className="text-2xl font-black font-mono mt-0.5" style={{ color: data.temperatureStats.latestTemp > -55 ? '#f87171' : '#38bdf8' }}>
                                             {data.temperatureStats.latestTemp}°C
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[11px]" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>온도 이탈 건수</p>
+                                        <p className="text-[11px] text-slate-400">온도 이탈 건수</p>
                                         <p className="text-sm font-semibold mt-1" style={{ color: data.temperatureStats.hasAnomaly ? '#f87171' : '#10B981' }}>
                                             {data.temperatureStats.hasAnomaly ? '1건 (콜드체인 임계 이탈)' : '0건 (안전 규격 준수)'}
                                         </p>

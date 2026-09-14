@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { ExternalLink } from 'lucide-react';
+import { ETHERSCAN_BASE_URL } from '../../config';
 
 interface StageLog {
     stageKey: string;
@@ -23,31 +25,30 @@ interface StepInfo {
 
 export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNumber, status }) => {
     const [stageLogs, setStageLogs] = useState<StageLog[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
 
     const steps: StepInfo[] = [
         {
             key: 'HARVESTED',
             label: '어획 완료 (Harvested)',
-            description: '원산지(어장) 정보 확정 및 최초 온체인 무결성 해시 등록',
+            description: '원산지(남태평양 어장) 정보 확정 및 최초 온체인 무결성 해시 등록',
             statusTrigger: ['HARVESTED', 'DRAFT', 'PENDING', 'COMPLETED'],
         },
         {
             key: 'PROCESSING',
             label: '초저온 가공 (Processed)',
-            description: '초저온 냉동고 입고 및 포장 규격 해시 블록체인 기록',
+            description: '초저온(-55°C) 급랭 동결고 입고 및 포장 규격 해시 블록체인 기록',
             statusTrigger: ['PROCESSING', 'PENDING', 'COMPLETED'],
         },
         {
             key: 'IN_TRANSIT',
             label: '운송중 (In-Transit)',
-            description: '초저온 유통 차량 매핑 및 온도 이탈 경고 여부 체크포인트 등록',
+            description: '초저온 유통 차량 실시간 GPS/온도 텔레메트리 연동 무결성 검증',
             statusTrigger: ['IN_TRANSIT', 'PENDING', 'COMPLETED'],
         },
         {
             key: 'DELIVERED',
             label: '입고 완료 (Delivered)',
-            description: '최종 매장 입고 및 소비자 검증용 온체인 인증서 발급',
+            description: '소비자 검증용 온체인 디지털 정품 보증서(NFT Hash) 발행 완료',
             statusTrigger: ['DELIVERED', 'COMPLETED'],
         },
     ];
@@ -56,7 +57,6 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
         if (!poNumber) return;
 
         const fetchVerification = async () => {
-            setLoading(true);
             try {
                 const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/purchase-orders/${poNumber}/verify`);
                 if (response.ok) {
@@ -67,8 +67,6 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
                 }
             } catch (err) {
                 console.error('Error fetching verification stage logs', err);
-            } finally {
-                setLoading(false);
             }
         };
 
@@ -102,74 +100,64 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
 
     if (!poNumber) {
         return (
-            <div className="flex items-center justify-center h-48 text-slate-500 text-sm">
+            <div className="flex items-center justify-center h-48 text-slate-400 text-xs">
                 좌측에서 발주/운송 건을 선택하면 타임라인이 표기됩니다.
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-slate-200">온체인 유통 타임라인</h3>
-                {loading && <span className="text-[10px] text-blue-400 animate-pulse">원장 동기화 중...</span>}
-            </div>
-
-            <div className="relative border-l border-slate-800 ml-4 pl-6 space-y-8">
+        <div className="space-y-4">
+            <div className="relative border-l border-sky-500/20 ml-3 pl-5 space-y-5">
                 {steps.map((step) => {
                     const stepStatus = getStepStatus(step);
                     const stageLog = getStepStageLog(step.key);
                     const txHash = stageLog?.txHash && stageLog.txHash !== 'ON-CHAIN PENDING' ? stageLog.txHash : null;
-                    const dataHash = stageLog?.dataHash && stageLog.dataHash !== 'ON-CHAIN PENDING' ? stageLog.dataHash : null;
 
                     return (
                         <div key={step.key} className="relative">
-                            {/* 노드 포인트 마커 */}
-                            <div className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 transition-all duration-300 ${
+                            {/* Node Point Marker */}
+                            <div className={`absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full border-2 transition-all duration-300 ${
                                 stepStatus === 'VERIFIED'
-                                    ? 'bg-[#10B981] border-[#34D399] shadow-md shadow-[#10B981]/50'
+                                    ? 'bg-emerald-400 border-emerald-300 shadow-[0_0_10px_#10b981]'
                                     : stepStatus === 'WARNING'
-                                    ? 'bg-rose-500 border-rose-400 shadow-md shadow-rose-500/50'
-                                    : 'bg-slate-950 border-slate-800'
+                                    ? 'bg-rose-500 border-rose-400 shadow-[0_0_10px_#f43f5e]'
+                                    : 'bg-slate-900 border-slate-700'
                             }`} />
 
-                            <div className="space-y-1.5">
-                                <div className="flex items-center gap-2">
-                                    <h4 className={`text-sm font-semibold transition-colors duration-200 ${
-                                        stepStatus === 'VERIFIED' ? 'text-[#10B981]' : 'text-slate-300'
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between gap-2">
+                                    <h4 className={`text-xs font-bold transition-colors duration-200 ${
+                                        stepStatus === 'VERIFIED' ? 'text-emerald-300' : 'text-slate-200'
                                     }`}>
                                         {step.label}
                                     </h4>
                                     {stepStatus === 'VERIFIED' && (
-                                        <span className="text-[9px] bg-[#10B981]/15 text-[#10B981] px-1.5 py-0.5 rounded border border-[#10B981]/30 font-bold">
-                                            SIGNATURE VERIFIED
-                                        </span>
-                                    )}
-                                    {stepStatus === 'WARNING' && (
-                                        <span className="text-[9px] bg-rose-500/10 text-rose-400 px-1.5 py-0.5 rounded border border-rose-500/20 font-bold animate-pulse">
-                                            CRITICAL TEMP BREACH
+                                        <span className="text-[9px] bg-emerald-500/15 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 font-bold">
+                                            ✓ VERIFIED
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-xs text-slate-400 leading-relaxed">
+                                <p className="text-[11px] text-slate-400 leading-relaxed">
                                     {step.description}
                                 </p>
 
-                                {/* 블록체인 익스플로러 카드 노출 */}
-                                {stepStatus === 'VERIFIED' && txHash && dataHash && (
-                                    <div className="mt-2 p-3 rounded-lg bg-slate-900/40 border border-slate-900 text-[10px] font-mono text-slate-500 space-y-1">
-                                        <p className="flex justify-between items-center gap-2">
-                                            <span>Tx Hash:</span>
-                                            <span className="text-cyan-400 font-bold hover:underline truncate max-w-[220px] cursor-pointer" title={txHash}>
-                                                {txHash.length > 24 ? `${txHash.slice(0, 10)}...${txHash.slice(-8)}` : txHash}
-                                            </span>
-                                        </p>
-                                        <p className="flex justify-between items-center gap-2">
-                                            <span>Data Hash:</span>
-                                            <span className="text-emerald-400 font-bold truncate max-w-[220px]" title={dataHash}>
-                                                {dataHash.length > 24 ? `${dataHash.slice(0, 10)}...${dataHash.slice(-8)}` : dataHash}
-                                            </span>
-                                        </p>
+                                {/* Blockchain Explorer Micro Card */}
+                                {stepStatus === 'VERIFIED' && txHash && (
+                                    <div className="mt-1.5 p-2 rounded-xl glass-card-inner text-[10px] font-mono text-slate-400 space-y-0.5 border border-white/5">
+                                        <div className="flex justify-between items-center gap-2">
+                                            <span className="text-slate-400">Tx:</span>
+                                            <a
+                                                href={`${ETHERSCAN_BASE_URL}/tx/${txHash}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-cyan-300 hover:text-cyan-200 font-bold hover:underline truncate max-w-[170px] flex items-center gap-1"
+                                                title={txHash}
+                                            >
+                                                <span>{txHash.slice(0, 8)}...{txHash.slice(-6)}</span>
+                                                <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                                            </a>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -180,3 +168,4 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
         </div>
     );
 };
+

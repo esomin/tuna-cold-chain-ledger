@@ -3,10 +3,13 @@ import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
     LayoutDashboard,
     Database,
+    ShieldCheck,
     LogOut,
-    ChevronDown
+    Waves,
+    ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { CONTRACT_ADDRESS, ETHERSCAN_BASE_URL } from '../../config';
 
 const AppLayout: React.FC = () => {
     const navigate = useNavigate();
@@ -31,16 +34,21 @@ const AppLayout: React.FC = () => {
             path: '/',
             icon: <LayoutDashboard className="w-5 h-5" />,
             label: 'Dashboard',
-            tooltip: '대시보드'
+            tooltip: '통합 관제 대시보드'
         },
         {
             path: '/blockchain-ledger',
             icon: <Database className="w-5 h-5" />,
             label: 'Ledger Explorer',
             tooltip: '온체인 감사 원장 탐색기'
+        },
+        {
+            path: '/verify/PO-2026-SCENARIO-A',
+            icon: <ShieldCheck className="w-5 h-5" />,
+            label: 'Consumer Cert',
+            tooltip: '소비자 온체인 검증'
         }
     ];
-
 
     const handleLogout = () => {
         logout();
@@ -48,125 +56,105 @@ const AppLayout: React.FC = () => {
     };
 
     return (
-        <div className="flex min-h-screen" style={{ backgroundColor: 'var(--theme-night)' }}>
-            {/* Sidebar */}
-            <aside 
-                className="w-64 flex flex-col shrink-0 border-r"
+        <div className="relative min-h-screen w-full flex items-center justify-center p-3 sm:p-6 lg:p-8 overflow-x-hidden">
+            {/* Ambient Background Lighting Overlay */}
+            <div 
+                className="fixed inset-0 pointer-events-none z-0"
                 style={{
-                    backgroundColor: 'var(--theme-night)',
-                    color: 'var(--theme-cream)',
-                    borderColor: 'rgba(var(--theme-cream-rgb), 0.15)'
+                    background: 'radial-gradient(ellipse at 50% 20%, rgba(0, 240, 255, 0.08) 0%, rgba(3, 15, 30, 0.45) 55%, rgba(1, 7, 16, 0.85) 100%)'
                 }}
-            >
-                {/* Logo Section */}
-                <div 
-                    className="p-6 flex items-center gap-3 border-b"
-                    style={{ borderColor: 'rgba(var(--theme-cream-rgb), 0.15)' }}
-                >
-                    <div 
-                        className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base shadow-sm"
-                        style={{
-                            backgroundColor: 'var(--theme-aqua)',
-                            color: 'var(--theme-night)'
-                        }}
+            />
+
+            {/* Floating Workspace Layout: Left Pill Dock + Main Glass Window */}
+            <div className="relative z-10 w-full max-w-[1520px] flex flex-col lg:flex-row items-stretch gap-4 lg:gap-6 my-auto">
+                
+                {/* Floating Left Pill Navigation Bar (Matching Reference Mockup) */}
+                <aside className="shrink-0 flex lg:flex-col items-center justify-between lg:justify-start gap-4 glass-dock rounded-2xl lg:rounded-[32px] p-3 lg:p-4 lg:py-7">
+                    
+                    {/* Top App Glow Emblem */}
+                    <Link
+                        to="/"
+                        title="Tuna Cold Chain Ledger"
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-105 ocean-glow-active"
                     >
-                        TC
-                    </div>
-                    <div>
-                        <h1 className="text-base font-bold tracking-tight leading-none" style={{ color: 'var(--theme-cream)' }}>
-                            <span style={{ color: 'var(--theme-aqua)' }}>Tuna</span><span>Chain</span>
-                        </h1>
-                    </div>
-                </div>
+                        <Waves className="w-6 h-6 stroke-[2.5]" />
+                    </Link>
 
-                {/* Nav Links */}
-                <nav className="flex-1 px-4 py-6 space-y-1.5">
-                    {menuItems.map((item) => {
-                        const isActive = location.pathname === item.path;
-                        return (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                title={item.tooltip}
-                                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border transition-all cursor-pointer hover:text-[var(--theme-aqua)]"
-                                style={{
-                                    backgroundColor: isActive ? 'rgba(var(--theme-aqua-rgb), 0.15)' : 'transparent',
-                                    color: isActive ? 'var(--theme-aqua)' : 'rgba(var(--theme-cream-rgb), 0.7)',
-                                    borderColor: isActive ? 'rgba(var(--theme-aqua-rgb), 0.3)' : 'transparent'
-                                }}
-                            >
-                                {item.icon}
-                                <span>{item.label}</span>
-                            </Link>
-                        );
-                    })}
-                </nav>
-            </aside>
+                    {/* Divider in Desktop */}
+                    <div className="hidden lg:block w-8 h-[1px] bg-white/10 my-1" />
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0">
-                {/* Header */}
-                <header 
-                    className="h-16 border-b px-6 flex items-center justify-end relative z-10 shadow-lg"
-                    style={{
-                        backgroundColor: 'var(--theme-night)',
-                        borderColor: 'rgba(var(--theme-cream-rgb), 0.15)'
-                    }}
-                >
-                    <div className="flex items-center gap-4">
-                        {user && (
-                            <span className="text-sm font-medium hidden sm:inline" style={{ color: 'var(--theme-cream)' }}>
-                                {user.name}
-                            </span>
-                        )}
+                    {/* Nav Items */}
+                    <nav className="flex lg:flex-col items-center gap-3 sm:gap-4 flex-1">
+                        {menuItems.map((item) => {
+                            const isActive = location.pathname === item.path || 
+                                (item.path.startsWith('/verify') && location.pathname.startsWith('/verify'));
+                            return (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    title={item.tooltip}
+                                    className={`relative group w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                                        isActive
+                                            ? 'bg-sky-400/20 text-sky-300 border border-sky-400/50 shadow-[0_0_15px_rgba(56,189,248,0.35)]'
+                                            : 'text-slate-400 hover:text-slate-100 hover:bg-white/10 hover:border hover:border-white/15'
+                                    }`}
+                                >
+                                    {item.icon}
 
-                        {/* User Menu Dropdown */}
+                                    {/* Tooltip on Desktop */}
+                                    <span className="hidden lg:group-hover:block absolute left-full ml-3 px-3 py-1.5 text-xs font-semibold whitespace-nowrap rounded-xl bg-slate-950/90 text-sky-200 border border-sky-500/30 backdrop-blur-md shadow-xl z-50 pointer-events-none">
+                                        {item.tooltip}
+                                    </span>
+                                </Link>
+                            );
+                        })}
+                    </nav>
+
+                    {/* Bottom Actions / Profile */}
+                    <div className="flex lg:flex-col items-center gap-3">
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                                className="flex items-center gap-2 p-1.5 rounded-full transition-all focus:outline-none"
-                                style={{ backgroundColor: 'rgba(var(--theme-cream-rgb), 0.05)' }}
+                                title={user?.name || '사용자 프로필'}
+                                className="w-11 h-11 rounded-2xl bg-white/5 border border-white/15 hover:border-sky-400/40 hover:bg-white/10 flex items-center justify-center text-sm font-bold text-sky-300 transition-all shadow-inner"
                             >
-                                <div 
-                                    className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm select-none"
-                                    style={{
-                                        backgroundColor: 'var(--theme-aqua)',
-                                        color: 'var(--theme-night)'
-                                    }}
-                                >
-                                    {user?.name ? user.name[0].toUpperCase() : 'U'}
-                                </div>
-                                <ChevronDown className="w-4 h-4" style={{ color: 'rgba(var(--theme-cream-rgb), 0.7)' }} />
+                                {user?.name ? user.name[0].toUpperCase() : 'TC'}
                             </button>
 
                             {/* Dropdown Menu */}
                             {userMenuOpen && (
-                                <div 
-                                    className="absolute right-0 mt-2 w-56 rounded-xl shadow-xl py-1.5 z-20 border"
-                                    style={{
-                                        backgroundColor: 'var(--theme-night)',
-                                        borderColor: 'rgba(var(--theme-cream-rgb), 0.15)'
-                                    }}
-                                >
-                                    <div className="px-4 py-2 border-b" style={{ borderColor: 'rgba(var(--theme-cream-rgb), 0.15)' }}>
-                                        <p className="text-sm font-semibold leading-none" style={{ color: 'var(--theme-cream)' }}>{user?.name || '사용자'}</p>
-                                        <p className="text-xs mt-1.5" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>{user?.role || 'USER'}</p>
+                                <div className="absolute right-0 lg:left-full lg:right-auto lg:bottom-0 lg:ml-3 mb-2 w-56 rounded-2xl glass-dock shadow-2xl py-2 z-50 border border-white/20">
+                                    <div className="px-4 py-2 border-b border-white/10">
+                                        <p className="text-xs font-bold text-slate-100">{user?.name || '남태평양 원양선단'}</p>
+                                        <p className="text-[10px] text-sky-300 font-mono mt-0.5">{user?.role || 'COLD_CHAIN_ADMIN'}</p>
                                     </div>
+                                    <a
+                                        href={`${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full flex items-center justify-between px-4 py-2 text-xs text-slate-300 hover:text-sky-300 hover:bg-white/5 transition-colors"
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <Database className="w-3.5 h-3.5" />
+                                            Sepolia Explorer
+                                        </span>
+                                        <ExternalLink className="w-3 h-3 text-slate-500" />
+                                    </a>
                                     <button
                                         onClick={handleLogout}
-                                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-all text-left font-medium"
+                                        className="w-full flex items-center gap-2 px-4 py-2 text-xs text-rose-400 hover:bg-rose-500/10 transition-colors text-left font-medium"
                                     >
-                                        <LogOut className="w-4 h-4" />
+                                        <LogOut className="w-3.5 h-3.5" />
                                         <span>로그아웃</span>
                                     </button>
                                 </div>
                             )}
                         </div>
                     </div>
-                </header>
+                </aside>
 
-                {/* Subpage Content */}
-                <main className="flex-1 overflow-auto p-6" style={{ backgroundColor: 'var(--theme-night)' }}>
+                {/* Floating Large Glass Window Container */}
+                <main className="flex-1 flex flex-col min-w-0 glass-container rounded-[28px] lg:rounded-[36px] overflow-hidden shadow-2xl transition-all duration-300">
                     <Outlet />
                 </main>
             </div>
@@ -175,4 +163,5 @@ const AppLayout: React.FC = () => {
 };
 
 export default AppLayout;
+
 
