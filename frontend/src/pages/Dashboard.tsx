@@ -225,7 +225,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Map Container */}
-              <div className="rounded-2xl overflow-hidden border border-white/10 relative h-[300px] shadow-inner">
+              <div className="rounded-2xl overflow-hidden border border-white/10 relative flex-1 min-h-[360px] h-full shadow-inner">
                 {liveTelemetry ? (
                   <div className="relative w-full h-full">
                     <LiveMaplibreMap
@@ -394,14 +394,12 @@ const Dashboard: React.FC = () => {
                   />
 
                   {/* Primary Neon Cyan Smooth Curve (Chamber Internal Temp) */}
-                  <Area
+                  <Line
                     yAxisId="left"
                     type="monotone"
                     dataKey="chamberTemp"
                     stroke="url(#cyanLineGrad)"
                     strokeWidth={3.5}
-                    fill="url(#cyanAreaGrad)"
-                    fillOpacity={1}
                     dot={false}
                     activeDot={{ r: 6, fill: '#00f0ff', stroke: '#030e1a', strokeWidth: 2 }}
                     isAnimationActive={true}
