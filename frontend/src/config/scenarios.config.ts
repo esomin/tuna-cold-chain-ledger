@@ -34,12 +34,12 @@ export const SCENARIO_PRESETS: Record<string, ScenarioPreset> = {
     ambientTemperature: 22.0,
     latitude: 35.1028,
     longitude: 129.0403,
-    description: '기본 라이브 운송 위치 (부산항)',
+    description: '신규 등록 배치 (1단계: 어획 완료 실시간 대기)',
     timelineEvents: {
-      harvestedAt: '09/15 02:00',
-      processedAt: '09/15 08:00',
-      inTransitAt: '09/15 14:00',
-      deliveredAt: '09/15 20:00',
+      harvestedAt: '09/16 00:10 (어획)',
+      processedAt: '대기 중',
+      inTransitAt: '대기 중',
+      deliveredAt: '대기 중',
     },
   },
 };

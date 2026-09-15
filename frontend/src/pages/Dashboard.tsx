@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -88,13 +88,20 @@ const Dashboard: React.FC = () => {
     preset,
   } = useTelemetry(selectedPo?.poNumber);
 
+  // 신규 등록/진행 중인 배치 건은 아직 미경과 상태이므로 '실시간 스트림' 탭 자동 선택
+  useEffect(() => {
+    if (selectedPo && selectedPo.status !== 'COMPLETED' && selectedPo.poNumber !== 'PO-2026-SCENARIO-A') {
+      setSelectedTimeRange('Live Feed');
+    }
+  }, [selectedPo]);
+
   const baseChamberTemp = preset?.defaultTemperature || -56.5;
   const currentChamberTemp = simTemperature !== undefined ? simTemperature : baseChamberTemp;
   const currentAmbientTemp = ambientTemp !== undefined ? ambientTemp : (preset?.ambientTemperature || 22.0);
 
   // Recharts Dynamic Data derived from selected filter tab ('Live Feed' vs '24h') & selected PO Preset
   const chartData = useMemo(() => {
-    const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream';
+    const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream' || (selectedPo && selectedPo.status !== 'COMPLETED' && selectedPo.poNumber !== 'PO-2026-SCENARIO-A');
 
     if (isLive) {
       const nowStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -106,18 +113,18 @@ const Dashboard: React.FC = () => {
         { time: `현재 (${nowStr})`, chamberTemp: Number((currentChamberTemp - 0.5).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 3.2).toFixed(1)) }
       ];
     } else {
-      // 24시간 추이 (Selected PO's dynamic timeline markers & 24h temp trend)
+      // 4단계 히스토리 완료 시나리오 (PO-2026-SCENARIO-A 등 유통 완료 건)
       const ev = preset?.timelineEvents;
       return [
-        { time: `${ev?.harvestedAt || '09/14 08:00'} (어획)`, chamberTemp: Number((baseChamberTemp - 0.6).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 4.2).toFixed(1)) },
-        { time: `${ev?.processedAt || '09/14 14:00'} (동결)`, chamberTemp: Number((baseChamberTemp - 2.4).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 5.5).toFixed(1)) },
-        { time: '09/14 20:00 (운송)', chamberTemp: Number((baseChamberTemp + 1.8).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 1.2).toFixed(1)) },
-        { time: `${ev?.inTransitAt || '09/15 02:00'} (입고)`, chamberTemp: Number((baseChamberTemp + 0.2).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 1.8).toFixed(1)) },
-        { time: `${ev?.deliveredAt || '09/15 16:00'} (창고)`, chamberTemp: Number((currentChamberTemp).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 0.8).toFixed(1)), isPin: true },
-        { time: '현재 (실시간)', chamberTemp: Number((currentChamberTemp - 0.5).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 0.4).toFixed(1)) }
+        { time: `${ev?.harvestedAt || '09/14 08:00'} (1단계 어획)`, chamberTemp: Number((baseChamberTemp - 0.6).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 4.2).toFixed(1)) },
+        { time: `${ev?.processedAt || '09/14 14:00'} (2단계 가공)`, chamberTemp: Number((baseChamberTemp - 2.4).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 5.5).toFixed(1)) },
+        { time: '09/14 20:00 (해상운송)', chamberTemp: Number((baseChamberTemp + 1.8).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 1.2).toFixed(1)) },
+        { time: `${ev?.inTransitAt || '09/15 02:00'} (3단계 입고)`, chamberTemp: Number((baseChamberTemp + 0.2).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 1.8).toFixed(1)) },
+        { time: `${ev?.deliveredAt || '09/15 16:00'} (4단계 보관)`, chamberTemp: Number((currentChamberTemp).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 0.8).toFixed(1)), isPin: true },
+        { time: '현재 (실시간 완료)', chamberTemp: Number((currentChamberTemp - 0.5).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 0.4).toFixed(1)) }
       ];
     }
-  }, [selectedTimeRange, baseChamberTemp, currentChamberTemp, currentAmbientTemp, preset]);
+  }, [selectedTimeRange, baseChamberTemp, currentChamberTemp, currentAmbientTemp, preset, selectedPo]);
 
   const activePinItem = useMemo(() => {
     return chartData.find(d => d.isPin) || chartData[chartData.length - 2] || chartData[0];
@@ -205,24 +212,31 @@ const Dashboard: React.FC = () => {
                 </p>
               </div>
 
-              {/* Range filter pill (Condensed to 2 active tabs) */}
-              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/60 border border-white/10 text-xs self-start sm:self-auto">
-                {[
-                  { label: '실시간 스트림', key: 'Live Feed' },
-                  { label: '24시간 추이', key: '24h' }
-                ].map((item) => (
-                  <button
-                    key={item.key}
-                    onClick={() => setSelectedTimeRange(item.key)}
-                    className={`px-3.5 py-1 rounded-lg text-xs font-medium transition-all ${selectedTimeRange === item.key || (item.key === '24h' && selectedTimeRange === '24h Trajectory') || (item.key === 'Live Feed' && selectedTimeRange === 'Live Feed')
-                      ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
-                      : 'text-slate-400 hover:text-white'
-                      }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+              {/* Range filter pill: Displayed for completed scenarios, LIVE mode badge for active/stage-1 POs */}
+              {selectedPo?.status === 'COMPLETED' || selectedPo?.poNumber === 'PO-2026-SCENARIO-A' ? (
+                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/60 border border-white/10 text-xs self-start sm:self-auto">
+                  {[
+                    { label: '실시간 스트림', key: 'Live Feed' },
+                    { label: '24시간 추이', key: '24h' }
+                  ].map((item) => (
+                    <button
+                      key={item.key}
+                      onClick={() => setSelectedTimeRange(item.key)}
+                      className={`px-3.5 py-1 rounded-lg text-xs font-medium transition-all ${selectedTimeRange === item.key || (item.key === '24h' && selectedTimeRange === '24h Trajectory') || (item.key === 'Live Feed' && selectedTimeRange === 'Live Feed')
+                        ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
+                        : 'text-slate-400 hover:text-white'
+                        }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-3.5 py-1.5 rounded-xl bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                  <span>LIVE 실시간 센서 전송 모드</span>
+                </div>
+              )}
             </div>
 
             {/* Trajectory Highlights & Legend */}
