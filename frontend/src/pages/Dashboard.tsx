@@ -44,6 +44,8 @@ const Dashboard: React.FC = () => {
     alerts,
     clearAlerts,
     simTemperature,
+    ambientTemp,
+    preset,
   } = useTelemetry(selectedPo?.poNumber);
 
   return (
@@ -79,7 +81,7 @@ const Dashboard: React.FC = () => {
               <p className="text-sm font-bold text-white"><span className="font-mono">1,480 kg</span> <span className="text-[10px] text-sky-300 font-normal font-sans">/ 12 배치</span></p>
             </div>
           </div>
-
+          {/* 
           <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
             <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
@@ -88,7 +90,7 @@ const Dashboard: React.FC = () => {
               <p className="text-[10px] uppercase font-semibold text-slate-400">콜드체인 무결성</p>
               <p className="text-sm font-bold text-emerald-300"><span className="font-mono">100%</span> <span className="text-[10px] text-emerald-400 font-normal font-sans">검증 완료</span></p>
             </div>
-          </div>
+          </div> */}
 
           <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
             <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center">
@@ -128,19 +130,18 @@ const Dashboard: React.FC = () => {
                 </p>
               </div>
 
-              {/* Range filter pill */}
+              {/* Range filter pill (Condensed to 2 active tabs) */}
               <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/60 border border-white/10 text-xs self-start sm:self-auto">
                 {[
                   { label: '실시간 스트림', key: 'Live Feed' },
-                  { label: '24시간 추이', key: '24h' },
-                  { label: '감사 이력', key: 'Audit History' }
+                  { label: '24시간 추이', key: '24h' }
                 ].map((item) => (
                   <button
                     key={item.key}
                     onClick={() => setSelectedTimeRange(item.key)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${selectedTimeRange === item.key || (item.key === '24h' && selectedTimeRange === '24h Trajectory')
-                        ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
-                        : 'text-slate-400 hover:text-white'
+                    className={`px-3.5 py-1 rounded-lg text-xs font-medium transition-all ${selectedTimeRange === item.key || (item.key === '24h' && selectedTimeRange === '24h Trajectory') || (item.key === 'Live Feed' && selectedTimeRange === 'Live Feed')
+                      ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
+                      : 'text-slate-400 hover:text-white'
                       }`}
                   >
                     {item.label}
@@ -156,20 +157,20 @@ const Dashboard: React.FC = () => {
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
                   <span>실시간 감지: <strong className="text-white font-mono">{simTemperature ? `${simTemperature.toFixed(1)}°C` : '-57.4°C'}</strong></span>
                 </span>
-                <span className="flex items-center gap-1.5 text-slate-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                  <span>안전 임계치 (-55°C)</span>
+                <span className="flex items-center gap-1.5 text-slate-300">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
+                  <span>외기 환경 온도: <strong className="text-emerald-300 font-mono">+{ambientTemp ? ambientTemp.toFixed(1) : '24.5'}°C</strong></span>
                 </span>
-                <span className="flex items-center gap-1.5 text-slate-400 hidden sm:flex">
-                  <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
-                  <span>선상 급속동결 챔버</span>
+                <span className="flex items-center gap-1.5 text-slate-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                  <span>안전 임계치 (-55°C)</span>
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
                 <span className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  {simTemperature > -55 ? '⚠️ 온도 이탈 발생' : '✓ 초저온 동결 상태 유지'}
+                  {simTemperature > -55 ? '온도 이탈 발생' : '초저온 동결 상태 유지'}
                 </span>
               </div>
             </div>
@@ -208,7 +209,7 @@ const Dashboard: React.FC = () => {
                   </linearGradient>
                 </defs>
 
-                {/* Secondary wave line */}
+                {/* Secondary wave line (Ambient Temperature curve) */}
                 <path
                   d="M 0,110 Q 120,60 230,95 T 460,70 T 700,105 L 700,160 L 0,160 Z"
                   fill="url(#cyanAreaGrad)"
@@ -223,7 +224,7 @@ const Dashboard: React.FC = () => {
                   className="opacity-70"
                 />
 
-                {/* Primary Neon Cyan Smooth Curve */}
+                {/* Primary Neon Cyan Smooth Curve (Chamber Internal Temp) */}
                 <path
                   d="M 0,90 Q 110,130 220,70 T 440,50 T 700,85"
                   fill="none"
@@ -232,7 +233,7 @@ const Dashboard: React.FC = () => {
                   className="filter drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]"
                 />
 
-                {/* Threshold Safety Line */}
+                {/* Threshold Safety Line (-55°C Limit) */}
                 <line
                   x1="0"
                   y1="100"
@@ -255,14 +256,24 @@ const Dashboard: React.FC = () => {
                 </g>
               </svg>
 
-              {/* Time axis */}
+              {/* Dynamic Time Axis Markers (Adapted to Selected PO & Selected Filter Tab) */}
               <div className="flex justify-between items-center text-[10px] font-sans text-slate-400 mt-2 border-t border-white/5 pt-2">
-                <span><span className="font-mono">00:00</span> (어획)</span>
-                <span><span className="font-mono">04:00</span> (급속 동결)</span>
-                <span><span className="font-mono">08:00</span> (해상 운송)</span>
-                <span><span className="font-mono">12:00</span> (부산 입고)</span>
-                <span><span className="font-mono">16:00</span> (초저온 창고)</span>
-                <span><span className="font-mono">20:00</span> (실시간)</span>
+                {selectedTimeRange === 'Live Feed' ? (
+                  <>
+                    <span><span className="font-mono">-60분</span></span>
+                    <span><span className="font-mono">-45분</span></span>
+                    <span><span className="font-mono">-30분</span></span>
+                    <span><span className="font-mono">-15분</span></span>
+                    <span><span className="font-mono">현재 ({new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })})</span></span>
+                  </>
+                ) : (
+                  <>
+                    <span><span className="font-mono">{preset?.timelineEvents?.harvestedAt || '09/14 08:00'}</span> (어획)</span>
+                    <span><span className="font-mono">{preset?.timelineEvents?.processedAt || '09/14 14:00'}</span> (급속 동결)</span>
+                    <span><span className="font-mono">{preset?.timelineEvents?.inTransitAt || '09/15 02:00'}</span> (해상 운송)</span>
+                    <span><span className="font-mono">{preset?.timelineEvents?.deliveredAt || '09/15 16:00'}</span> (입고 완료)</span>
+                  </>
+                )}
               </div>
             </div>
           </div>

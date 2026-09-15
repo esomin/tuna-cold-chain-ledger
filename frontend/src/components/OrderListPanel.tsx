@@ -123,11 +123,10 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                         <div
                             key={order.id}
                             onClick={() => onSelectPo(order)}
-                            className={`p-3.5 rounded-2xl transition-all duration-200 cursor-pointer border ${
-                                isSelected
+                            className={`p-3.5 rounded-2xl transition-all duration-200 cursor-pointer border ${isSelected
                                     ? 'bg-sky-500/15 border-sky-400/60 shadow-[0_0_15px_rgba(56,189,248,0.25)] ring-1 ring-sky-400/30'
                                     : 'glass-card-inner border-white/5 hover:border-white/20 hover:bg-white/5'
-                            }`}
+                                }`}
                         >
                             <div className="flex justify-between items-start mb-1.5">
                                 <span className="font-mono text-xs font-bold text-white tracking-wide">

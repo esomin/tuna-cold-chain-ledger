@@ -88,8 +88,8 @@ const AppLayout: React.FC = () => {
                                     to={item.path}
                                     title={item.tooltip}
                                     className={`relative group w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 ${isActive
-                                            ? 'bg-sky-400/20 text-sky-300 border border-sky-400/50 shadow-[0_0_15px_rgba(56,189,248,0.35)]'
-                                            : 'text-slate-400 hover:text-slate-100 hover:bg-white/10 hover:border hover:border-white/15'
+                                        ? 'bg-sky-400/20 text-sky-300 border border-sky-400/50 shadow-[0_0_15px_rgba(56,189,248,0.35)]'
+                                        : 'text-slate-400 hover:text-slate-100 hover:bg-white/10 hover:border hover:border-white/15'
                                         }`}
                                 >
                                     {item.icon}
@@ -113,8 +113,8 @@ const AppLayout: React.FC = () => {
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                                 title={user?.name || '사용자 프로필'}
                                 className={`w-11 h-11 rounded-2xl border transition-all shadow-inner flex items-center justify-center text-sm font-bold ${userMenuOpen
-                                        ? 'bg-sky-500/20 border-sky-400/60 text-sky-200 shadow-[0_0_12px_rgba(56,189,248,0.3)]'
-                                        : 'bg-white/5 border-white/15 hover:border-sky-400/40 hover:bg-white/10 text-sky-300'
+                                    ? 'bg-sky-500/20 border-sky-400/60 text-sky-200 shadow-[0_0_12px_rgba(56,189,248,0.3)]'
+                                    : 'bg-white/5 border-white/15 hover:border-sky-400/40 hover:bg-white/10 text-sky-300'
                                     }`}
                             >
                                 {user?.name ? user.name[0].toUpperCase() : 'TC'}

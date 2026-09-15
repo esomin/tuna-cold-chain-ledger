@@ -95,11 +95,15 @@ export const useTelemetry = (selectedPoNumber?: string) => {
     setAlerts([]);
   };
 
+  const preset = getPresetByPoNumber(selectedPoNumber);
+
   return {
     telemetry,
     alerts,
     clearAlerts,
     simTemperature,
+    ambientTemp: preset.ambientTemperature,
+    preset,
     handleSimulateTemperature,
   };
 };
