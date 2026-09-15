@@ -196,7 +196,62 @@ const Dashboard: React.FC = () => {
         {/* ========================================================================= */}
         <div className="xl:col-span-8 flex flex-col gap-6">
 
-          {/* 2.1 TELEMETRY STATISTIC & TEMPERATURE TRAJECTORY GRAPH (Inspired by mockup's Statistic card) */}
+          {/* 2.1 TWO-PANEL ROW: Orders Feed & Live Map */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+            {/* Left: Orders Feed (5 cols) */}
+            <div className="md:col-span-5 glass-card rounded-3xl p-5 flex flex-col">
+              <OrderListPanel
+                selectedPoId={selectedPo ? selectedPo.id : null}
+                onSelectPo={(po) => setSelectedPo(po)}
+              />
+            </div>
+
+            {/* Right: Live Map (7 cols) */}
+            <div className="md:col-span-7 glass-card rounded-3xl p-5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-sky-400" />
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">실시간 GPS 관제</h3>
+                </div>
+                {selectedPo ? (
+                  <span className="text-[10px] font-semibold text-sky-300 flex items-center gap-1.5 animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-sky-400" />
+                    {selectedPo.poNumber}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-slate-400">대기 중</span>
+                )}
+              </div>
+
+              {/* Map Container */}
+              <div className="rounded-2xl overflow-hidden border border-white/10 relative h-[300px] shadow-inner">
+                {liveTelemetry ? (
+                  <div className="relative w-full h-full">
+                    <LiveMaplibreMap
+                      lat={liveTelemetry.latitude}
+                      lng={liveTelemetry.longitude}
+                      poNumber={selectedPo ? selectedPo.poNumber : undefined}
+                    />
+                    {/* Floating HUD */}
+                    <div className="absolute top-3 left-3 z-10 text-[11px] px-3 py-1.5 rounded-xl glass-dock border border-white/20 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                      <span className="font-mono text-xs font-bold text-cyan-300">
+                        GPS {liveTelemetry.latitude.toFixed(4)}°N, {liveTelemetry.longitude.toFixed(4)}°E
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 bg-slate-950/40">
+                    <Compass className="w-10 h-10 text-slate-500 mb-2 animate-spin-slow" />
+                    <p className="text-xs text-slate-300 font-medium">선택된 발주/운송 건의 실시간 GPS 관제가 표시됩니다.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 2.2 TELEMETRY STATISTIC & TEMPERATURE TRAJECTORY GRAPH (Inspired by mockup's Statistic card) */}
           <div className="glass-card rounded-3xl p-6 relative overflow-hidden flex flex-col gap-5">
             {/* Ambient inner glow */}
             <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -212,31 +267,24 @@ const Dashboard: React.FC = () => {
                 </p>
               </div>
 
-              {/* Range filter pill: Displayed for completed scenarios, LIVE mode badge for active/stage-1 POs */}
-              {selectedPo?.status === 'COMPLETED' || selectedPo?.poNumber === 'PO-2026-SCENARIO-A' ? (
-                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/60 border border-white/10 text-xs self-start sm:self-auto">
-                  {[
-                    { label: '실시간 스트림', key: 'Live Feed' },
-                    { label: '24시간 추이', key: '24h' }
-                  ].map((item) => (
-                    <button
-                      key={item.key}
-                      onClick={() => setSelectedTimeRange(item.key)}
-                      className={`px-3.5 py-1 rounded-lg text-xs font-medium transition-all ${selectedTimeRange === item.key || (item.key === '24h' && selectedTimeRange === '24h Trajectory') || (item.key === 'Live Feed' && selectedTimeRange === 'Live Feed')
-                        ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
-                        : 'text-slate-400 hover:text-white'
-                        }`}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="px-3.5 py-1.5 rounded-xl bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-xs font-semibold flex items-center gap-2 self-start sm:self-auto shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                  <span>LIVE 실시간 센서 전송 모드</span>
-                </div>
-              )}
+              {/* Range filter pill */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/60 border border-white/10 text-xs self-start sm:self-auto">
+                {[
+                  { label: '실시간 스트림', key: 'Live Feed' },
+                  { label: '24시간 추이', key: '24h' }
+                ].map((item) => (
+                  <button
+                    key={item.key}
+                    onClick={() => setSelectedTimeRange(item.key)}
+                    className={`px-3.5 py-1 rounded-lg text-xs font-medium transition-all ${selectedTimeRange === item.key || (item.key === '24h' && selectedTimeRange === '24h Trajectory') || (item.key === 'Live Feed' && selectedTimeRange === 'Live Feed')
+                      ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
+                      : 'text-slate-400 hover:text-white'
+                      }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Trajectory Highlights & Legend */}
@@ -257,69 +305,63 @@ const Dashboard: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1.5">
+                <span className="text-[11px] px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1.5 shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  {simTemperature > -55 ? '온도 이탈 발생' : '초저온 동결 상태 유지'}
+                  {simTemperature > -55 ? 'TEMP ANOMALY DETECTED' : '✓ 100% CRYOGENIC STABLE'}
                 </span>
               </div>
             </div>
 
-            {/* Recharts Glowing Telemetry Spline Chart */}
-            <div className="w-full h-52 sm:h-60 z-10 pt-1">
+            {/* Recharts Glowing Telemetry Spline Chart - Maximized Width */}
+            <div className="w-full h-56 sm:h-64 z-10 pt-2 -mx-2">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 25, right: 10, left: -20, bottom: 5 }}>
+                <ComposedChart data={chartData} margin={{ top: 25, right: 0, left: 0, bottom: 0 }}>
                   <defs>
                     {/* Cyan Glow Gradient */}
                     <linearGradient id="cyanLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.8" />
+                      <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.9" />
                       <stop offset="50%" stopColor="#38bdf8" stopOpacity="1" />
                       <stop offset="100%" stopColor="#0284c7" stopOpacity="0.9" />
                     </linearGradient>
 
-                    {/* Cyan Area Fill */}
+                    {/* Cyan Area Fill - Lighter Opacity */}
                     <linearGradient id="cyanAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.25" />
+                      <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.07" />
                       <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.0" />
                     </linearGradient>
                   </defs>
 
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.08} vertical={false} />
+                  {/* Horizontal Auxiliary Grid Lines (보조선) */}
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.12} vertical={false} />
 
                   <XAxis
                     dataKey="time"
-                    stroke="#94a3b8"
-                    fontSize={10}
+                    stroke="#64748b"
+                    fontSize={11}
                     tickLine={false}
-                    axisLine={{ stroke: '#ffffff', opacity: 0.1 }}
+                    axisLine={{ stroke: '#ffffff', opacity: 0.12 }}
+                    dy={5}
                   />
 
                   <YAxis
                     yAxisId="left"
-                    orientation="left"
+                    hide={true}
                     domain={[-60, -45]}
-                    ticks={[-60, -55, -50]}
-                    tickFormatter={(val) => `${val}°C`}
-                    stroke="#38bdf8"
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
                   />
 
                   <YAxis
                     yAxisId="right"
-                    orientation="right"
+                    hide={true}
                     domain={[15, 32]}
-                    ticks={[18, 24, 30]}
-                    tickFormatter={(val) => `+${val}°C`}
-                    stroke="#10b981"
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
                   />
 
                   <Tooltip content={<RechartsCustomTooltip />} />
 
-                  {/* Safety Threshold Line (-55°C Limit) */}
+                  {/* Auxiliary Guide Reference Lines (추가 보조선) */}
+                  <ReferenceLine yAxisId="left" y={-50} stroke="#ffffff" strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.12} />
+                  <ReferenceLine yAxisId="left" y={-58} stroke="#ffffff" strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.08} />
+
+                  {/* Safety Threshold Line (-55°C Limit) with label */}
                   <ReferenceLine
                     yAxisId="left"
                     y={-55}
@@ -327,6 +369,15 @@ const Dashboard: React.FC = () => {
                     strokeDasharray="4 4"
                     strokeWidth={1.2}
                     strokeOpacity={0.7}
+                    label={{
+                      value: '-55°C',
+                      position: 'insideBottomLeft',
+                      fill: '#f43f5e',
+                      fontSize: 10,
+                      fontWeight: 600,
+                      dy: -4,
+                      dx: 10
+                    }}
                   />
 
                   {/* Secondary Wave Line (Ambient External Temp - Dotted Green/Teal) */}
@@ -383,61 +434,6 @@ const Dashboard: React.FC = () => {
                   )}
                 </ComposedChart>
               </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* 2.2 TWO-PANEL ROW: Orders Feed & Live Map */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-
-            {/* Left: Orders Feed (5 cols) */}
-            <div className="md:col-span-5 glass-card rounded-3xl p-5 flex flex-col">
-              <OrderListPanel
-                selectedPoId={selectedPo ? selectedPo.id : null}
-                onSelectPo={(po) => setSelectedPo(po)}
-              />
-            </div>
-
-            {/* Right: Live Map (7 cols) */}
-            <div className="md:col-span-7 glass-card rounded-3xl p-5 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-sky-400" />
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">실시간 GPS 관제</h3>
-                </div>
-                {selectedPo ? (
-                  <span className="text-[10px] font-semibold text-sky-300 flex items-center gap-1.5 animate-pulse">
-                    <span className="w-2 h-2 rounded-full bg-sky-400" />
-                    {selectedPo.poNumber}
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-slate-400">대기 중</span>
-                )}
-              </div>
-
-              {/* Map Container */}
-              <div className="rounded-2xl overflow-hidden border border-white/10 relative h-[300px] shadow-inner">
-                {liveTelemetry ? (
-                  <div className="relative w-full h-full">
-                    <LiveMaplibreMap
-                      lat={liveTelemetry.latitude}
-                      lng={liveTelemetry.longitude}
-                      poNumber={selectedPo ? selectedPo.poNumber : undefined}
-                    />
-                    {/* Floating HUD */}
-                    <div className="absolute top-3 left-3 z-10 text-[11px] px-3 py-1.5 rounded-xl glass-dock border border-white/20 flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                      <span className="font-mono text-xs font-bold text-cyan-300">
-                        GPS {liveTelemetry.latitude.toFixed(4)}°N, {liveTelemetry.longitude.toFixed(4)}°E
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 bg-slate-950/40">
-                    <Compass className="w-10 h-10 text-slate-500 mb-2 animate-spin-slow" />
-                    <p className="text-xs text-slate-300 font-medium">선택된 발주/운송 건의 실시간 GPS 관제가 표시됩니다.</p>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
