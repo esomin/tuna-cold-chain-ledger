@@ -1,4 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Area,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ReferenceLine,
+  ReferenceDot,
+  CartesianGrid
+} from 'recharts';
 import {
   QrCode,
   MapPin,
@@ -33,17 +45,32 @@ interface PurchaseOrder {
   };
 }
 
-// Smooth Spline Curve Generator (Cubic Bezier interpolation for SVG)
-const generateSmoothSpline = (points: { x: number; y: number }[]) => {
-  if (points.length < 2) return '';
-  let path = `M ${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i];
-    const p1 = points[i + 1];
-    const cpX = (p0.x + p1.x) / 2;
-    path += ` C ${cpX.toFixed(1)},${p0.y.toFixed(1)} ${cpX.toFixed(1)},${p1.y.toFixed(1)} ${p1.x.toFixed(1)},${p1.y.toFixed(1)}`;
+// Custom Tooltip for Recharts Telemetry Chart
+const RechartsCustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const chamber = payload.find((p: any) => p.dataKey === 'chamberTemp');
+    const ambient = payload.find((p: any) => p.dataKey === 'ambientTemp');
+    return (
+      <div className="bg-slate-900/95 border border-cyan-500/40 backdrop-blur-md px-3.5 py-2.5 rounded-xl shadow-2xl text-xs font-sans">
+        <p className="font-bold text-slate-200 mb-1.5 border-b border-white/10 pb-1">
+          {label}
+        </p>
+        {chamber && (
+          <p className="text-cyan-300 font-mono flex items-center justify-between gap-4 py-0.5">
+            <span className="text-slate-400 font-sans">실측 온도:</span>
+            <strong className="text-cyan-300 font-bold">{chamber.value.toFixed(1)}°C</strong>
+          </p>
+        )}
+        {ambient && (
+          <p className="text-emerald-400 font-mono flex items-center justify-between gap-4 py-0.5">
+            <span className="text-slate-400 font-sans">외기 환경:</span>
+            <strong className="text-emerald-300 font-bold">+{ambient.value.toFixed(1)}°C</strong>
+          </p>
+        )}
+      </div>
+    );
   }
-  return path;
+  return null;
 };
 
 const Dashboard: React.FC = () => {
@@ -61,41 +88,40 @@ const Dashboard: React.FC = () => {
     preset,
   } = useTelemetry(selectedPo?.poNumber);
 
-  // Dynamic SVG Path Calculations based on Live Telemetry Data & PO Preset
-  const tempToY = (temp: number) => {
-    const y = 100 + (temp - (-55.0)) * -8;
-    return Math.max(25, Math.min(145, y));
-  };
-
-  const ambientToY = (aTemp: number) => {
-    const y = 115 - (aTemp - 20.0) * 6;
-    return Math.max(35, Math.min(140, y));
-  };
-
   const baseChamberTemp = preset?.defaultTemperature || -56.5;
   const currentChamberTemp = simTemperature !== undefined ? simTemperature : baseChamberTemp;
-  const currentAmbientTemp = ambientTemp !== undefined ? ambientTemp : (preset?.ambientTemperature || 24.5);
+  const currentAmbientTemp = ambientTemp !== undefined ? ambientTemp : (preset?.ambientTemperature || 22.0);
 
-  const chamberPoints = [
-    { x: 0, y: tempToY(baseChamberTemp - 0.4) },
-    { x: 130, y: tempToY(baseChamberTemp - 1.8) },
-    { x: 300, y: tempToY(baseChamberTemp + 2.2) },
-    { x: 440, y: tempToY(currentChamberTemp) },
-    { x: 700, y: tempToY(baseChamberTemp - 0.5) }
-  ];
+  // Recharts Dynamic Data derived from selected filter tab ('Live Feed' vs '24h') & selected PO Preset
+  const chartData = useMemo(() => {
+    const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream';
 
-  const ambientPoints = [
-    { x: 0, y: ambientToY(currentAmbientTemp - 2.8) },
-    { x: 150, y: ambientToY(currentAmbientTemp + 1.8) },
-    { x: 320, y: ambientToY(currentAmbientTemp - 2.2) },
-    { x: 530, y: ambientToY(currentAmbientTemp + 2.5) },
-    { x: 700, y: ambientToY(currentAmbientTemp - 3.2) }
-  ];
+    if (isLive) {
+      const nowStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+      return [
+        { time: '-60분', chamberTemp: Number((baseChamberTemp - 0.4).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 2.8).toFixed(1)) },
+        { time: '-45분', chamberTemp: Number((baseChamberTemp - 1.8).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 1.8).toFixed(1)) },
+        { time: '-30분', chamberTemp: Number((baseChamberTemp + 2.2).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 2.2).toFixed(1)) },
+        { time: '-15분', chamberTemp: Number((currentChamberTemp).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 2.5).toFixed(1)), isPin: true },
+        { time: `현재 (${nowStr})`, chamberTemp: Number((currentChamberTemp - 0.5).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 3.2).toFixed(1)) }
+      ];
+    } else {
+      // 24시간 추이 (Selected PO's dynamic timeline markers & 24h temp trend)
+      const ev = preset?.timelineEvents;
+      return [
+        { time: `${ev?.harvestedAt || '09/14 08:00'} (어획)`, chamberTemp: Number((baseChamberTemp - 0.6).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 4.2).toFixed(1)) },
+        { time: `${ev?.processedAt || '09/14 14:00'} (동결)`, chamberTemp: Number((baseChamberTemp - 2.4).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 5.5).toFixed(1)) },
+        { time: '09/14 20:00 (운송)', chamberTemp: Number((baseChamberTemp + 1.8).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 1.2).toFixed(1)) },
+        { time: `${ev?.inTransitAt || '09/15 02:00'} (입고)`, chamberTemp: Number((baseChamberTemp + 0.2).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 1.8).toFixed(1)) },
+        { time: `${ev?.deliveredAt || '09/15 16:00'} (창고)`, chamberTemp: Number((currentChamberTemp).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 0.8).toFixed(1)), isPin: true },
+        { time: '현재 (실시간)', chamberTemp: Number((currentChamberTemp - 0.5).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 0.4).toFixed(1)) }
+      ];
+    }
+  }, [selectedTimeRange, baseChamberTemp, currentChamberTemp, currentAmbientTemp, preset]);
 
-  const chamberLinePath = generateSmoothSpline(chamberPoints);
-  const chamberAreaPath = `${chamberLinePath} L 700,160 L 0,160 Z`;
-  const ambientLinePath = generateSmoothSpline(ambientPoints);
-  const activePinPoint = chamberPoints[3];
+  const activePinItem = useMemo(() => {
+    return chartData.find(d => d.isPin) || chartData[chartData.length - 2] || chartData[0];
+  }, [chartData]);
 
   return (
     <div className="p-4 sm:p-7 lg:p-8 flex flex-col gap-6 text-slate-100">
@@ -224,33 +250,10 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Glowing Spline Chart Graphic (Matching reference image spline wave aesthetics) */}
-            <div className="relative w-full h-48 sm:h-56 z-10 flex flex-col justify-end pt-2">
-              {/* Left Y-Axis Scale Indicators (Chamber Internal Temp) */}
-              <div className="absolute left-0 top-1 bottom-8 flex flex-col justify-between text-[9px] font-sans text-cyan-300/80 z-20 pointer-events-none select-none">
-                <span className="flex items-center gap-1 font-mono"><span>-60°C</span></span>
-                <span className="flex items-center gap-1 font-mono text-rose-400 font-bold bg-rose-500/10 px-1 py-0.5 rounded border border-rose-500/20"><span>-55°C</span></span>
-                <span className="flex items-center gap-1 font-mono"><span>-50°C</span></span>
-              </div>
-
-              {/* Right Y-Axis Scale Indicators (Ambient External Temp) */}
-              <div className="absolute right-0 top-1 bottom-8 flex flex-col justify-between text-[9px] font-sans text-emerald-300/60 text-right z-20 pointer-events-none select-none">
-                <span className="flex items-center gap-1 font-mono justify-end"><span>+30°C</span></span>
-                <span className="flex items-center gap-1 font-mono justify-end"><span>+24°C</span></span>
-                <span className="flex items-center gap-1 font-mono justify-end"><span>+18°C</span></span>
-              </div>
-
-              {/* Background horizontal grid lines */}
-              <div className="absolute inset-x-8 top-1 bottom-8 flex flex-col justify-between opacity-15 pointer-events-none">
-                <div className="border-b border-white border-dashed w-full" />
-                <div className="border-b border-white border-dashed w-full" />
-                <div className="border-b border-white border-dashed w-full" />
-                <div className="border-b border-white border-dashed w-full" />
-              </div>
-
-              {/* SVG Glowing Curves Container */}
-              <div className="w-full h-full px-9 relative">
-                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 700 160">
+            {/* Recharts Glowing Telemetry Spline Chart */}
+            <div className="w-full h-52 sm:h-60 z-10 pt-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={chartData} margin={{ top: 25, right: 10, left: -20, bottom: 5 }}>
                   <defs>
                     {/* Cyan Glow Gradient */}
                     <linearGradient id="cyanLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -264,90 +267,108 @@ const Dashboard: React.FC = () => {
                       <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.25" />
                       <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.0" />
                     </linearGradient>
-
-                    {/* Secondary Ocean Curve Gradient */}
-                    <linearGradient id="tealLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#34d399" stopOpacity="0.6" />
-                      <stop offset="50%" stopColor="#10b981" stopOpacity="0.85" />
-                      <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.7" />
-                    </linearGradient>
                   </defs>
 
-                  {/* Secondary wave line (Ambient Temperature curve - Faded/Subtle) */}
-                  <path
-                    d={`${ambientLinePath} L 700,160 L 0,160 Z`}
-                    fill="url(#cyanAreaGrad)"
-                    opacity="0.12"
-                    className="transition-all duration-700 ease-out"
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.08} vertical={false} />
+
+                  <XAxis
+                    dataKey="time"
+                    stroke="#94a3b8"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={{ stroke: '#ffffff', opacity: 0.1 }}
                   />
-                  <path
-                    d={ambientLinePath}
-                    fill="none"
-                    stroke="url(#tealLineGrad)"
-                    strokeWidth="2.5"
-                    strokeDasharray="4 3"
-                    className="opacity-70 transition-all duration-700 ease-out"
+
+                  <YAxis
+                    yAxisId="left"
+                    orientation="left"
+                    domain={[-60, -45]}
+                    ticks={[-60, -55, -50]}
+                    tickFormatter={(val) => `${val}°C`}
+                    stroke="#38bdf8"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    domain={[15, 32]}
+                    ticks={[18, 24, 30]}
+                    tickFormatter={(val) => `+${val}°C`}
+                    stroke="#10b981"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+
+                  <Tooltip content={<RechartsCustomTooltip />} />
+
+                  {/* Safety Threshold Line (-55°C Limit) */}
+                  <ReferenceLine
+                    yAxisId="left"
+                    y={-55}
+                    stroke="#f43f5e"
+                    strokeDasharray="4 4"
+                    strokeWidth={1.2}
+                    strokeOpacity={0.7}
+                  />
+
+                  {/* Secondary Wave Line (Ambient External Temp - Dotted Green/Teal) */}
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="ambientTemp"
+                    stroke="#2dd4bf"
+                    strokeWidth={2.2}
+                    strokeDasharray="3 3"
+                    dot={false}
+                    opacity={0.75}
+                    isAnimationActive={true}
                   />
 
                   {/* Primary Neon Cyan Smooth Curve (Chamber Internal Temp) */}
-                  <path
-                    d={chamberAreaPath}
-                    fill="url(#cyanAreaGrad)"
-                    opacity="0.35"
-                    className="transition-all duration-700 ease-out"
-                  />
-                  <path
-                    d={chamberLinePath}
-                    fill="none"
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="chamberTemp"
                     stroke="url(#cyanLineGrad)"
-                    strokeWidth="3.5"
-                    className="filter drop-shadow-[0_0_8px_rgba(0,240,255,0.6)] transition-all duration-700 ease-out"
+                    strokeWidth={3.5}
+                    fill="url(#cyanAreaGrad)"
+                    fillOpacity={1}
+                    dot={false}
+                    activeDot={{ r: 6, fill: '#00f0ff', stroke: '#030e1a', strokeWidth: 2 }}
+                    isAnimationActive={true}
                   />
 
-                  {/* Threshold Safety Line (-55°C Limit) - Matching Red Legend Icon */}
-                  <line
-                    x1="0"
-                    y1="100"
-                    x2="700"
-                    y2="100"
-                    stroke="#f43f5e"
-                    strokeWidth="1"
-                    strokeDasharray="6 4"
-                    opacity="0.6"
-                    className="transition-all duration-500"
-                  />
-
-                  {/* Active telemetry pin badge */}
-                  <g transform={`translate(${activePinPoint.x}, ${activePinPoint.y})`} className="transition-all duration-700 ease-out">
-                    <circle r="6" fill="#00f0ff" className="animate-ping opacity-75" />
-                    <circle r="5" fill="#030e1a" stroke="#00f0ff" strokeWidth="2.5" />
-                    <rect x="-42" y="-32" width="84" height="22" rx="6" fill="#030e1a" stroke="#00f0ff" strokeWidth="1" />
-                    <text x="0" y="-18" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold" fontFamily="Pretendard, sans-serif">
-                      {simTemperature ? `${simTemperature.toFixed(1)}°C` : '-57.4°C'}
-                    </text>
-                  </g>
-                </svg>
-              </div>
-
-              {/* Dynamic Time Axis Markers (Adapted to Selected PO & Selected Filter Tab) */}
-              <div className="flex justify-between items-center text-[10px] font-sans text-slate-400 mt-2 border-t border-white/5 pt-2">
-                {selectedTimeRange === 'Live Feed' ? (
-                  <>
-                    <span><span className="font-mono">-60분</span></span>
-                    <span><span className="font-mono">-45분</span></span>
-                    <span><span className="font-mono">-30분</span></span>
-                    <span><span className="font-mono">-15분</span></span>
-                    <span><span className="font-mono">현재 ({new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false })})</span></span>
-                  </>
-                ) : (
-                  <>
-                    <span><span className="font-mono">{preset?.timelineEvents?.harvestedAt || '09/14 08:00'}</span> (어획)</span>
-                    <span><span className="font-mono">{preset?.timelineEvents?.processedAt || '09/14 14:00'}</span> (급속 동결)</span>
-                    <span><span className="font-mono">{preset?.timelineEvents?.inTransitAt || '09/15 02:00'}</span> (해상 운송)</span>
-                    <span><span className="font-mono">{preset?.timelineEvents?.deliveredAt || '09/15 16:00'}</span> (입고 완료)</span>
-                  </>
-                )}
-              </div>
+                  {/* Active Telemetry Pin Badge Dot */}
+                  {activePinItem && (
+                    <ReferenceDot
+                      yAxisId="left"
+                      x={activePinItem.time}
+                      y={activePinItem.chamberTemp}
+                      r={0}
+                      shape={(props: any) => {
+                        const { cx, cy } = props;
+                        if (!cx || !cy) return null;
+                        return (
+                          <g transform={`translate(${cx}, ${cy})`}>
+                            <circle r="7" fill="#00f0ff" opacity="0.4" className="animate-ping" />
+                            <circle r="4.5" fill="#030e1a" stroke="#00f0ff" strokeWidth="2.5" />
+                            <g transform="translate(0, -23)">
+                              <rect x="-35" y="-12" width="70" height="20" rx="5" fill="#020914" stroke="#00f0ff" strokeWidth="1.2" />
+                              <text x="0" y="1" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold" fontFamily="Pretendard, sans-serif">
+                                {`${activePinItem.chamberTemp.toFixed(1)}°C`}
+                              </text>
+                            </g>
+                          </g>
+                        );
+                      }}
+                    />
+                  )}
+                </ComposedChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
