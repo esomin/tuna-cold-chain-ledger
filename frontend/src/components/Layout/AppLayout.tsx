@@ -33,21 +33,15 @@ const AppLayout: React.FC = () => {
         {
             path: '/',
             icon: <LayoutDashboard className="w-5 h-5" />,
-            label: 'Dashboard',
+            label: '대시보드',
             tooltip: '통합 관제 대시보드'
         },
         {
             path: '/blockchain-ledger',
             icon: <Database className="w-5 h-5" />,
-            label: 'Ledger Explorer',
+            label: '원장 탐색기',
             tooltip: '온체인 감사 원장 탐색기'
         },
-        {
-            path: '/verify/PO-2026-SCENARIO-A',
-            icon: <ShieldCheck className="w-5 h-5" />,
-            label: 'Consumer Cert',
-            tooltip: '소비자 온체인 검증'
-        }
     ];
 
     const handleLogout = () => {
@@ -58,7 +52,7 @@ const AppLayout: React.FC = () => {
     return (
         <div className="relative min-h-screen w-full flex justify-center items-start p-3 sm:p-6 lg:p-8 overflow-x-hidden">
             {/* Ambient Background Lighting Overlay */}
-            <div 
+            <div
                 className="fixed inset-0 pointer-events-none z-0"
                 style={{
                     background: 'radial-gradient(ellipse at 50% 20%, rgba(0, 240, 255, 0.08) 0%, rgba(3, 15, 30, 0.45) 55%, rgba(1, 7, 16, 0.85) 100%)'
@@ -67,10 +61,10 @@ const AppLayout: React.FC = () => {
 
             {/* Floating Workspace Layout: Left Pill Dock + Main Glass Window */}
             <div className="relative z-10 w-full max-w-[1520px] flex flex-col lg:flex-row items-stretch gap-4 lg:gap-6">
-                
+
                 {/* Floating Left Pill Navigation Bar (Matching Reference Mockup) */}
                 <aside className="shrink-0 flex lg:flex-col items-center justify-between lg:justify-start gap-3.5 glass-dock rounded-2xl lg:rounded-[32px] p-3 lg:p-3.5 lg:py-5 lg:h-fit lg:self-start lg:sticky lg:top-8 z-30">
-                    
+
                     {/* Top App Glow Emblem */}
                     <Link
                         to="/"
@@ -86,18 +80,17 @@ const AppLayout: React.FC = () => {
                     {/* Nav Items */}
                     <nav className="flex lg:flex-col items-center gap-3">
                         {menuItems.map((item) => {
-                            const isActive = location.pathname === item.path || 
+                            const isActive = location.pathname === item.path ||
                                 (item.path.startsWith('/verify') && location.pathname.startsWith('/verify'));
                             return (
                                 <Link
                                     key={item.path}
                                     to={item.path}
                                     title={item.tooltip}
-                                    className={`relative group w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                                        isActive
+                                    className={`relative group w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-300 ${isActive
                                             ? 'bg-sky-400/20 text-sky-300 border border-sky-400/50 shadow-[0_0_15px_rgba(56,189,248,0.35)]'
                                             : 'text-slate-400 hover:text-slate-100 hover:bg-white/10 hover:border hover:border-white/15'
-                                    }`}
+                                        }`}
                                 >
                                     {item.icon}
 
@@ -119,11 +112,10 @@ const AppLayout: React.FC = () => {
                             <button
                                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                                 title={user?.name || '사용자 프로필'}
-                                className={`w-11 h-11 rounded-2xl border transition-all shadow-inner flex items-center justify-center text-sm font-bold ${
-                                    userMenuOpen 
-                                        ? 'bg-sky-500/20 border-sky-400/60 text-sky-200 shadow-[0_0_12px_rgba(56,189,248,0.3)]' 
+                                className={`w-11 h-11 rounded-2xl border transition-all shadow-inner flex items-center justify-center text-sm font-bold ${userMenuOpen
+                                        ? 'bg-sky-500/20 border-sky-400/60 text-sky-200 shadow-[0_0_12px_rgba(56,189,248,0.3)]'
                                         : 'bg-white/5 border-white/15 hover:border-sky-400/40 hover:bg-white/10 text-sky-300'
-                                }`}
+                                    }`}
                             >
                                 {user?.name ? user.name[0].toUpperCase() : 'TC'}
                             </button>

@@ -64,7 +64,7 @@ const Dashboard: React.FC = () => {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Real-time ocean harvesting to hyper-cold distribution telemetry & on-chain integrity
+            원양 어획부터 초저온 유통 텔레메트리 및 온체인 무결성 실시간 모니터링
           </p>
         </div>
 
@@ -75,8 +75,8 @@ const Dashboard: React.FC = () => {
               <Boxes className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[10px] uppercase font-semibold text-slate-400">Total Monitored</p>
-              <p className="text-sm font-bold text-white font-mono">1,480 kg <span className="text-[10px] text-sky-300 font-normal">/ 12 Batches</span></p>
+              <p className="text-[10px] uppercase font-semibold text-slate-400">총 모니터링 물량</p>
+              <p className="text-sm font-bold text-white"><span className="font-mono">1,480 kg</span> <span className="text-[10px] text-sky-300 font-normal font-sans">/ 12 배치</span></p>
             </div>
           </div>
 
@@ -85,8 +85,8 @@ const Dashboard: React.FC = () => {
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[10px] uppercase font-semibold text-slate-400">Integrity Lock</p>
-              <p className="text-sm font-bold text-emerald-300 font-mono">100% <span className="text-[10px] text-emerald-400 font-normal">Verified</span></p>
+              <p className="text-[10px] uppercase font-semibold text-slate-400">콜드체인 무결성</p>
+              <p className="text-sm font-bold text-emerald-300"><span className="font-mono">100%</span> <span className="text-[10px] text-emerald-400 font-normal font-sans">검증 완료</span></p>
             </div>
           </div>
 
@@ -95,8 +95,8 @@ const Dashboard: React.FC = () => {
               <Thermometer className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[10px] uppercase font-semibold text-slate-400">Target Temp</p>
-              <p className="text-sm font-bold text-cyan-300 font-mono">-55.0°C <span className="text-[10px] text-slate-400 font-normal">Ultra Cold</span></p>
+              <p className="text-[10px] uppercase font-semibold text-slate-400">목표 초저온</p>
+              <p className="text-sm font-bold text-cyan-300"><span className="font-mono">-55.0°C</span> <span className="text-[10px] text-slate-400 font-normal font-sans">안전 표준</span></p>
             </div>
           </div>
         </div>
@@ -121,26 +121,29 @@ const Dashboard: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <Activity className="w-4 h-4 text-cyan-400" />
-                  <h2 className="text-base font-bold text-white tracking-wide">Cold Chain Telemetry Trajectory</h2>
+                  <h2 className="text-base font-bold text-white tracking-wide">콜드체인 실시간 온도 트랙</h2>
                 </div>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Continuous ultra-low temperature compliance sensor feed (-55°C benchmark)
+                  초저온 보관 규정 준수 센서 실시간 가동 현황 (-55°C 기준)
                 </p>
               </div>
 
               {/* Range filter pill */}
               <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/60 border border-white/10 text-xs self-start sm:self-auto">
-                {['Live Feed', '24h Trajectory', 'Audit History'].map((tab, idx) => (
+                {[
+                  { label: '실시간 스트림', key: 'Live Feed' },
+                  { label: '24시간 추이', key: '24h' },
+                  { label: '감사 이력', key: 'Audit History' }
+                ].map((item) => (
                   <button
-                    key={tab}
-                    onClick={() => setSelectedTimeRange(tab)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                      (idx === 0 && selectedTimeRange === 'Live Feed') || (idx === 1 && selectedTimeRange === '24h') || selectedTimeRange === tab
+                    key={item.key}
+                    onClick={() => setSelectedTimeRange(item.key)}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${selectedTimeRange === item.key || (item.key === '24h' && selectedTimeRange === '24h Trajectory')
                         ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
                         : 'text-slate-400 hover:text-white'
-                    }`}
+                      }`}
                   >
-                    {tab}
+                    {item.label}
                   </button>
                 ))}
               </div>
@@ -151,22 +154,22 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5 text-slate-300">
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
-                  <span>Real-time Log: <strong className="text-white font-mono">{simTemperature ? `${simTemperature.toFixed(1)}°C` : '-57.4°C'}</strong></span>
+                  <span>실시간 감지: <strong className="text-white font-mono">{simTemperature ? `${simTemperature.toFixed(1)}°C` : '-57.4°C'}</strong></span>
                 </span>
                 <span className="flex items-center gap-1.5 text-slate-400">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                  <span>Threshold Limit (-55°C)</span>
+                  <span>안전 임계치 (-55°C)</span>
                 </span>
                 <span className="flex items-center gap-1.5 text-slate-400 hidden sm:flex">
                   <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
-                  <span>Ocean Harvest Tank</span>
+                  <span>선상 급속동결 챔버</span>
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
                 <span className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  {simTemperature > -55 ? '⚠️ TEMP DEVIATION' : '✓ 100% CRYOGENIC STABLE'}
+                  {simTemperature > -55 ? '⚠️ 온도 이탈 발생' : '✓ 초저온 동결 상태 유지'}
                 </span>
               </div>
             </div>
@@ -190,7 +193,7 @@ const Dashboard: React.FC = () => {
                     <stop offset="50%" stopColor="#38bdf8" stopOpacity="1" />
                     <stop offset="100%" stopColor="#0284c7" stopOpacity="0.9" />
                   </linearGradient>
-                  
+
                   {/* Cyan Area Fill */}
                   <linearGradient id="cyanAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.25" />
@@ -246,20 +249,20 @@ const Dashboard: React.FC = () => {
                   <circle r="6" fill="#00f0ff" className="animate-ping opacity-75" />
                   <circle r="5" fill="#030e1a" stroke="#00f0ff" strokeWidth="2.5" />
                   <rect x="-42" y="-32" width="84" height="22" rx="6" fill="#030e1a" stroke="#00f0ff" strokeWidth="1" />
-                  <text x="0" y="-18" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                  <text x="0" y="-18" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold" fontFamily="Pretendard, sans-serif">
                     {simTemperature ? `${simTemperature.toFixed(1)}°C` : '-57.4°C'}
                   </text>
                 </g>
               </svg>
 
               {/* Time axis */}
-              <div className="flex justify-between items-center text-[10px] font-mono text-slate-400 mt-2 border-t border-white/5 pt-2">
-                <span>00:00 (Harvest)</span>
-                <span>04:00 (Flash Freezing)</span>
-                <span>08:00 (In-Transit)</span>
-                <span>12:00 (Port Busan)</span>
-                <span>16:00 (Cold Storage)</span>
-                <span>20:00 (Live)</span>
+              <div className="flex justify-between items-center text-[10px] font-sans text-slate-400 mt-2 border-t border-white/5 pt-2">
+                <span><span className="font-mono">00:00</span> (어획)</span>
+                <span><span className="font-mono">04:00</span> (급속 동결)</span>
+                <span><span className="font-mono">08:00</span> (해상 운송)</span>
+                <span><span className="font-mono">12:00</span> (부산 입고)</span>
+                <span><span className="font-mono">16:00</span> (초저온 창고)</span>
+                <span><span className="font-mono">20:00</span> (실시간)</span>
               </div>
             </div>
           </div>
@@ -280,7 +283,7 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-sky-400" />
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Live Ocean & Land GPS</h3>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">실시간 GPS 관제</h3>
                 </div>
                 {selectedPo ? (
                   <span className="text-[10px] font-semibold text-sky-300 flex items-center gap-1.5 animate-pulse">
@@ -321,13 +324,13 @@ const Dashboard: React.FC = () => {
 
           {/* 2.3 BOTTOM ROW: Goals / Compliance Rings (Inspired by reference bottom goals & target) */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            
+
             {/* Card 1: Cold Chain Health */}
             <div className="glass-card rounded-2xl p-4 flex items-center justify-between">
               <div>
-                <p className="text-[11px] font-semibold text-slate-400">Freshness Index</p>
+                <p className="text-[11px] font-semibold text-slate-400">신선도 지수</p>
                 <p className="text-2xl font-black text-white font-mono mt-1">99.8%</p>
-                <p className="text-[10px] text-emerald-400 mt-0.5">✓ Grade 1 Premium Bluefin</p>
+                <p className="text-[10px] text-emerald-400 mt-0.5">✓ 최고 등급 프리미엄 참다랑어</p>
               </div>
               <div className="w-12 h-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-400 flex items-center justify-center font-bold text-xs text-emerald-300">
                 A+
@@ -337,7 +340,7 @@ const Dashboard: React.FC = () => {
             {/* Card 2: On-chain Verification Lock */}
             <div className="glass-card rounded-2xl p-4 flex items-center justify-between">
               <div>
-                <p className="text-[11px] font-semibold text-slate-400">Smart Contract Lock</p>
+                <p className="text-[11px] font-semibold text-slate-400">스마트 컨트랙트 잠금</p>
                 <p className="text-2xl font-black text-white font-mono mt-1">100%</p>
                 <p className="text-[10px] text-cyan-300 mt-0.5">Keccak256 SHA-3</p>
               </div>
@@ -349,9 +352,9 @@ const Dashboard: React.FC = () => {
             {/* Card 3: Target Temp Compliance (Circular ring like mockup) */}
             <div className="glass-card rounded-2xl p-4 flex items-center justify-between">
               <div>
-                <p className="text-[11px] font-semibold text-slate-400">Ultra-Cold Compliance</p>
+                <p className="text-[11px] font-semibold text-slate-400">초저온 규격 준수율</p>
                 <p className="text-2xl font-black text-white font-mono mt-1">&lt; -55°C</p>
-                <p className="text-[10px] text-sky-400 mt-0.5">0 Temp Deviations</p>
+                <p className="text-[10px] text-sky-400 mt-0.5">온도 이탈 0건</p>
               </div>
               <div className="w-12 h-12 rounded-full border-4 border-sky-500/20 border-t-sky-400 flex items-center justify-center font-bold text-xs text-sky-300">
                 100%
@@ -371,12 +374,12 @@ const Dashboard: React.FC = () => {
           <div className="glass-card rounded-3xl p-6 flex flex-col gap-5">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">
-                MASTER LOGISTICS
+                물류 관제 센터
               </span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={clearAlerts}
-                  title="Alert notifications"
+                  title="알림 통지"
                   className="w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors relative"
                 >
                   <Bell className="w-3.5 h-3.5" />
@@ -471,11 +474,11 @@ const Dashboard: React.FC = () => {
 
               <div className="flex justify-between items-end z-10 pt-2 border-t border-white/15">
                 <div>
-                  <p className="text-[9px] uppercase text-cyan-200">Safe Target Temp</p>
+                  <p className="text-[9px] uppercase text-cyan-200">안전 기준 온도</p>
                   <p className="text-xs font-bold font-mono">-55.0°C ULTRA COLD</p>
                 </div>
                 <div>
-                  <p className="text-[9px] uppercase text-cyan-200 text-right">Batch Weight</p>
+                  <p className="text-[9px] uppercase text-cyan-200 text-right">배치 총 중량</p>
                   <p className="text-sm font-black font-mono text-right">{selectedPo ? `${selectedPo.quantity} kg` : '150 kg'}</p>
                 </div>
               </div>
@@ -488,7 +491,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>On-Chain Journey Timeline</span>
+                <span>온체인 유통 타임라인</span>
               </h3>
               <a
                 href="/blockchain-ledger"
