@@ -17,7 +17,7 @@ export const SCENARIO_PRESETS: Record<string, ScenarioPreset> = {
   'PO-2026-SCENARIO-A': {
     poNumber: 'PO-2026-SCENARIO-A',
     defaultTemperature: -58.0,
-    ambientTemperature: 24.5,
+    ambientTemperature: 22.0,
     latitude: 37.5665,
     longitude: 126.9780,
     description: '완료 시나리오: 서울 최종 수령지',

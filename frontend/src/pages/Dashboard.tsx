@@ -33,6 +33,19 @@ interface PurchaseOrder {
   };
 }
 
+// Smooth Spline Curve Generator (Cubic Bezier interpolation for SVG)
+const generateSmoothSpline = (points: { x: number; y: number }[]) => {
+  if (points.length < 2) return '';
+  let path = `M ${points[0].x.toFixed(1)},${points[0].y.toFixed(1)}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i];
+    const p1 = points[i + 1];
+    const cpX = (p0.x + p1.x) / 2;
+    path += ` C ${cpX.toFixed(1)},${p0.y.toFixed(1)} ${cpX.toFixed(1)},${p1.y.toFixed(1)} ${p1.x.toFixed(1)},${p1.y.toFixed(1)}`;
+  }
+  return path;
+};
+
 const Dashboard: React.FC = () => {
   const [selectedPo, setSelectedPo] = useState<PurchaseOrder | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -47,6 +60,42 @@ const Dashboard: React.FC = () => {
     ambientTemp,
     preset,
   } = useTelemetry(selectedPo?.poNumber);
+
+  // Dynamic SVG Path Calculations based on Live Telemetry Data & PO Preset
+  const tempToY = (temp: number) => {
+    const y = 100 + (temp - (-55.0)) * -8;
+    return Math.max(25, Math.min(145, y));
+  };
+
+  const ambientToY = (aTemp: number) => {
+    const y = 115 - (aTemp - 20.0) * 6;
+    return Math.max(35, Math.min(140, y));
+  };
+
+  const baseChamberTemp = preset?.defaultTemperature || -56.5;
+  const currentChamberTemp = simTemperature !== undefined ? simTemperature : baseChamberTemp;
+  const currentAmbientTemp = ambientTemp !== undefined ? ambientTemp : (preset?.ambientTemperature || 24.5);
+
+  const chamberPoints = [
+    { x: 0, y: tempToY(baseChamberTemp - 0.4) },
+    { x: 130, y: tempToY(baseChamberTemp - 1.8) },
+    { x: 300, y: tempToY(baseChamberTemp + 2.2) },
+    { x: 440, y: tempToY(currentChamberTemp) },
+    { x: 700, y: tempToY(baseChamberTemp - 0.5) }
+  ];
+
+  const ambientPoints = [
+    { x: 0, y: ambientToY(currentAmbientTemp - 2.8) },
+    { x: 150, y: ambientToY(currentAmbientTemp + 1.8) },
+    { x: 320, y: ambientToY(currentAmbientTemp - 2.2) },
+    { x: 530, y: ambientToY(currentAmbientTemp + 2.5) },
+    { x: 700, y: ambientToY(currentAmbientTemp - 3.2) }
+  ];
+
+  const chamberLinePath = generateSmoothSpline(chamberPoints);
+  const chamberAreaPath = `${chamberLinePath} L 700,160 L 0,160 Z`;
+  const ambientLinePath = generateSmoothSpline(ambientPoints);
+  const activePinPoint = chamberPoints[3];
 
   return (
     <div className="p-4 sm:p-7 lg:p-8 flex flex-col gap-6 text-slate-100">
@@ -157,9 +206,9 @@ const Dashboard: React.FC = () => {
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
                   <span>실시간 감지: <strong className="text-white font-mono">{simTemperature ? `${simTemperature.toFixed(1)}°C` : '-57.4°C'}</strong></span>
                 </span>
-                <span className="flex items-center gap-1.5 text-slate-300">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
-                  <span>외기 환경 온도: <strong className="text-emerald-300 font-mono">+{ambientTemp ? ambientTemp.toFixed(1) : '24.5'}°C</strong></span>
+                <span className="flex items-center gap-1.5 text-slate-400/80">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400/60 shadow-[0_0_6px_#10b981]" />
+                  <span className="text-[11px]">외기 환경 온도: <strong className="text-emerald-400/70 font-mono">+{ambientTemp ? ambientTemp.toFixed(1) : '22.0'}°C</strong></span>
                 </span>
                 <span className="flex items-center gap-1.5 text-slate-400">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
@@ -176,85 +225,109 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Glowing Spline Chart Graphic (Matching reference image spline wave aesthetics) */}
-            <div className="relative w-full h-48 sm:h-56 z-10 flex flex-col justify-end">
+            <div className="relative w-full h-48 sm:h-56 z-10 flex flex-col justify-end pt-2">
+              {/* Left Y-Axis Scale Indicators (Chamber Internal Temp) */}
+              <div className="absolute left-0 top-1 bottom-8 flex flex-col justify-between text-[9px] font-sans text-cyan-300/80 z-20 pointer-events-none select-none">
+                <span className="flex items-center gap-1 font-mono"><span>-60°C</span></span>
+                <span className="flex items-center gap-1 font-mono text-rose-400 font-bold bg-rose-500/10 px-1 py-0.5 rounded border border-rose-500/20"><span>-55°C</span></span>
+                <span className="flex items-center gap-1 font-mono"><span>-50°C</span></span>
+              </div>
+
+              {/* Right Y-Axis Scale Indicators (Ambient External Temp) */}
+              <div className="absolute right-0 top-1 bottom-8 flex flex-col justify-between text-[9px] font-sans text-emerald-300/60 text-right z-20 pointer-events-none select-none">
+                <span className="flex items-center gap-1 font-mono justify-end"><span>+30°C</span></span>
+                <span className="flex items-center gap-1 font-mono justify-end"><span>+24°C</span></span>
+                <span className="flex items-center gap-1 font-mono justify-end"><span>+18°C</span></span>
+              </div>
+
               {/* Background horizontal grid lines */}
-              <div className="absolute inset-0 flex flex-col justify-between opacity-15 pointer-events-none">
+              <div className="absolute inset-x-8 top-1 bottom-8 flex flex-col justify-between opacity-15 pointer-events-none">
                 <div className="border-b border-white border-dashed w-full" />
                 <div className="border-b border-white border-dashed w-full" />
                 <div className="border-b border-white border-dashed w-full" />
                 <div className="border-b border-white border-dashed w-full" />
               </div>
 
-              {/* SVG Glowing Curves */}
-              <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 700 160">
-                <defs>
-                  {/* Cyan Glow Gradient */}
-                  <linearGradient id="cyanLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.8" />
-                    <stop offset="50%" stopColor="#38bdf8" stopOpacity="1" />
-                    <stop offset="100%" stopColor="#0284c7" stopOpacity="0.9" />
-                  </linearGradient>
+              {/* SVG Glowing Curves Container */}
+              <div className="w-full h-full px-9 relative">
+                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 700 160">
+                  <defs>
+                    {/* Cyan Glow Gradient */}
+                    <linearGradient id="cyanLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.8" />
+                      <stop offset="50%" stopColor="#38bdf8" stopOpacity="1" />
+                      <stop offset="100%" stopColor="#0284c7" stopOpacity="0.9" />
+                    </linearGradient>
 
-                  {/* Cyan Area Fill */}
-                  <linearGradient id="cyanAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.0" />
-                  </linearGradient>
+                    {/* Cyan Area Fill */}
+                    <linearGradient id="cyanAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.0" />
+                    </linearGradient>
 
-                  {/* Secondary Ocean Curve Gradient */}
-                  <linearGradient id="tealLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#34d399" stopOpacity="0.6" />
-                    <stop offset="50%" stopColor="#10b981" stopOpacity="0.85" />
-                    <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.7" />
-                  </linearGradient>
-                </defs>
+                    {/* Secondary Ocean Curve Gradient */}
+                    <linearGradient id="tealLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#34d399" stopOpacity="0.6" />
+                      <stop offset="50%" stopColor="#10b981" stopOpacity="0.85" />
+                      <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.7" />
+                    </linearGradient>
+                  </defs>
 
-                {/* Secondary wave line (Ambient Temperature curve) */}
-                <path
-                  d="M 0,110 Q 120,60 230,95 T 460,70 T 700,105 L 700,160 L 0,160 Z"
-                  fill="url(#cyanAreaGrad)"
-                  opacity="0.5"
-                />
-                <path
-                  d="M 0,110 Q 120,60 230,95 T 460,70 T 700,105"
-                  fill="none"
-                  stroke="url(#tealLineGrad)"
-                  strokeWidth="2.5"
-                  strokeDasharray="4 3"
-                  className="opacity-70"
-                />
+                  {/* Secondary wave line (Ambient Temperature curve - Faded/Subtle) */}
+                  <path
+                    d={`${ambientLinePath} L 700,160 L 0,160 Z`}
+                    fill="url(#cyanAreaGrad)"
+                    opacity="0.12"
+                    className="transition-all duration-700 ease-out"
+                  />
+                  <path
+                    d={ambientLinePath}
+                    fill="none"
+                    stroke="url(#tealLineGrad)"
+                    strokeWidth="2.5"
+                    strokeDasharray="4 3"
+                    className="opacity-70 transition-all duration-700 ease-out"
+                  />
 
-                {/* Primary Neon Cyan Smooth Curve (Chamber Internal Temp) */}
-                <path
-                  d="M 0,90 Q 110,130 220,70 T 440,50 T 700,85"
-                  fill="none"
-                  stroke="url(#cyanLineGrad)"
-                  strokeWidth="3.5"
-                  className="filter drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]"
-                />
+                  {/* Primary Neon Cyan Smooth Curve (Chamber Internal Temp) */}
+                  <path
+                    d={chamberAreaPath}
+                    fill="url(#cyanAreaGrad)"
+                    opacity="0.35"
+                    className="transition-all duration-700 ease-out"
+                  />
+                  <path
+                    d={chamberLinePath}
+                    fill="none"
+                    stroke="url(#cyanLineGrad)"
+                    strokeWidth="3.5"
+                    className="filter drop-shadow-[0_0_8px_rgba(0,240,255,0.6)] transition-all duration-700 ease-out"
+                  />
 
-                {/* Threshold Safety Line (-55°C Limit) */}
-                <line
-                  x1="0"
-                  y1="100"
-                  x2="700"
-                  y2="100"
-                  stroke="#f43f5e"
-                  strokeWidth="1.5"
-                  strokeDasharray="6 4"
-                  opacity="0.4"
-                />
+                  {/* Threshold Safety Line (-55°C Limit) - Matching Red Legend Icon */}
+                  <line
+                    x1="0"
+                    y1="100"
+                    x2="700"
+                    y2="100"
+                    stroke="#f43f5e"
+                    strokeWidth="1"
+                    strokeDasharray="6 4"
+                    opacity="0.6"
+                    className="transition-all duration-500"
+                  />
 
-                {/* Active telemetry pin badge */}
-                <g transform="translate(440, 50)">
-                  <circle r="6" fill="#00f0ff" className="animate-ping opacity-75" />
-                  <circle r="5" fill="#030e1a" stroke="#00f0ff" strokeWidth="2.5" />
-                  <rect x="-42" y="-32" width="84" height="22" rx="6" fill="#030e1a" stroke="#00f0ff" strokeWidth="1" />
-                  <text x="0" y="-18" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold" fontFamily="Pretendard, sans-serif">
-                    {simTemperature ? `${simTemperature.toFixed(1)}°C` : '-57.4°C'}
-                  </text>
-                </g>
-              </svg>
+                  {/* Active telemetry pin badge */}
+                  <g transform={`translate(${activePinPoint.x}, ${activePinPoint.y})`} className="transition-all duration-700 ease-out">
+                    <circle r="6" fill="#00f0ff" className="animate-ping opacity-75" />
+                    <circle r="5" fill="#030e1a" stroke="#00f0ff" strokeWidth="2.5" />
+                    <rect x="-42" y="-32" width="84" height="22" rx="6" fill="#030e1a" stroke="#00f0ff" strokeWidth="1" />
+                    <text x="0" y="-18" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold" fontFamily="Pretendard, sans-serif">
+                      {simTemperature ? `${simTemperature.toFixed(1)}°C` : '-57.4°C'}
+                    </text>
+                  </g>
+                </svg>
+              </div>
 
               {/* Dynamic Time Axis Markers (Adapted to Selected PO & Selected Filter Tab) */}
               <div className="flex justify-between items-center text-[10px] font-sans text-slate-400 mt-2 border-t border-white/5 pt-2">
