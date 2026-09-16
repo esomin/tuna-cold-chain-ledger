@@ -3,13 +3,16 @@ import { io, type Socket } from 'socket.io-client';
 import { getPresetByPoNumber } from '../config/scenarios.config';
 import { TelemetryService, type TelemetryData, type AlertData } from '../services/telemetryService';
 
-export const useTelemetry = (selectedPoNumber?: string) => {
+export const useTelemetry = (
+  selectedPoNumber?: string,
+  baseCoords?: { latitude?: number; longitude?: number }
+) => {
   const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
   const [alerts, setAlerts] = useState<AlertData[]>([]);
   const [simTemperature, setSimTemperature] = useState<number>(-58);
   const [socket, setSocket] = useState<Socket | null>(null);
 
-  // 1. 선택된 PO 변경 시 텔레메트리 초기화 (REST API 조회를 시도하고 실패 시 프리셋 폴백)
+  // 1. 선택된 PO 변경 시 텔레메트리 초기화 (REST API 조회를 시도하고 실패 시 프리셋/선단 좌표 폴백)
   useEffect(() => {
     if (!selectedPoNumber) return;
 
@@ -23,11 +26,13 @@ export const useTelemetry = (selectedPoNumber?: string) => {
         setSimTemperature(dbData.temperature);
       } else {
         const preset = getPresetByPoNumber(selectedPoNumber);
+        const lat = baseCoords?.latitude ?? preset.latitude;
+        const lng = baseCoords?.longitude ?? preset.longitude;
         setTelemetry({
           poNumber: selectedPoNumber,
           temperature: preset.defaultTemperature,
-          latitude: preset.latitude,
-          longitude: preset.longitude,
+          latitude: lat,
+          longitude: lng,
           timestamp: new Date().toISOString(),
         });
         setSimTemperature(preset.defaultTemperature);
@@ -39,7 +44,8 @@ export const useTelemetry = (selectedPoNumber?: string) => {
     return () => {
       isMounted = false;
     };
-  }, [selectedPoNumber]);
+  }, [selectedPoNumber, baseCoords?.latitude, baseCoords?.longitude]);
+
 
   // 2. 웹소켓 연결 및 실시간 텔레메트리 / 알림 수신
   useEffect(() => {

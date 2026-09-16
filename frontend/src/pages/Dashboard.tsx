@@ -95,28 +95,51 @@ const Dashboard: React.FC = () => {
       name: 'Pacific Ocean Fleet No. 7',
       koName: '남태평양 원양선단 1팀',
       homePort: '부산항 감천항만',
+      latitude: 35.0784,
+      longitude: 129.0069,
     };
 
     if (!selectedPo || !selectedPo.supplierName) {
       return defaultFleet;
     }
 
-    const matched = fleets.find((f) => f.koName === selectedPo.supplierName);
+    const matched = fleets.find(
+      (f) =>
+        f.koName === selectedPo.supplierName ||
+        selectedPo.supplierName.includes(f.koName) ||
+        f.koName.includes(selectedPo.supplierName) ||
+        f.code === selectedPo.supplierName
+    );
+
     if (matched) {
-      return matched;
+      return {
+        ...matched,
+        latitude: matched.latitude ?? 35.0784,
+        longitude: matched.longitude ?? 129.0069,
+      };
     }
 
+    // Fallback list cycling through Busan, Incheon, Pohang for legacy or un-seeded PO entries
+    const fallbackList = fleets.length > 0 ? fleets : [
+      { code: 'PC7', name: 'Pacific Ocean Fleet No. 7', koName: '남태평양 원양선단 1팀', homePort: '부산항 감천항만', latitude: 35.0784, longitude: 129.0069 },
+      { code: 'PF12', name: 'Pacific Ocean Fleet No. 12', koName: '태평양 원양선단 2팀', homePort: '인천항 제3부두', latitude: 37.4645, longitude: 126.6173 },
+      { code: 'NP3', name: 'North Pacific Ocean Fleet No. 3', koName: '북서태평양 원양선단 3팀', homePort: '포항 구룡포항', latitude: 35.9892, longitude: 129.5541 },
+    ];
+    const key = selectedPo.poNumber || selectedPo.id || selectedPo.supplierName;
+    const charSum = key.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const fb = fallbackList[charSum % fallbackList.length];
+
     return {
-      code: 'PC7',
-      name: 'Pacific Ocean Fleet No. 7',
-      koName: selectedPo.supplierName,
-      homePort: '부산항 감천항만',
+      ...fb,
+      koName: selectedPo.supplierName || fb.koName,
+      latitude: fb.latitude ?? 35.0784,
+      longitude: fb.longitude ?? 129.0069,
     };
   }, [selectedPo, fleets]);
 
 
-  // 관심사의 분리를 위해 추상화된 useTelemetry 커스텀 훅 사용
 
+  // 관심사의 분리를 위해 추상화된 useTelemetry 커스텀 훅 사용
   const {
     telemetry: liveTelemetry,
     alerts,
@@ -124,7 +147,11 @@ const Dashboard: React.FC = () => {
     simTemperature,
     ambientTemp,
     preset,
-  } = useTelemetry(selectedPo?.poNumber);
+  } = useTelemetry(selectedPo?.poNumber, {
+    latitude: displayFleet.latitude,
+    longitude: displayFleet.longitude,
+  });
+
 
   // 신규 등록/진행 중인 배치 건은 아직 미경과 상태이므로 '실시간 스트림' 탭 자동 선택
   useEffect(() => {
@@ -195,7 +222,7 @@ const Dashboard: React.FC = () => {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            원양 어획부터 초저온 유통 텔레메트리 및 온체인 무결성 실시간 모니터링
+            Real-time Telemetry & On-Chain Integrity Tracking for Cryogenic Logistics
           </p>
         </div>
 
@@ -542,31 +569,31 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* User Details */}
-            <div className="flex items-center gap-3.5">
-              <div className="relative">
-                <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-300 p-[2px] shadow-lg shadow-sky-500/20">
-                  <div className="w-full h-full rounded-2xl bg-slate-950 flex items-center justify-center font-black text-base text-cyan-300 font-mono">
-                    {displayFleet.code.slice(0, 2).toUpperCase()}
+            <div className="flex items-center justify-between gap-3 w-full">
+              <div className="flex items-center gap-3.5">
+                <div className="relative shrink-0">
+                  <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-300 p-[2px] shadow-lg shadow-sky-500/20">
+                    <div className="w-full h-full rounded-2xl bg-slate-950 flex items-center justify-center font-black text-base text-cyan-300 font-mono">
+                      {displayFleet.code.slice(0, 2).toUpperCase()}
+                    </div>
                   </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-950" />
                 </div>
 
-                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-950" />
+                <div>
+                  <h3 className="text-base font-bold text-white">{displayFleet.koName}</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">{displayFleet.name}</p>
+                </div>
               </div>
 
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-bold text-white">{displayFleet.koName}</h3>
-                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300 border border-sky-400/30 font-mono font-bold">
-                    {displayFleet.code}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 mt-0.5">{displayFleet.name}</p>
-                <p className="text-[11px] text-cyan-300/80 mt-1 flex items-center gap-1 font-digital">
-                  <MapPin className="w-3 h-3 text-cyan-400 shrink-0" />
+              <div className="text-right shrink-0">
+                <span className="text-[11px] sm:text-xs text-cyan-300/90 font-digital flex items-center gap-1 justify-end">
+                  <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                   <span>출항지: {displayFleet.homePort}</span>
-                </p>
+                </span>
               </div>
             </div>
+
 
 
             {/* 3.2 HOLOGRAPHIC MARITIME LEDGER SMART CARD (Pristine Credit Card Design) */}
@@ -601,17 +628,15 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* 3 CONTEXT ACTION SQUIRCLE BUTTONS (Identical bg-white/5 background style to reference screenshot) */}
+            {/* 3 CONTEXT ACTION SQUIRCLE BUTTONS (Ordered: Sensor Sync -> Ledger View -> QR Verification) */}
             <div className="grid grid-cols-3 gap-3 pt-2 border-t border-white/10">
-              <a
-                href={`/verify/${selectedPo ? selectedPo.poNumber : 'PO-2026-SCENARIO-A'}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={handleSensorSync}
                 className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
               >
-                <QrCode className="w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">QR 검증</span>
-              </a>
+                <Radio className={`w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform ${isSyncing ? 'animate-spin text-sky-200' : ''}`} />
+                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{isSyncing ? '동기화중...' : '센서 동기화'}</span>
+              </button>
 
               <Link
                 to={`/blockchain-ledger?search=${selectedPo ? selectedPo.poNumber : ''}`}
@@ -621,13 +646,15 @@ const Dashboard: React.FC = () => {
                 <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">원장 상세 조회</span>
               </Link>
 
-              <button
-                onClick={handleSensorSync}
+              <a
+                href={`/verify/${selectedPo ? selectedPo.poNumber : 'PO-2026-SCENARIO-A'}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
               >
-                <Radio className={`w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform ${isSyncing ? 'animate-spin text-sky-200' : ''}`} />
-                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{isSyncing ? '동기화중...' : '센서 동기화'}</span>
-              </button>
+                <QrCode className="w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">QR 검증</span>
+              </a>
             </div>
 
           </div>

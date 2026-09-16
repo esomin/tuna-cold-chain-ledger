@@ -201,15 +201,15 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Truck className="w-4 h-4 text-sky-400" />
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider font-digital">Fleet Transport Feed</h3>
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                    <Truck className="w-4 h-4 text-sky-400 shrink-0" />
+                    <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-digital truncate">Fleet Transport Feed</h3>
                 </div>
                 {isDev ? (
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-400 to-cyan-400 hover:from-sky-300 hover:to-cyan-300 text-slate-950 transition-all shadow-md shadow-sky-500/20 font-digital"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-400 to-cyan-400 hover:from-sky-300 hover:to-cyan-300 text-slate-950 transition-all shadow-md shadow-sky-500/20 font-digital shrink-0 whitespace-nowrap select-none"
                     >
                         <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                         <span>신규 등록</span>
@@ -218,13 +218,14 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                     <button
                         disabled
                         title="배포 데모 환경에서는 신규 어획 등록이 제한됩니다 (로컬 개발 환경 전용)"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-500 border border-slate-700/60 opacity-60 cursor-not-allowed font-digital"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-500 border border-slate-700/60 opacity-60 cursor-not-allowed font-digital shrink-0 whitespace-nowrap select-none"
                     >
                         <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>신규 등록 (Dev 전용)</span>
+                        <span>신규 등록</span>
                     </button>
                 )}
             </div>
+
 
             <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
                 {orders.map((order) => {

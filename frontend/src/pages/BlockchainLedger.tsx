@@ -85,12 +85,12 @@ const BlockchainLedger: React.FC = () => {
 
     return (
         <div className="p-4 sm:p-7 lg:p-8 flex flex-col gap-6 text-slate-100">
+
             {/* Header Title */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/10">
                 <div>
                     <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-                            <Database className="w-6 h-6 text-sky-400" />
+                        <h1 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
                             <span>On-Chain Blockchain Ledger</span>
                             <span className="text-sky-400 font-normal">Explorer</span>
                         </h1>
@@ -172,16 +172,25 @@ const BlockchainLedger: React.FC = () => {
 
             {/* Filter & Search Bar */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-2xl glass-card">
-                {/* Search Input */}
-                <div className="relative w-full md:w-96">
-                    <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="PO 번호, Tx Hash, Data Hash 검색..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border bg-slate-950/60 border-white/10 text-white focus:outline-none focus:border-sky-400 transition-all placeholder:text-slate-500"
-                    />
+                {/* Search Input with Search Button */}
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <div className="relative w-full sm:w-80">
+                        <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="PO 번호, Tx Hash, Data Hash 검색..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border bg-slate-950/60 border-white/10 text-white focus:outline-none focus:border-sky-400 transition-all placeholder:text-slate-500"
+                        />
+                    </div>
+                    <button
+                        onClick={() => fetchAuditLogs()}
+                        className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-sky-400 hover:bg-sky-300 text-slate-950 transition-all shadow-md shadow-sky-500/20 shrink-0 font-digital"
+                    >
+                        <Search className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>검색</span>
+                    </button>
                 </div>
 
                 {/* Category Filter Chips */}
@@ -203,16 +212,16 @@ const BlockchainLedger: React.FC = () => {
                 </div>
             </div>
 
-            {/* Main Ledger Table */}
-            <div className="rounded-3xl glass-card overflow-hidden shadow-2xl min-h-[420px] flex flex-col">
+            {/* Main Ledger Table (rounded-xl 사용으로 가장자리 컬럼명 잘림 방지) */}
+            <div className="rounded-xl glass-card overflow-hidden shadow-2xl min-h-[420px] flex flex-col border border-white/10">
                 <Table className="table-fixed w-full">
                     <TableHeader className="bg-white/5 border-b border-white/10">
                         <TableRow>
-                            <TableHead className="w-[26%] uppercase text-slate-300 text-[11px] font-bold">Tx Hash (트랜잭션)</TableHead>
-                            <TableHead className="w-[18%] uppercase text-slate-300 text-[11px] font-bold">이벤트 / 단계</TableHead>
-                            <TableHead className="w-[28%] uppercase text-slate-300 text-[11px] font-bold">Keccak256 Data Hash</TableHead>
-                            <TableHead className="w-[18%] uppercase text-slate-300 text-[11px] font-bold">생성 일시</TableHead>
-                            <TableHead className="w-[10%] uppercase text-slate-300 text-[11px] font-bold text-right">상세조회</TableHead>
+                            <TableHead className="w-[18%] uppercase text-slate-300 text-[11px] font-bold pl-4">Tx Hash (트랜잭션)</TableHead>
+                            <TableHead className="w-[32%] uppercase text-slate-300 text-[11px] font-bold">이벤트 / 단계</TableHead>
+                            <TableHead className="w-[26%] uppercase text-slate-300 text-[11px] font-bold">Keccak256 Data Hash</TableHead>
+                            <TableHead className="w-[16%] uppercase text-slate-300 text-[11px] font-bold whitespace-nowrap">생성 일시</TableHead>
+                            <TableHead className="w-[8%] uppercase text-slate-300 text-[11px] font-bold text-right pr-4">상세조회</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -230,33 +239,33 @@ const BlockchainLedger: React.FC = () => {
                                     className="cursor-pointer border-b border-white/5 hover:bg-white/5 transition-colors"
                                     onClick={() => setSelectedLog(log)}
                                 >
-                                    <TableCell className="font-mono text-cyan-300 max-w-[180px] truncate" title={log.txHash}>
-                                        <div className="flex items-center gap-1.5">
+                                    <TableCell className="font-mono text-cyan-300 pl-4 overflow-hidden" title={log.txHash}>
+                                        <div className="flex items-center gap-1.5 min-w-0">
                                             <Hash className="w-3.5 h-3.5 shrink-0 text-slate-500" />
                                             <a
                                                 href={log.txHash.startsWith('0x') && !log.txHash.includes('ffffff') ? `${ETHERSCAN_BASE_URL}/tx/${log.txHash}` : `${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 onClick={(e) => e.stopPropagation()}
-                                                className="truncate hover:underline font-bold flex items-center gap-1"
+                                                className="truncate hover:underline font-bold flex items-center gap-1 text-xs min-w-0"
                                             >
-                                                <span>{log.txHash}</span>
+                                                <span className="truncate">{log.txHash.length > 20 ? `${log.txHash.slice(0, 10)}...${log.txHash.slice(-6)}` : log.txHash}</span>
                                                 <ExternalLink className="w-3 h-3 shrink-0 text-cyan-400" />
                                             </a>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold border bg-sky-500/15 text-sky-300 border-sky-500/30">
+                                    <TableCell className="overflow-hidden" title={log.action}>
+                                        <span className="inline-block max-w-full truncate px-2.5 py-1 rounded-full text-[10px] font-bold border bg-sky-500/15 text-sky-300 border-sky-500/30 align-middle">
                                             {log.action}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="font-mono text-slate-300 max-w-[220px] truncate text-xs" title={log.dataHash}>
-                                        {log.dataHash}
+                                    <TableCell className="font-mono text-slate-300 text-xs overflow-hidden" title={log.dataHash}>
+                                        <span className="inline-block max-w-full truncate align-middle font-medium">{log.dataHash.length > 22 ? `${log.dataHash.slice(0, 12)}...${log.dataHash.slice(-8)}` : log.dataHash}</span>
                                     </TableCell>
-                                    <TableCell className="font-mono text-[11px] text-slate-400">
+                                    <TableCell className="font-mono text-[11px] text-slate-400 whitespace-nowrap">
                                         {new Date(log.createdAt).toLocaleString('ko-KR')}
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right pr-4">
                                         <button 
                                             className="p-1.5 rounded-xl hover:bg-white/10 transition-colors text-slate-400 hover:text-white"
                                             onClick={(e) => {
@@ -269,6 +278,7 @@ const BlockchainLedger: React.FC = () => {
                                     </TableCell>
                                 </TableRow>
                             ))
+
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={5} className="p-12 text-center text-slate-400">

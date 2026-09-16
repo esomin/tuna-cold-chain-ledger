@@ -207,27 +207,23 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                 <div className="mt-2.5 p-3.5 rounded-2xl bg-[#121f2b] border border-[#223647] flex items-center justify-between text-xs shadow-inner">
                                     <div className="flex items-center gap-3">
                                         <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-cyan-300 p-[2px] shadow-sm shrink-0">
-                                            <div className="w-full h-full rounded-xl bg-slate-950 flex items-center justify-center font-black text-xs text-cyan-300">
+                                            <div className="w-full h-full rounded-xl bg-slate-950 flex items-center justify-center font-black text-xs text-cyan-300 font-mono">
                                                 {selectedFleet.code.slice(0, 2).toUpperCase()}
                                             </div>
                                         </div>
 
                                         <div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-bold text-white">{selectedFleet.koName}</span>
-                                                <span className="text-[10px] px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono border border-sky-400/30 font-bold">
-                                                    {selectedFleet.code}
-                                                </span>
-                                            </div>
-                                            <p className="text-[11px] text-slate-400 mt-0.5">{selectedFleet.name}</p>
+                                            <h4 className="font-bold text-white text-xs sm:text-sm">{selectedFleet.koName}</h4>
+                                            <p className="text-[11px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-1.5 font-digital">
+                                                <span>{selectedFleet.name}</span>
+                                                <span className="text-slate-600">•</span>
+                                                <span className="text-cyan-300 font-semibold">출항지: {selectedFleet.homePort}</span>
+                                            </p>
                                         </div>
-                                    </div>
-                                    <div className="text-right pl-3 border-l border-[#24394a]">
-                                        <p className="text-[10px] text-slate-400 font-mono uppercase">출항지 / 모항</p>
-                                        <p className="text-xs font-bold text-cyan-300 font-digital">{selectedFleet.homePort}</p>
                                     </div>
                                 </div>
                             )}
+
                         </div>
 
 

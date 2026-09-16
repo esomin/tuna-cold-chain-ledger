@@ -16,5 +16,12 @@ export class Fleet extends BaseEntity {
 
     @Column({ name: 'home_port' })
     homePort: string; // e.g. 부산항 감천항만
+
+    @Column({ type: 'double precision', default: 35.0784 })
+    latitude: number; // e.g. 35.0784
+
+    @Column({ type: 'double precision', default: 129.0069 })
+    longitude: number; // e.g. 129.0069
 }
+
 
