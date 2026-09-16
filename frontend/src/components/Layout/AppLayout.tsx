@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
     LayoutDashboard,
     Database,
-    ShieldCheck,
+    BookOpenCheck,
     LogOut,
     Waves,
     ExternalLink
@@ -38,7 +38,7 @@ const AppLayout: React.FC = () => {
         },
         {
             path: '/blockchain-ledger',
-            icon: <Database className="w-5 h-5" />,
+            icon: <BookOpenCheck className="w-5 h-5" />,
             label: '원장 탐색기',
             tooltip: '온체인 감사 원장 탐색기'
         },
@@ -122,7 +122,7 @@ const AppLayout: React.FC = () => {
 
                             {/* Dropdown Menu */}
                             {userMenuOpen && (
-                                <div className="absolute right-0 lg:left-full lg:right-auto lg:top-0 lg:ml-3 mt-2 lg:mt-0 w-56 rounded-2xl glass-dock shadow-[0_10px_30px_rgba(0,0,0,0.6)] py-2 z-50 border border-sky-500/25 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+                                <div className="absolute right-0 lg:left-full lg:right-auto lg:top-0 lg:ml-3 mt-2 lg:mt-0 w-56 rounded-2xl bg-slate-950/95 border border-sky-500/40 shadow-[0_20px_40px_rgba(0,0,0,0.85)] py-2 z-50 backdrop-blur-2xl animate-in fade-in zoom-in-95 duration-150">
                                     <div className="px-4 py-2 border-b border-white/10">
                                         <p className="text-xs font-bold text-slate-100">{user?.name || '남태평양 원양선단'}</p>
                                         <p className="text-[10px] text-sky-300 font-mono mt-0.5">{user?.role || 'COLD_CHAIN_ADMIN'}</p>
@@ -162,5 +162,3 @@ const AppLayout: React.FC = () => {
 };
 
 export default AppLayout;
-
-

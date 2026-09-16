@@ -18,7 +18,8 @@ export const LiveMaplibreMap: React.FC<LiveMapProps> = ({ lat, lng, poNumber }) 
     // OpenFreeMap Dark style with MapLibre GL
     const map = new maplibregl.Map({
       container: mapContainer.current,
-      style: 'https://tiles.openfreemap.org/styles/dark',
+      //style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
       center: [lng, lat],
       zoom: 6.5
     });
@@ -31,7 +32,7 @@ export const LiveMaplibreMap: React.FC<LiveMapProps> = ({ lat, lng, poNumber }) 
     markerEl.className = 'relative flex items-center justify-center';
     markerEl.innerHTML = `
       <div class="absolute w-8 h-8 rounded-full animate-ping opacity-75" style="background-color: var(--theme-aqua, #5cd5fb)"></div>
-      <div class="w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2" style="background-color: #18191a; border-color: var(--theme-aqua, #5cd5fb); color: var(--theme-aqua, #5cd5fb)">
+      <div class="w-7 h-7 rounded-full flex items-center justify-center shadow-lg border-2" style="background-color: #ffffff; border-color: var(--theme-aqua, #5cd5fb); color: var(--theme-aqua, #5cd5fb)">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
           <circle cx="12" cy="10" r="3"/>

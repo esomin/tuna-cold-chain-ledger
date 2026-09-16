@@ -19,6 +19,7 @@ interface DistributionTimelineProps {
 interface StepInfo {
     key: string;
     label: string;
+    codeLabel: string;
     description: string;
     statusTrigger: string[];
 }
@@ -29,25 +30,29 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
     const steps: StepInfo[] = [
         {
             key: 'HARVESTED',
-            label: '어획 완료 (Harvested)',
+            label: '어획 완료',
+            codeLabel: 'HARVESTED',
             description: '원산지(남태평양 어장) 정보 확정 및 최초 온체인 무결성 해시 등록',
             statusTrigger: ['HARVESTED', 'DRAFT', 'PENDING', 'COMPLETED'],
         },
         {
             key: 'PROCESSING',
-            label: '초저온 가공 (Processed)',
+            label: '초저온 가공',
+            codeLabel: 'PROCESSED',
             description: '초저온(-55°C) 급랭 동결고 입고 및 포장 규격 해시 블록체인 기록',
             statusTrigger: ['PROCESSING', 'PENDING', 'COMPLETED'],
         },
         {
             key: 'IN_TRANSIT',
-            label: '운송중 (In-Transit)',
+            label: '초저온 운송중',
+            codeLabel: 'IN-TRANSIT',
             description: '초저온 유통 차량 실시간 GPS/온도 텔레메트리 연동 무결성 검증',
             statusTrigger: ['IN_TRANSIT', 'PENDING', 'COMPLETED'],
         },
         {
             key: 'DELIVERED',
-            label: '입고 완료 (Delivered)',
+            label: '입고 완료',
+            codeLabel: 'DELIVERED',
             description: '소비자 검증용 온체인 디지털 정품 보증서(NFT Hash) 발행 완료',
             statusTrigger: ['DELIVERED', 'COMPLETED'],
         },
@@ -100,7 +105,7 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
 
     if (!poNumber) {
         return (
-            <div className="flex items-center justify-center h-48 text-slate-400 text-xs">
+            <div className="flex items-center justify-center h-48 text-slate-400 text-xs font-digital">
                 좌측에서 발주/운송 건을 선택하면 타임라인이 표기됩니다.
             </div>
         );
@@ -117,23 +122,26 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
                     return (
                         <div key={step.key} className="relative">
                             {/* Node Point Marker */}
-                            <div className={`absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full border-2 transition-all duration-300 ${
-                                stepStatus === 'VERIFIED'
-                                    ? 'bg-emerald-400 border-emerald-300 shadow-[0_0_10px_#10b981]'
-                                    : stepStatus === 'WARNING'
+                            <div className={`absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full border-2 transition-all duration-300 ${stepStatus === 'VERIFIED'
+                                ? 'bg-emerald-400 border-emerald-300 shadow-[0_0_10px_#10b981]'
+                                : stepStatus === 'WARNING'
                                     ? 'bg-rose-500 border-rose-400 shadow-[0_0_10px_#f43f5e]'
                                     : 'bg-slate-900 border-slate-700'
-                            }`} />
+                                }`} />
 
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between gap-2">
-                                    <h4 className={`text-xs font-bold transition-colors duration-200 ${
-                                        stepStatus === 'VERIFIED' ? 'text-emerald-300' : 'text-slate-200'
-                                    }`}>
-                                        {step.label}
-                                    </h4>
+                                    <div className="flex items-center gap-1.5">
+                                        <h4 className={`text-xs font-bold font-digital transition-colors duration-200 ${stepStatus === 'VERIFIED' ? 'text-emerald-300' : 'text-slate-200'
+                                            }`}>
+                                            {step.label}
+                                        </h4>
+                                        <span className="text-[10px] font-digital text-sky-400/70">
+                                            ({step.codeLabel})
+                                        </span>
+                                    </div>
                                     {stepStatus === 'VERIFIED' && (
-                                        <span className="text-[9px] bg-emerald-500/15 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 font-bold">
+                                        <span className="text-[9px] bg-emerald-500/15 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 font-bold font-digital">
                                             ✓ VERIFIED
                                         </span>
                                     )}

@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   ResponsiveContainer,
   ComposedChart,
-  Area,
   Line,
   XAxis,
   YAxis,
@@ -19,9 +18,8 @@ import {
   ShieldCheck,
   Boxes,
   Activity,
-  Plus,
   Radio,
-  FileCheck,
+  BookOpenCheck,
   Compass,
   ChevronRight,
   Bell
@@ -116,11 +114,11 @@ const Dashboard: React.FC = () => {
       // 4단계 히스토리 완료 시나리오 (PO-2026-SCENARIO-A 등 유통 완료 건)
       const ev = preset?.timelineEvents;
       return [
-        { time: `${ev?.harvestedAt || '09/14 08:00'} (1단계 어획)`, chamberTemp: Number((baseChamberTemp - 0.6).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 4.2).toFixed(1)) },
-        { time: `${ev?.processedAt || '09/14 14:00'} (2단계 가공)`, chamberTemp: Number((baseChamberTemp - 2.4).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 5.5).toFixed(1)) },
-        { time: '09/14 20:00 (해상운송)', chamberTemp: Number((baseChamberTemp + 1.8).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 1.2).toFixed(1)) },
-        { time: `${ev?.inTransitAt || '09/15 02:00'} (3단계 입고)`, chamberTemp: Number((baseChamberTemp + 0.2).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 1.8).toFixed(1)) },
-        { time: `${ev?.deliveredAt || '09/15 16:00'} (4단계 보관)`, chamberTemp: Number((currentChamberTemp).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 0.8).toFixed(1)), isPin: true },
+        { time: `${ev?.harvestedAt || '09/14 08:00'} (어획 완료)`, chamberTemp: Number((baseChamberTemp - 0.6).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 4.2).toFixed(1)) },
+        { time: `${ev?.processedAt || '09/14 14:00'} (초저온 가공)`, chamberTemp: Number((baseChamberTemp - 2.4).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 5.5).toFixed(1)) },
+        { time: '09/14 20:00 (해상 운송)', chamberTemp: Number((baseChamberTemp + 1.8).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 1.2).toFixed(1)) },
+        { time: `${ev?.inTransitAt || '09/15 02:00'} (초저온 운송중)`, chamberTemp: Number((baseChamberTemp + 0.2).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 1.8).toFixed(1)) },
+        { time: `${ev?.deliveredAt || '09/15 16:00'} (입고 완료)`, chamberTemp: Number((currentChamberTemp).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 0.8).toFixed(1)), isPin: true },
         { time: '현재 (실시간 완료)', chamberTemp: Number((currentChamberTemp - 0.5).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 0.4).toFixed(1)) }
       ];
     }
@@ -129,6 +127,15 @@ const Dashboard: React.FC = () => {
   const activePinItem = useMemo(() => {
     return chartData.find(d => d.isPin) || chartData[chartData.length - 2] || chartData[0];
   }, [chartData]);
+
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSensorSync = () => {
+    setIsSyncing(true);
+    setTimeout(() => {
+      setIsSyncing(false);
+    }, 1000);
+  };
 
   return (
     <div className="p-4 sm:p-7 lg:p-8 flex flex-col gap-6 text-slate-100">
@@ -152,7 +159,7 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
 
-        {/* Top Summary Stat Capsule (Matching reference top balance pills) */}
+        {/* Top Summary Stat Capsule */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
             <div className="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center">
@@ -163,16 +170,6 @@ const Dashboard: React.FC = () => {
               <p className="text-sm font-bold text-white"><span className="font-mono">1,480 kg</span> <span className="text-[10px] text-sky-300 font-normal font-sans">/ 12 배치</span></p>
             </div>
           </div>
-          {/* 
-          <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-[10px] uppercase font-semibold text-slate-400">콜드체인 무결성</p>
-              <p className="text-sm font-bold text-emerald-300"><span className="font-mono">100%</span> <span className="text-[10px] text-emerald-400 font-normal font-sans">검증 완료</span></p>
-            </div>
-          </div> */}
 
           <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
             <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center">
@@ -212,7 +209,7 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-sky-400" />
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">실시간 GPS 관제</h3>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Live GPS Tracking</h3>
                 </div>
                 {selectedPo ? (
                   <span className="text-[10px] font-semibold text-sky-300 flex items-center gap-1.5 animate-pulse">
@@ -234,9 +231,9 @@ const Dashboard: React.FC = () => {
                       poNumber={selectedPo ? selectedPo.poNumber : undefined}
                     />
                     {/* Floating HUD */}
-                    <div className="absolute top-3 left-3 z-10 text-[11px] px-3 py-1.5 rounded-xl glass-dock border border-white/20 flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                      <span className="font-mono text-xs font-bold text-cyan-300">
+                    <div className="absolute top-3 left-3 z-10 text-[11px] px-3.5 py-1.5 rounded-xl bg-white/50 border border-sky-400/40 backdrop-blur-md shadow-lg shadow-slate-900/15 flex items-center gap-2.5">
+                      <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_8px_rgba(14,165,233,0.6)]" />
+                      <span className="font-mono text-xs font-bold text-slate-800 tracking-wide">
                         GPS {liveTelemetry.latitude.toFixed(4)}°N, {liveTelemetry.longitude.toFixed(4)}°E
                       </span>
                     </div>
@@ -252,15 +249,15 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* 2.2 TELEMETRY STATISTIC & TEMPERATURE TRAJECTORY GRAPH (Inspired by mockup's Statistic card) */}
-          <div className="glass-card rounded-3xl p-6 relative overflow-hidden flex flex-col gap-5">
+          <div className="glass-card rounded-3xl p-5 relative overflow-hidden flex flex-col gap-3.5">
             {/* Ambient inner glow */}
             <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 z-10">
               <div>
                 <div className="flex items-center gap-2">
                   <Activity className="w-4 h-4 text-cyan-400" />
-                  <h2 className="text-base font-bold text-white tracking-wide">콜드체인 실시간 온도 트랙</h2>
+                  <h2 className="text-base font-bold text-white tracking-wide uppercase">Cold Chain Temp Track</h2>
                 </div>
                 <p className="text-xs text-slate-400 mt-0.5">
                   초저온 보관 규정 준수 센서 실시간 가동 현황 (-55°C 기준)
@@ -288,7 +285,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Trajectory Highlights & Legend */}
-            <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-white/10 pb-4 z-10">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-white/10 pb-2.5 z-10">
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5 text-slate-300">
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
@@ -313,7 +310,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Recharts Glowing Telemetry Spline Chart - Maximized Width */}
-            <div className="w-full h-56 sm:h-64 z-10 pt-2 -mx-2">
+            <div className="w-full h-44 sm:h-48 z-10 pt-1 -mx-2">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 25, right: 0, left: 0, bottom: 0 }}>
                   <defs>
@@ -414,7 +411,7 @@ const Dashboard: React.FC = () => {
                       r={0}
                       shape={(props: any) => {
                         const { cx, cy } = props;
-                        if (!cx || !cy) return null;
+                        if (!cx || !cy) return <g />;
                         return (
                           <g transform={`translate(${cx}, ${cy})`}>
                             <circle r="7" fill="#00f0ff" opacity="0.4" className="animate-ping" />
@@ -483,12 +480,13 @@ const Dashboard: React.FC = () => {
         {/* ========================================================================= */}
         <div className="xl:col-span-4 flex flex-col gap-6">
 
-          {/* 3.1 OPERATOR PROFILE & QUICK ACTION PILL BUTTONS (Matching Reference Card) */}
-          <div className="glass-card rounded-3xl p-6 flex flex-col gap-5">
+          {/* 3.1 OPERATOR PROFILE & BATCH DIGITAL TWIN CARD (MARITIME INTEGRITY NFT) */}
+          <div className="glass-card rounded-3xl p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">
-                물류 관제 센터
-              </span>
+              <div className="flex items-center gap-2">
+                <Compass className="w-4 h-4 text-sky-400" />
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Fishing Fleet Info</h3>
+              </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={clearAlerts}
@@ -520,52 +518,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* 4 Action Pill Buttons (Matching Reference Transfer / Receive / Bill / Top up) */}
-            <div className="grid grid-cols-4 gap-2 pt-2 border-t border-white/10">
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-white/10 text-slate-300 hover:text-white transition-all group"
-              >
-                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 group-hover:border-sky-400/50 group-hover:bg-sky-500/20 flex items-center justify-center text-sky-400 transition-all">
-                  <Plus className="w-4 h-4" />
-                </div>
-                <span className="text-[10px] font-medium">신규등록</span>
-              </button>
-
-              <a
-                href={`/verify/${selectedPo ? selectedPo.poNumber : 'PO-2026-SCENARIO-A'}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-white/10 text-slate-300 hover:text-white transition-all group"
-              >
-                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 group-hover:border-cyan-400/50 group-hover:bg-cyan-500/20 flex items-center justify-center text-cyan-400 transition-all">
-                  <QrCode className="w-4 h-4" />
-                </div>
-                <span className="text-[10px] font-medium">QR 검증</span>
-              </a>
-
-              <a
-                href="/blockchain-ledger"
-                className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-white/10 text-slate-300 hover:text-white transition-all group"
-              >
-                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 group-hover:border-emerald-400/50 group-hover:bg-emerald-500/20 flex items-center justify-center text-emerald-400 transition-all">
-                  <FileCheck className="w-4 h-4" />
-                </div>
-                <span className="text-[10px] font-medium">온체인원장</span>
-              </a>
-
-              <button
-                onClick={() => window.location.reload()}
-                className="flex flex-col items-center gap-1.5 p-2 rounded-2xl hover:bg-white/10 text-slate-300 hover:text-white transition-all group"
-              >
-                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 group-hover:border-sky-400/50 group-hover:bg-sky-500/20 flex items-center justify-center text-sky-300 transition-all">
-                  <Radio className="w-4 h-4" />
-                </div>
-                <span className="text-[10px] font-medium">센서동기화</span>
-              </button>
-            </div>
-
-            {/* 3.2 HOLOGRAPHIC MARITIME LEDGER SMART CARD (Matching Reference Credit Card) */}
+            {/* 3.2 HOLOGRAPHIC MARITIME LEDGER SMART CARD (Pristine Credit Card Design) */}
             <div className="rounded-2xl p-5 ocean-card-gradient text-white flex flex-col justify-between h-48 relative overflow-hidden border border-cyan-300/30 shadow-2xl">
               {/* Card Watermark */}
               <Waves className="absolute right-3 top-3 w-28 h-28 text-white/10 pointer-events-none" />
@@ -597,6 +550,35 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
+            {/* 3 CONTEXT ACTION SQUIRCLE BUTTONS (Identical bg-white/5 background style to reference screenshot) */}
+            <div className="grid grid-cols-3 gap-3 pt-2 border-t border-white/10">
+              <a
+                href={`/verify/${selectedPo ? selectedPo.poNumber : 'PO-2026-SCENARIO-A'}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
+              >
+                <QrCode className="w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">QR 검증</span>
+              </a>
+
+              <a
+                href="/blockchain-ledger"
+                className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
+              >
+                <BookOpenCheck className="w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">온체인 원장</span>
+              </a>
+
+              <button
+                onClick={handleSensorSync}
+                className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
+              >
+                <Radio className={`w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform ${isSyncing ? 'animate-spin text-sky-200' : ''}`} />
+                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{isSyncing ? '동기화중...' : '센서 동기화'}</span>
+              </button>
+            </div>
+
           </div>
 
           {/* 3.3 ON-CHAIN TIMELINE & ALERTS */}
@@ -604,7 +586,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>온체인 유통 타임라인</span>
+                <span>On-Chain Supply Timeline</span>
               </h3>
               <a
                 href="/blockchain-ledger"

@@ -32,8 +32,11 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
             if (!response.ok) {
                 throw new Error('Failed to fetch purchase orders');
             }
-            const data = await response.json();
+            const data: PurchaseOrder[] = await response.json();
             setOrders(data);
+            if (data && data.length > 0 && !selectedPoId) {
+                onSelectPo(data[0]);
+            }
         } catch (err: any) {
             setError(err.message || 'Error loading orders');
         } finally {
@@ -44,6 +47,12 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
     useEffect(() => {
         fetchOrders();
     }, []);
+
+    useEffect(() => {
+        if (orders.length > 0 && !selectedPoId) {
+            onSelectPo(orders[0]);
+        }
+    }, [orders, selectedPoId]);
 
     const handleOrderCreated = (newOrder: PurchaseOrder) => {
         setOrders((prev) => [newOrder, ...prev]);
@@ -73,19 +82,20 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
             case 'HARVESTED':
                 return '어획 완료';
             case 'PROCESSING':
+            case 'PROCESSED':
                 return '초저온 가공';
             case 'IN_TRANSIT':
             case 'PENDING':
                 return '초저온 운송중';
             case 'DRAFT':
             default:
-                return '어획 등록';
+                return '어획 완료';
         }
     };
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-xs gap-2">
+            <div className="flex flex-col items-center justify-center h-48 text-slate-400 text-xs gap-2 font-digital">
                 <div className="w-5 h-5 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
                 <span>운송 목록을 불러오는 중...</span>
             </div>
@@ -94,7 +104,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
 
     if (error) {
         return (
-            <div className="p-4 text-rose-300 text-xs bg-rose-500/10 rounded-2xl border border-rose-500/30">
+            <div className="p-4 text-rose-300 text-xs bg-rose-500/10 rounded-2xl border border-rose-500/30 font-digital">
                 ⚠️ {error}
             </div>
         );
@@ -105,11 +115,11 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Truck className="w-4 h-4 text-sky-400" />
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">운송 목록 피드</h3>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider font-digital">Fleet Transport Feed</h3>
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-400 to-cyan-400 hover:from-sky-300 hover:to-cyan-300 text-slate-950 transition-all shadow-md shadow-sky-500/20 hover:scale-105 active:scale-95"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-400 to-cyan-400 hover:from-sky-300 hover:to-cyan-300 text-slate-950 transition-all shadow-md shadow-sky-500/20 font-digital"
                 >
                     <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>신규 등록</span>
@@ -124,15 +134,15 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                             key={order.id}
                             onClick={() => onSelectPo(order)}
                             className={`p-3.5 rounded-2xl transition-all duration-200 cursor-pointer border ${isSelected
-                                    ? 'bg-sky-500/15 border-sky-400/60 shadow-[0_0_15px_rgba(56,189,248,0.25)] ring-1 ring-sky-400/30'
-                                    : 'glass-card-inner border-white/5 hover:border-white/20 hover:bg-white/5'
+                                ? 'bg-sky-500/15 border-sky-400/60 shadow-[0_0_15px_rgba(56,189,248,0.25)] ring-1 ring-sky-400/30'
+                                : 'glass-card-inner border-white/5 hover:border-white/20 hover:bg-white/5'
                                 }`}
                         >
                             <div className="flex justify-between items-start mb-1.5">
                                 <span className="font-mono text-xs font-bold text-white tracking-wide">
                                     {order.poNumber}
                                 </span>
-                                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${getStatusBadge(order.status)}`}>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold font-digital ${getStatusBadge(order.status)}`}>
                                     {getStatusLabel(order.status)}
                                 </span>
                             </div>
@@ -155,4 +165,3 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
         </div>
     );
 };
-
