@@ -71,3 +71,8 @@ export const updatePurchaseOrder = async (id: string, data: UpdatePurchaseOrderD
     const response = await api.patch(`/purchase-orders/${id}`, data);
     return response.data;
 };
+
+export const deletePurchaseOrder = async (id: string) => {
+    const response = await api.delete(`/purchase-orders/${id}`);
+    return response.data;
+};

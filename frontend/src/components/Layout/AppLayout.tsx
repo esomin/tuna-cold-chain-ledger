@@ -144,7 +144,7 @@ const AppLayout: React.FC = () => {
                                         className="w-full flex items-center gap-2 px-4 py-2 text-xs text-rose-400 hover:bg-rose-500/10 transition-colors text-left font-medium"
                                     >
                                         <LogOut className="w-3.5 h-3.5" />
-                                        <span>로그아웃</span>
+                                        <span>LogOut</span>
                                     </button>
                                 </div>
                             )}

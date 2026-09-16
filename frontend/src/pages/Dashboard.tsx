@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -21,7 +22,6 @@ import {
   Radio,
   BookOpenCheck,
   Compass,
-  ChevronRight,
   Bell
 } from 'lucide-react';
 import { OrderListPanel } from '../components/OrderListPanel';
@@ -562,13 +562,13 @@ const Dashboard: React.FC = () => {
                 <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">QR 검증</span>
               </a>
 
-              <a
-                href="/blockchain-ledger"
+              <Link
+                to={`/blockchain-ledger?search=${selectedPo ? selectedPo.poNumber : ''}`}
                 className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
               >
                 <BookOpenCheck className="w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">온체인 원장</span>
-              </a>
+                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">원장 상세 조회</span>
+              </Link>
 
               <button
                 onClick={handleSensorSync}
@@ -588,13 +588,6 @@ const Dashboard: React.FC = () => {
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 <span>On-Chain Supply Timeline</span>
               </h3>
-              <a
-                href="/blockchain-ledger"
-                className="text-[11px] text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1 hover:underline"
-              >
-                <span>전체 원장</span>
-                <ChevronRight className="w-3 h-3" />
-              </a>
             </div>
 
             <DistributionTimeline

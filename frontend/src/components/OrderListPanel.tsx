@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Truck } from 'lucide-react';
+import { Plus, Truck, MoreVertical, ChevronRight, RefreshCw, Trash2 } from 'lucide-react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { OrderCreateModal } from './OrderCreateModal';
+import { deletePurchaseOrder, updatePurchaseOrder } from '../services/purchaseOrder.service';
 
 interface PurchaseOrder {
     id: string;
@@ -20,11 +22,55 @@ interface OrderListPanelProps {
     onSelectPo: (po: PurchaseOrder) => void;
 }
 
+const STAGE_OPTIONS = [
+    { key: 'HARVESTED', label: '1단계: HARVESTED (어획 완료)' },
+    { key: 'PROCESSING', label: '2단계: PROCESSED (초저온 가공)' },
+    { key: 'IN_TRANSIT', label: '3단계: IN_TRANSIT (초저온 운송중)' },
+    { key: 'DELIVERED', label: '4단계: DELIVERED (입고 완료)' },
+];
+
 export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, onSelectPo }) => {
     const [orders, setOrders] = useState<PurchaseOrder[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+    const isDev = import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    const handleDeleteOrder = async (e: React.MouseEvent, poId: string) => {
+        e.stopPropagation();
+        if (!window.confirm('해당 발주/운송 레코드를 DB에서 삭제하시겠습니까?')) return;
+        try {
+            await deletePurchaseOrder(poId);
+            setOrders((prev) => {
+                const updated = prev.filter((o) => o.id !== poId);
+                if (selectedPoId === poId && updated.length > 0) {
+                    onSelectPo(updated[0]);
+                }
+                return updated;
+            });
+        } catch (err) {
+            console.error('Failed to delete purchase order', err);
+            alert('삭제 처리 중 오류가 발생했습니다.');
+        }
+    };
+
+    const handleUpdateStatus = async (e: React.MouseEvent, poId: string, newStatus: string) => {
+        e.stopPropagation();
+        try {
+            await updatePurchaseOrder(poId, { status: newStatus });
+            setOrders((prev) =>
+                prev.map((o) => (o.id === poId ? { ...o, status: newStatus } : o))
+            );
+            const target = orders.find((o) => o.id === poId);
+            if (target && selectedPoId === poId) {
+                onSelectPo({ ...target, status: newStatus });
+            }
+        } catch (err) {
+            console.error('Failed to update stage status', err);
+            alert('단계 변경 중 오류가 발생했습니다.');
+        }
+    };
 
     const fetchOrders = async () => {
         try {
@@ -63,14 +109,18 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
         switch (status.toUpperCase()) {
             case 'COMPLETED':
             case 'DELIVERED':
-                return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.2)]';
-            case 'PENDING':
-            case 'IN_TRANSIT':
-                return 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-[0_0_8px_rgba(56,189,248,0.2)]';
+                return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
             case 'HARVESTED':
+                return 'bg-sky-500/20 text-sky-300 border-sky-500/40';
+            case 'PROCESSING':
+            case 'PROCESSED':
+                return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40';
+            case 'IN_TRANSIT':
+            case 'PENDING':
+                return 'bg-amber-500/20 text-amber-300 border-amber-500/40';
             case 'DRAFT':
             default:
-                return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.2)]';
+                return 'bg-slate-500/20 text-slate-300 border-slate-500/40';
         }
     };
 
@@ -133,7 +183,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                         <div
                             key={order.id}
                             onClick={() => onSelectPo(order)}
-                            className={`p-3.5 rounded-2xl transition-all duration-200 cursor-pointer border ${isSelected
+                            className={`p-3.5 rounded-2xl transition-all duration-200 cursor-pointer border relative ${isSelected
                                 ? 'bg-sky-500/15 border-sky-400/60 shadow-[0_0_15px_rgba(56,189,248,0.25)] ring-1 ring-sky-400/30'
                                 : 'glass-card-inner border-white/5 hover:border-white/20 hover:bg-white/5'
                                 }`}
@@ -142,9 +192,75 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                                 <span className="font-mono text-xs font-bold text-white tracking-wide">
                                     {order.poNumber}
                                 </span>
-                                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold font-digital ${getStatusBadge(order.status)}`}>
-                                    {getStatusLabel(order.status)}
-                                </span>
+                                <div className="flex items-center gap-1.5">
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold font-digital ${getStatusBadge(order.status)}`}>
+                                        {getStatusLabel(order.status)}
+                                    </span>
+                                    {isDev && (
+                                        <div onClick={(e) => e.stopPropagation()}>
+                                            <DropdownMenu.Root>
+                                                <DropdownMenu.Trigger asChild>
+                                                    <button
+                                                        className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors outline-none"
+                                                        title="관리 메뉴"
+                                                    >
+                                                        <MoreVertical className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </DropdownMenu.Trigger>
+
+                                                <DropdownMenu.Portal>
+                                                    <DropdownMenu.Content
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="z-[9999] min-w-[220px] rounded-2xl bg-[#182836] border border-[#2b4458] shadow-[0_20px_50px_rgba(0,0,0,0.8)] p-1.5 text-xs font-digital text-slate-100 animate-in fade-in zoom-in-95 duration-150"
+                                                        sideOffset={5}
+                                                        align="end"
+                                                    >
+                                                        <DropdownMenu.Sub>
+                                                            <DropdownMenu.SubTrigger className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-sky-500/20 text-slate-200 hover:text-sky-300 cursor-pointer outline-none transition-colors font-medium">
+                                                                <span className="flex items-center gap-2">
+                                                                    <RefreshCw className="w-3.5 h-3.5 text-sky-400" />
+                                                                    <span className="font-bold">유통 단계 변경</span>
+                                                                </span>
+                                                                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                                                            </DropdownMenu.SubTrigger>
+
+                                                            <DropdownMenu.Portal>
+                                                                <DropdownMenu.SubContent
+                                                                    className="z-[9999] min-w-[210px] rounded-2xl bg-[#14222d] border border-[#2b4458] shadow-2xl p-1.5 text-xs font-digital text-slate-100 animate-in fade-in zoom-in-95 duration-150"
+                                                                    sideOffset={4}
+                                                                >
+                                                                    {STAGE_OPTIONS.map((opt) => (
+                                                                        <DropdownMenu.Item
+                                                                            key={opt.key}
+                                                                            onClick={(e) => handleUpdateStatus(e, order.id, opt.key)}
+                                                                            className={`px-3 py-2 rounded-xl text-[11px] font-medium cursor-pointer outline-none transition-colors ${
+                                                                                order.status.toUpperCase() === opt.key
+                                                                                    ? 'bg-sky-500/25 text-sky-300 font-bold border border-sky-400/40 shadow-sm'
+                                                                                    : 'hover:bg-white/10 text-slate-300 hover:text-white'
+                                                                            }`}
+                                                                        >
+                                                                            {opt.label}
+                                                                        </DropdownMenu.Item>
+                                                                    ))}
+                                                                </DropdownMenu.SubContent>
+                                                            </DropdownMenu.Portal>
+                                                        </DropdownMenu.Sub>
+
+                                                        <DropdownMenu.Separator className="h-[1px] bg-[#24394a] my-1" />
+
+                                                        <DropdownMenu.Item
+                                                            onClick={(e) => handleDeleteOrder(e, order.id)}
+                                                            className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 cursor-pointer outline-none transition-colors font-medium"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                            <span>삭제</span>
+                                                        </DropdownMenu.Item>
+                                                    </DropdownMenu.Content>
+                                                </DropdownMenu.Portal>
+                                            </DropdownMenu.Root>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div className="text-xs space-y-0.5 text-slate-300">
                                 <p className="font-semibold text-slate-100">{order.product?.name || '참치 상품'}</p>

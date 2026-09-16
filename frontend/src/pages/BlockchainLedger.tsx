@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
     Database,
     Search,
@@ -33,9 +34,12 @@ interface AuditLog {
 }
 
 const BlockchainLedger: React.FC = () => {
+    const [searchParams] = useSearchParams();
+    const initialQuery = searchParams.get('search') || searchParams.get('po') || '';
+
     const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [searchQuery, setSearchQuery] = useState<string>(initialQuery);
     const [selectedActionFilter, setSelectedActionFilter] = useState<string>('ALL');
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
@@ -56,6 +60,13 @@ const BlockchainLedger: React.FC = () => {
     useEffect(() => {
         fetchAuditLogs();
     }, []);
+
+    useEffect(() => {
+        const query = searchParams.get('search') || searchParams.get('po');
+        if (query) {
+            setSearchQuery(query);
+        }
+    }, [searchParams]);
 
     // 필터링 및 검색 처리
     const filteredLogs = auditLogs.filter((log) => {
@@ -271,11 +282,11 @@ const BlockchainLedger: React.FC = () => {
 
             {/* Log Detail Modal */}
             {selectedLog && (
-                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
-                    <div className="w-full max-w-xl rounded-3xl p-6 shadow-2xl glass-dock border border-white/20 space-y-4 relative animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4">
+                    <div className="w-full max-w-xl rounded-3xl p-6 shadow-[0_30px_100px_rgba(0,0,0,0.95)] bg-[#182836] border-2 border-[#2b4458] text-slate-100 space-y-4 relative animate-in fade-in zoom-in-95 duration-200">
                         <button
                             onClick={() => setSelectedLog(null)}
-                            className="absolute top-4 right-4 w-8 h-8 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+                            className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-[#223647] hover:bg-[#2c455a] text-slate-300 hover:text-white flex items-center justify-center transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -296,12 +307,12 @@ const BlockchainLedger: React.FC = () => {
                         </div>
 
                         <div className="space-y-3 pt-2">
-                            <div className="p-3.5 rounded-2xl glass-card-inner border border-white/10 space-y-1">
+                            <div className="p-3.5 rounded-2xl bg-[#101a24] border border-[#263c4e] space-y-1">
                                 <p className="text-[10px] uppercase font-bold text-slate-400">Action / Event</p>
                                 <p className="text-xs font-bold text-emerald-300">{selectedLog.action}</p>
                             </div>
 
-                            <div className="p-3.5 rounded-2xl glass-card-inner border border-white/10 space-y-1">
+                            <div className="p-3.5 rounded-2xl bg-[#101a24] border border-[#263c4e] space-y-1">
                                 <div className="flex items-center justify-between">
                                     <p className="text-[10px] uppercase font-bold text-slate-400">Transaction Hash (TxHash)</p>
                                     <a
@@ -316,13 +327,13 @@ const BlockchainLedger: React.FC = () => {
                                 <p className="text-xs font-mono text-cyan-300 break-all">{selectedLog.txHash}</p>
                             </div>
 
-                            <div className="p-3.5 rounded-2xl glass-card-inner border border-white/10 space-y-1">
+                            <div className="p-3.5 rounded-2xl bg-[#101a24] border border-[#263c4e] space-y-1">
                                 <p className="text-[10px] uppercase font-bold text-slate-400">Keccak256 Data Hash</p>
                                 <p className="text-xs font-mono text-slate-200 break-all">{selectedLog.dataHash}</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
-                                <div className="p-3.5 rounded-2xl glass-card-inner border border-white/10 space-y-1">
+                                <div className="p-3.5 rounded-2xl bg-[#101a24] border border-[#263c4e] space-y-1">
                                     <p className="text-[10px] uppercase font-bold text-slate-400">스마트 계약 주소</p>
                                     <a
                                         href={`${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
@@ -334,7 +345,7 @@ const BlockchainLedger: React.FC = () => {
                                         {CONTRACT_ADDRESS.slice(0, 10)}...{CONTRACT_ADDRESS.slice(-4)} ↗
                                     </a>
                                 </div>
-                                <div className="p-3.5 rounded-2xl glass-card-inner border border-white/10 space-y-1">
+                                <div className="p-3.5 rounded-2xl bg-[#101a24] border border-[#263c4e] space-y-1">
                                     <p className="text-[10px] uppercase font-bold text-slate-400">서명 상태</p>
                                     <p className="text-xs font-bold text-emerald-300 flex items-center gap-1">
                                         <CheckCircle2 className="w-3.5 h-3.5" />
@@ -347,7 +358,7 @@ const BlockchainLedger: React.FC = () => {
                         <div className="pt-2 flex justify-end">
                             <button
                                 onClick={() => setSelectedLog(null)}
-                                className="px-5 py-2 bg-white/10 hover:bg-white/20 text-xs font-bold rounded-xl transition-colors text-white"
+                                className="px-5 py-2 bg-[#223647] hover:bg-[#2c455a] text-xs font-bold rounded-xl transition-colors text-white"
                             >
                                 닫기
                             </button>

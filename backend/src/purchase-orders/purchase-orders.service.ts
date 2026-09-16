@@ -273,4 +273,17 @@ export class PurchaseOrdersService {
             throw error;
         }
     }
+
+    async remove(id: string) {
+        const po = await this.findOne(id);
+        try {
+            if (this.sensorLogModel) {
+                await this.sensorLogModel.deleteMany({ poNumber: po.poNumber }).exec();
+            }
+        } catch (e) {
+            // Ignore if MongoDB log deletion fails
+        }
+        await this.poRepository.remove(po);
+        return { message: `Purchase order ${po.poNumber} deleted successfully`, id };
+    }
 }
