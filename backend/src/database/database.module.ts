@@ -16,6 +16,8 @@ import { ConfigModule } from '@nestjs/config';
         database: process.env.DB_DATABASE || 'inventory_db',
         autoLoadEntities: true,
         synchronize: false,
+
+
       }),
     }),
     MongooseModule.forRoot(

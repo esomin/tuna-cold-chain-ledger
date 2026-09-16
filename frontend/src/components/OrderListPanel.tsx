@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Truck, MoreVertical, ChevronRight, RefreshCw, Trash2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Plus, Truck, MoreVertical, ChevronRight, RefreshCw, Trash2, Loader2 } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { OrderCreateModal } from './OrderCreateModal';
 import { deletePurchaseOrder, updatePurchaseOrder } from '../services/purchaseOrder.service';
@@ -45,6 +46,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [updatingStatusInfo, setUpdatingStatusInfo] = useState<{ poNumber: string; newStatus: string } | null>(null);
 
     const isDev = import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
@@ -69,6 +71,11 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
     const handleUpdateStatus = async (e: React.MouseEvent, poId: string, newStatus: string) => {
         e.stopPropagation();
 
+        if (updatingStatusInfo) {
+            alert('현재 다른 온체인 트랜잭션 서명 작업이 진행 중입니다. 잠시만 기다려주세요.');
+            return;
+        }
+
         const target = orders.find((o) => String(o.id) === String(poId));
         if (target) {
             const currentStageIndex = STAGE_ORDER[target.status.toUpperCase()] ?? 0;
@@ -80,19 +87,22 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
         }
 
         try {
-            const updatedPo = await updatePurchaseOrder(poId, { status: newStatus });
-            const finalStatus = updatedPo?.status || newStatus;
+            setUpdatingStatusInfo({
+                poNumber: target ? target.poNumber : `PO-${poId}`,
+                newStatus,
+            });
 
-            setOrders((prev) =>
-                prev.map((o) => (String(o.id) === String(poId) ? { ...o, ...updatedPo, status: finalStatus } : o))
-            );
-
-            const updatedItem = { ...(target || {}), ...updatedPo, status: finalStatus };
-            onSelectPo(updatedItem as PurchaseOrder);
+            // 1. 유통 단계 변경 요청 (이더리움 서명 등 약 5~10초 소요)
+            await updatePurchaseOrder(poId, { status: newStatus });
+            
+            // 2. 최신 서버 상태로 전체 리스트 갱신
+            await fetchOrders();
         } catch (err: any) {
             console.error('Failed to update stage status', err);
             const errMsg = err?.response?.data?.message || err?.message || '단계 변경 중 오류가 발생했습니다.';
             alert(errMsg);
+        } finally {
+            setUpdatingStatusInfo(null);
         }
     };
 
@@ -104,8 +114,13 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
             }
             const data: PurchaseOrder[] = await response.json();
             setOrders(data);
-            if (data && data.length > 0 && !selectedPoId) {
-                onSelectPo(data[0]);
+            if (data && data.length > 0) {
+                const matched = data.find((item) => String(item.id) === String(selectedPoId));
+                if (matched) {
+                    onSelectPo(matched);
+                } else if (!selectedPoId) {
+                    onSelectPo(data[0]);
+                }
             }
         } catch (err: any) {
             setError(err.message || 'Error loading orders');
@@ -327,6 +342,29 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                 onClose={() => setIsModalOpen(false)}
                 onOrderCreated={handleOrderCreated}
             />
+
+            {/* 온체인 트랜잭션 진행 안내 토스트 팝업 */}
+            {updatingStatusInfo && createPortal(
+                <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-bottom-5 fade-in duration-300">
+                    <div className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-[#182836] border-2 border-sky-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(56,189,248,0.3)] text-slate-100 font-digital max-w-md">
+                        <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center shrink-0">
+                            <Loader2 className="w-5 h-5 text-sky-400 animate-spin" />
+                        </div>
+                        <div className="space-y-0.5 text-xs">
+                            <div className="flex items-center gap-2">
+                                <span className="font-bold text-sky-300">온체인 트랜잭션 체결 진행 중...</span>
+                                <span className="px-2 py-0.5 rounded-full text-[9px] bg-sky-400/20 text-sky-200 border border-sky-400/30 font-mono animate-pulse">
+                                    {updatingStatusInfo.newStatus}
+                                </span>
+                            </div>
+                            <p className="text-[11px] text-slate-300 leading-snug">
+                                <strong className="text-white font-mono">{updatingStatusInfo.poNumber}</strong> | 스마트 계약 서명 및 Keccak256 무결성 락업 생성 중 (약 5~10초 소요)
+                            </p>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 };

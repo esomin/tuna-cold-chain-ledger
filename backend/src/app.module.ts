@@ -5,6 +5,7 @@ import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
 import { WebsocketModule } from './websocket/websocket.module';
+import { FleetsModule } from './fleets/fleets.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -18,6 +19,8 @@ import configuration from './config/configuration';
     AuditLogsModule,
     BlockchainModule,
     WebsocketModule,
+    FleetsModule,
   ],
 })
+
 export class AppModule { }

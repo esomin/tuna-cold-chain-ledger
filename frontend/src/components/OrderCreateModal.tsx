@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Loader2, Send, Package, Truck, FileText } from 'lucide-react';
+import { fetchFleets } from '../services/fleet.service';
+import type { Fleet } from '../services/fleet.service';
+
 
 interface PurchaseOrder {
     id: string;
@@ -32,8 +35,24 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
     const [supplierName, setSupplierName] = useState<string>('남태평양 원양선단 1팀');
     const [notes, setNotes] = useState<string>('어획 직후 초저온(-55°C) 급속 동결 및 온체인 무결성 검증건');
 
+    const [fleets, setFleets] = useState<Fleet[]>([]);
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchFleets().then((data) => {
+                if (data && data.length > 0) {
+                    setFleets(data);
+                    // 기본 선택값이 없거나 리스트에 있는 값 설정
+                    if (!supplierName) {
+                        setSupplierName(data[0].koName);
+                    }
+                }
+            });
+        }
+    }, [isOpen]);
+
 
     if (!isOpen) return null;
 
@@ -154,16 +173,28 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                 <Truck className="w-4 h-4 text-sky-400" />
                                 어획 선단
                             </label>
-                            <input
-                                type="text"
+                            <select
                                 value={supplierName}
                                 onChange={(e) => setSupplierName(e.target.value)}
                                 disabled={submitting}
-                                className="w-full px-4 py-3 rounded-2xl text-xs font-medium border bg-[#101a24] border-[#263c4e] text-slate-100 focus:outline-none focus:border-sky-400 placeholder:text-slate-500"
-                                placeholder="예: 남태평양 원양선단 1팀"
-                                required
-                            />
+                                className="w-full px-4 py-3 rounded-2xl text-xs font-medium border bg-[#101a24] border-[#263c4e] text-slate-100 focus:outline-none focus:border-sky-400"
+                            >
+                                {fleets.length > 0 ? (
+                                    fleets.map((fleet) => (
+                                        <option key={fleet.id || fleet.code} value={fleet.koName}>
+                                            {fleet.koName} ({fleet.name} / {fleet.code} - 출항지: {fleet.homePort})
+                                        </option>
+                                    ))
+                                ) : (
+                                    <>
+                                        <option value="남태평양 원양선단 1팀">남태평양 원양선단 1팀 (Pacific Ocean Fleet No. 7 / PC7 - 출항지: 부산항 감천항만)</option>
+                                        <option value="태평양 원양선단 2팀">태평양 원양선단 2팀 (Pacific Ocean Fleet No. 12 / PF12 - 출항지: 인천항 제3부두)</option>
+                                        <option value="북서태평양 원양선단 3팀">북서태평양 원양선단 3팀 (North Pacific Ocean Fleet No. 3 / NP3 - 출항지: 포항 구룡포항)</option>
+                                    </>
+                                )}
+                            </select>
                         </div>
+
 
                         {/* Notes */}
                         <div className="space-y-2 md:col-span-2">

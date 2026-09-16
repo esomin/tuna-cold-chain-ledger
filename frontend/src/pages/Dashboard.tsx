@@ -29,6 +29,10 @@ import { DistributionTimeline } from '../components/Timeline/DistributionTimelin
 import { LiveMaplibreMap } from '../components/Map/LiveMaplibreMap';
 import { useTelemetry } from '../hooks/useTelemetry';
 import { OrderCreateModal } from '../components/OrderCreateModal';
+import { fetchFleets } from '../services/fleet.service';
+import type { Fleet } from '../services/fleet.service';
+
+
 
 interface PurchaseOrder {
   id: string;
@@ -75,8 +79,45 @@ const Dashboard: React.FC = () => {
   const [selectedPo, setSelectedPo] = useState<PurchaseOrder | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState('24h');
+  const [fleets, setFleets] = useState<Fleet[]>([]);
+
+  useEffect(() => {
+    fetchFleets().then((data) => {
+      if (data && data.length > 0) {
+        setFleets(data);
+      }
+    });
+  }, []);
+
+  const displayFleet = useMemo(() => {
+    const defaultFleet = {
+      code: 'PC7',
+      name: 'Pacific Ocean Fleet No. 7',
+      koName: '남태평양 원양선단 1팀',
+      homePort: '부산항 감천항만',
+      initials: 'TC',
+    };
+
+    if (!selectedPo || !selectedPo.supplierName) {
+      return defaultFleet;
+    }
+
+    const matched = fleets.find((f) => f.koName === selectedPo.supplierName);
+    if (matched) {
+      return matched;
+    }
+
+    return {
+      code: 'PC7',
+      name: 'Pacific Ocean Fleet No. 7',
+      koName: selectedPo.supplierName,
+      homePort: '부산항 감천항만',
+      initials: 'TC',
+    };
+  }, [selectedPo, fleets]);
 
   // 관심사의 분리를 위해 추상화된 useTelemetry 커스텀 훅 사용
+
   const {
     telemetry: liveTelemetry,
     alerts,
@@ -506,17 +547,27 @@ const Dashboard: React.FC = () => {
               <div className="relative">
                 <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-300 p-[2px] shadow-lg shadow-sky-500/20">
                   <div className="w-full h-full rounded-2xl bg-slate-950 flex items-center justify-center font-black text-base text-cyan-300">
-                    TC
+                    {displayFleet.initials}
                   </div>
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-950" />
               </div>
 
               <div>
-                <h3 className="text-base font-bold text-white">남태평양 1등 원양선단</h3>
-                <p className="text-xs text-slate-400">Pacific Ocean Fleet No. 7</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-white">{displayFleet.koName}</h3>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300 border border-sky-400/30 font-mono font-bold">
+                    {displayFleet.code}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5">{displayFleet.name}</p>
+                <p className="text-[11px] text-cyan-300/80 mt-1 flex items-center gap-1 font-digital">
+                  <MapPin className="w-3 h-3 text-cyan-400 shrink-0" />
+                  <span>출항지: {displayFleet.homePort}</span>
+                </p>
               </div>
             </div>
+
 
             {/* 3.2 HOLOGRAPHIC MARITIME LEDGER SMART CARD (Pristine Credit Card Design) */}
             <div className="rounded-2xl p-5 ocean-card-gradient text-white flex flex-col justify-between h-48 relative overflow-hidden border border-cyan-300/30 shadow-2xl">
