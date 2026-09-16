@@ -642,7 +642,7 @@ const Dashboard: React.FC = () => {
                 className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
               >
                 <Radio className={`w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform ${isSyncing ? 'animate-spin text-sky-200' : ''}`} />
-                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{isSyncing ? '동기화중...' : '센서 동기화'}</span>
+                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{isSyncing ? '동기화중...' : 'Sensor 동기화'}</span>
               </button>
 
               <Link
@@ -650,7 +650,7 @@ const Dashboard: React.FC = () => {
                 className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
               >
                 <BookOpenCheck className="w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">원장 상세 조회</span>
+                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">Blockchain 검증</span>
               </Link>
 
               <a
