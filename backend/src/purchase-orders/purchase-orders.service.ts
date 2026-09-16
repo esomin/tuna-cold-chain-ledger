@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PurchaseOrder } from '../entities/PurchaseOrder';
@@ -10,6 +10,17 @@ import { Model } from 'mongoose';
 import { SensorRawLog } from './schemas/sensor-raw-log.schema';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { ethers } from 'ethers';
+
+const STAGE_ORDER: Record<string, number> = {
+    HARVESTED: 0,
+    DRAFT: 0,
+    PROCESSING: 1,
+    PROCESSED: 1,
+    IN_TRANSIT: 2,
+    PENDING: 2,
+    DELIVERED: 3,
+    COMPLETED: 3,
+};
 
 @Injectable()
 export class PurchaseOrdersService {
@@ -97,7 +108,21 @@ export class PurchaseOrdersService {
         const po = await this.findOne(id);
 
         const oldStatus = po.status;
-        if (updateDto.status) po.status = updateDto.status;
+
+        // 유통 단계 역순 변경 금지 검증
+        if (updateDto.status && oldStatus !== updateDto.status) {
+            const currentOrder = STAGE_ORDER[oldStatus.toUpperCase()] ?? 0;
+            const newOrder = STAGE_ORDER[updateDto.status.toUpperCase()] ?? 0;
+
+            if (newOrder < currentOrder) {
+                throw new BadRequestException(
+                    `유통 단계는 이전(역순) 단계로 변경할 수 없습니다. (현재: ${oldStatus} → 요청: ${updateDto.status})`
+                );
+            }
+
+            po.status = updateDto.status;
+        }
+
         if (updateDto.quantity) po.quantity = updateDto.quantity;
         if (updateDto.notes) po.notes = updateDto.notes;
 
@@ -116,9 +141,9 @@ export class PurchaseOrdersService {
                 updateDto.status
             );
 
-            // 감사 로그 적재
+            // 감사 로그 적재 (PO 번호를 포함하여 다른 선단/PO와 식별)
             await this.auditLogsService.logAction(
-                `UPDATE_PO_STATUS_${updateDto.status}`,
+                `UPDATE_PO_STATUS_${updateDto.status}:${savedPo.poNumber}`,
                 dataHash,
                 txHash
             );

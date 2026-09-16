@@ -22,6 +22,17 @@ interface OrderListPanelProps {
     onSelectPo: (po: PurchaseOrder) => void;
 }
 
+const STAGE_ORDER: Record<string, number> = {
+    HARVESTED: 0,
+    DRAFT: 0,
+    PROCESSING: 1,
+    PROCESSED: 1,
+    IN_TRANSIT: 2,
+    PENDING: 2,
+    DELIVERED: 3,
+    COMPLETED: 3,
+};
+
 const STAGE_OPTIONS = [
     { key: 'HARVESTED', label: '1단계: HARVESTED (어획 완료)' },
     { key: 'PROCESSING', label: '2단계: PROCESSED (초저온 가공)' },
@@ -57,18 +68,31 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
 
     const handleUpdateStatus = async (e: React.MouseEvent, poId: string, newStatus: string) => {
         e.stopPropagation();
-        try {
-            await updatePurchaseOrder(poId, { status: newStatus });
-            setOrders((prev) =>
-                prev.map((o) => (o.id === poId ? { ...o, status: newStatus } : o))
-            );
-            const target = orders.find((o) => o.id === poId);
-            if (target && selectedPoId === poId) {
-                onSelectPo({ ...target, status: newStatus });
+
+        const target = orders.find((o) => String(o.id) === String(poId));
+        if (target) {
+            const currentStageIndex = STAGE_ORDER[target.status.toUpperCase()] ?? 0;
+            const newStageIndex = STAGE_ORDER[newStatus.toUpperCase()] ?? 0;
+            if (newStageIndex < currentStageIndex) {
+                alert('유통 단계는 이전(역순) 단계로 변경할 수 없습니다.');
+                return;
             }
-        } catch (err) {
+        }
+
+        try {
+            const updatedPo = await updatePurchaseOrder(poId, { status: newStatus });
+            const finalStatus = updatedPo?.status || newStatus;
+
+            setOrders((prev) =>
+                prev.map((o) => (String(o.id) === String(poId) ? { ...o, ...updatedPo, status: finalStatus } : o))
+            );
+
+            const updatedItem = { ...(target || {}), ...updatedPo, status: finalStatus };
+            onSelectPo(updatedItem as PurchaseOrder);
+        } catch (err: any) {
             console.error('Failed to update stage status', err);
-            alert('단계 변경 중 오류가 발생했습니다.');
+            const errMsg = err?.response?.data?.message || err?.message || '단계 변경 중 오류가 발생했습니다.';
+            alert(errMsg);
         }
     };
 
@@ -167,13 +191,24 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                     <Truck className="w-4 h-4 text-sky-400" />
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider font-digital">Fleet Transport Feed</h3>
                 </div>
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-400 to-cyan-400 hover:from-sky-300 hover:to-cyan-300 text-slate-950 transition-all shadow-md shadow-sky-500/20 font-digital"
-                >
-                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>신규 등록</span>
-                </button>
+                {isDev ? (
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-sky-400 to-cyan-400 hover:from-sky-300 hover:to-cyan-300 text-slate-950 transition-all shadow-md shadow-sky-500/20 font-digital"
+                    >
+                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>신규 등록</span>
+                    </button>
+                ) : (
+                    <button
+                        disabled
+                        title="배포 데모 환경에서는 신규 어획 등록이 제한됩니다 (로컬 개발 환경 전용)"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-500 border border-slate-700/60 opacity-60 cursor-not-allowed font-digital"
+                    >
+                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>신규 등록 (Dev 전용)</span>
+                    </button>
+                )}
             </div>
 
             <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
@@ -229,19 +264,33 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                                                                     className="z-[9999] min-w-[210px] rounded-2xl bg-[#14222d] border border-[#2b4458] shadow-2xl p-1.5 text-xs font-digital text-slate-100 animate-in fade-in zoom-in-95 duration-150"
                                                                     sideOffset={4}
                                                                 >
-                                                                    {STAGE_OPTIONS.map((opt) => (
-                                                                        <DropdownMenu.Item
-                                                                            key={opt.key}
-                                                                            onClick={(e) => handleUpdateStatus(e, order.id, opt.key)}
-                                                                            className={`px-3 py-2 rounded-xl text-[11px] font-medium cursor-pointer outline-none transition-colors ${
-                                                                                order.status.toUpperCase() === opt.key
-                                                                                    ? 'bg-sky-500/25 text-sky-300 font-bold border border-sky-400/40 shadow-sm'
-                                                                                    : 'hover:bg-white/10 text-slate-300 hover:text-white'
-                                                                            }`}
-                                                                        >
-                                                                            {opt.label}
-                                                                        </DropdownMenu.Item>
-                                                                    ))}
+                                                                    {STAGE_OPTIONS.map((opt) => {
+                                                                        const currentStageIndex = STAGE_ORDER[order.status.toUpperCase()] ?? 0;
+                                                                        const optionStageIndex = STAGE_ORDER[opt.key] ?? 0;
+                                                                        const isBackward = optionStageIndex < currentStageIndex;
+                                                                        const isCurrent = order.status.toUpperCase() === opt.key;
+
+                                                                        return (
+                                                                            <DropdownMenu.Item
+                                                                                key={opt.key}
+                                                                                disabled={isBackward}
+                                                                                onClick={(e) => {
+                                                                                    if (isBackward) return;
+                                                                                    handleUpdateStatus(e, order.id, opt.key);
+                                                                                }}
+                                                                                className={`px-3 py-2 rounded-xl text-[11px] font-medium outline-none transition-colors flex items-center justify-between ${
+                                                                                    isCurrent
+                                                                                        ? 'bg-sky-500/25 text-sky-300 font-bold border border-sky-400/40 shadow-sm cursor-default'
+                                                                                        : isBackward
+                                                                                        ? 'opacity-40 text-slate-500 cursor-not-allowed select-none'
+                                                                                        : 'hover:bg-white/10 text-slate-300 hover:text-white cursor-pointer'
+                                                                                }`}
+                                                                            >
+                                                                                <span>{opt.label}</span>
+                                                                                {isBackward && <span className="text-[9px] text-rose-400/80 font-normal">이전단계 불가</span>}
+                                                                            </DropdownMenu.Item>
+                                                                        );
+                                                                    })}
                                                                 </DropdownMenu.SubContent>
                                                             </DropdownMenu.Portal>
                                                         </DropdownMenu.Sub>
