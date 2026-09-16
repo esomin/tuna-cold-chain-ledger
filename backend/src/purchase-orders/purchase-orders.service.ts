@@ -163,6 +163,33 @@ export class PurchaseOrdersService {
         return await newLog.save();
     }
 
+    // 최신 센서 텔레메트리 조회 함수
+    async getLatestTelemetry(idOrPoNumber: string) {
+        let poNumber = idOrPoNumber;
+        try {
+            const po = await this.findOne(idOrPoNumber);
+            if (po) poNumber = po.poNumber;
+        } catch (e) {}
+
+        if (this.sensorLogModel) {
+            try {
+                const log = await this.sensorLogModel.findOne({ poNumber }).sort({ timestamp: -1 }).exec();
+                if (log) {
+                    return {
+                        poNumber: log.poNumber,
+                        temperature: log.temperature,
+                        latitude: log.latitude,
+                        longitude: log.longitude,
+                        timestamp: log.timestamp,
+                    };
+                }
+            } catch (err) {
+                console.warn('[getLatestTelemetry] MongoDB query failed:', err);
+            }
+        }
+        return null;
+    }
+
     // 소비자용 무결성 검증 메서드
     async verifyPo(id: string) {
         try {

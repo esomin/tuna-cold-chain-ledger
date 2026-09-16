@@ -21,6 +21,11 @@ export class PurchaseOrdersController {
         return this.poService.verifyPo(id);
     }
 
+    @Get(':id/telemetry/latest')
+    getLatestTelemetry(@Param('id') id: string) {
+        return this.poService.getLatestTelemetry(id);
+    }
+
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.poService.findOne(id);

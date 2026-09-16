@@ -147,6 +147,7 @@ const Dashboard: React.FC = () => {
     simTemperature,
     ambientTemp,
     preset,
+    refetchTelemetry,
   } = useTelemetry(selectedPo?.poNumber, {
     latitude: displayFleet.latitude,
     longitude: displayFleet.longitude,
@@ -197,11 +198,17 @@ const Dashboard: React.FC = () => {
 
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleSensorSync = () => {
+  const handleSensorSync = async () => {
     setIsSyncing(true);
-    setTimeout(() => {
-      setIsSyncing(false);
-    }, 1000);
+    try {
+      await refetchTelemetry();
+    } catch (e) {
+      console.error('Failed to refetch telemetry:', e);
+    } finally {
+      setTimeout(() => {
+        setIsSyncing(false);
+      }, 600);
+    }
   };
 
   return (
@@ -582,15 +589,15 @@ const Dashboard: React.FC = () => {
 
                 <div>
                   <h3 className="text-base font-bold text-white">{displayFleet.koName}</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">{displayFleet.name}</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs">
+                    <span className="text-slate-400">{displayFleet.name}</span>
+                    <span className="text-slate-600">|</span>
+                    <span className="text-cyan-300/90 font-digital flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                      <span>출항지: {displayFleet.homePort}</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="text-right shrink-0">
-                <span className="text-[11px] sm:text-xs text-cyan-300/90 font-digital flex items-center gap-1 justify-end">
-                  <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <span>출항지: {displayFleet.homePort}</span>
-                </span>
               </div>
             </div>
 

@@ -13,33 +13,37 @@ export const useTelemetry = (
   const [socket, setSocket] = useState<Socket | null>(null);
 
   // 1. 선택된 PO 변경 시 텔레메트리 초기화 (REST API 조회를 시도하고 실패 시 프리셋/선단 좌표 폴백)
+  const refetchTelemetry = async (): Promise<TelemetryData | null> => {
+    if (!selectedPoNumber) return null;
+    const dbData = await TelemetryService.getLatestTelemetry(selectedPoNumber);
+    if (dbData) {
+      setTelemetry(dbData);
+      setSimTemperature(dbData.temperature);
+      return dbData;
+    } else {
+      const preset = getPresetByPoNumber(selectedPoNumber);
+      const lat = baseCoords?.latitude ?? preset.latitude;
+      const lng = baseCoords?.longitude ?? preset.longitude;
+      const fallback: TelemetryData = {
+        poNumber: selectedPoNumber,
+        temperature: preset.defaultTemperature,
+        latitude: lat,
+        longitude: lng,
+        timestamp: new Date().toISOString(),
+      };
+      setTelemetry(fallback);
+      setSimTemperature(preset.defaultTemperature);
+      return fallback;
+    }
+  };
+
   useEffect(() => {
     if (!selectedPoNumber) return;
 
     let isMounted = true;
-    const loadInitialData = async () => {
-      const dbData = await TelemetryService.getLatestTelemetry(selectedPoNumber);
+    refetchTelemetry().then(() => {
       if (!isMounted) return;
-
-      if (dbData) {
-        setTelemetry(dbData);
-        setSimTemperature(dbData.temperature);
-      } else {
-        const preset = getPresetByPoNumber(selectedPoNumber);
-        const lat = baseCoords?.latitude ?? preset.latitude;
-        const lng = baseCoords?.longitude ?? preset.longitude;
-        setTelemetry({
-          poNumber: selectedPoNumber,
-          temperature: preset.defaultTemperature,
-          latitude: lat,
-          longitude: lng,
-          timestamp: new Date().toISOString(),
-        });
-        setSimTemperature(preset.defaultTemperature);
-      }
-    };
-
-    loadInitialData();
+    });
 
     return () => {
       isMounted = false;
@@ -111,5 +115,6 @@ export const useTelemetry = (
     ambientTemp: preset.ambientTemperature,
     preset,
     handleSimulateTemperature,
+    refetchTelemetry,
   };
 };
