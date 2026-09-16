@@ -16,7 +16,5 @@ export class Fleet extends BaseEntity {
 
     @Column({ name: 'home_port' })
     homePort: string; // e.g. 부산항 감천항만
-
-    @Column({ default: 'TC' })
-    initials: string; // e.g. TC, PF, NP
 }
+

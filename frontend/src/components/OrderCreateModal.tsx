@@ -94,42 +94,50 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
         }
     };
 
+    const selectedFleet = fleets.find((f) => f.koName === supplierName) || {
+        code: 'PC7',
+        name: 'Pacific Ocean Fleet No. 7',
+        koName: '남태평양 원양선단 1팀',
+        homePort: '부산항 감천항만',
+    };
+
+
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 sm:p-8 overflow-y-auto">
             <div
-                className="w-full max-w-4xl rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_40px_rgba(28,51,69,0.5)] overflow-hidden bg-[#182836] border-2 border-[#2b4458] text-slate-100 my-auto relative z-10"
+                className="w-full max-w-xl rounded-3xl shadow-[0_30px_100px_rgba(0,0,0,0.95),0_0_40px_rgba(28,51,69,0.5)] overflow-hidden bg-[#182836] border-2 border-[#2b4458] text-slate-100 my-auto relative z-10"
             >
                 {/* Header */}
                 <div
-                    className="flex items-center justify-between px-8 py-6 border-b border-[#24394a] bg-[#121f2b]"
+                    className="flex items-center justify-between px-6 py-5 border-b border-[#24394a] bg-[#121f2b]"
                 >
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-sky-400 text-slate-950 flex items-center justify-center font-bold">
                             <Package className="w-5 h-5 stroke-[2.5]" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-white tracking-wide font-digital">선단 어획 정보 등록</h3>
+                            <h3 className="text-base sm:text-lg font-bold text-white tracking-wide font-digital">선단 어획 정보 등록</h3>
                             <p className="text-xs text-slate-400">온체인 콜드체인 데이터 락업</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
                         disabled={submitting}
-                        className="w-10 h-10 rounded-2xl bg-[#223647] hover:bg-[#2c455a] text-slate-300 hover:text-white flex items-center justify-center disabled:opacity-50"
+                        className="w-9 h-9 rounded-2xl bg-[#223647] hover:bg-[#2c455a] text-slate-300 hover:text-white flex items-center justify-center disabled:opacity-50"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-8 space-y-6 bg-[#182836]">
+                <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-[#182836]">
                     {error && (
                         <div className="p-4 text-xs rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 flex items-center gap-2 font-digital">
                             <span>⚠️ {error}</span>
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         {/* SKU Selection */}
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-slate-300 flex items-center gap-2 font-digital">
@@ -142,9 +150,9 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                 disabled={submitting}
                                 className="w-full px-4 py-3 rounded-2xl text-xs font-medium border bg-[#101a24] border-[#263c4e] text-slate-100 focus:outline-none focus:border-sky-400"
                             >
-                                <option value="TUNA-BLUEFIN">참다랑어 (Pacific Bluefin Tuna) - Premium 1등급</option>
-                                <option value="TUNA-BIGEYE">눈다랑어 (Bigeye Tuna) - Standard</option>
-                                <option value="TUNA-YELLOWFIN">황다랑어 (Yellowfin Tuna) - Standard</option>
+                                <option value="TUNA-BLUEFIN">참다랑어 (Pacific Bluefin Tuna)</option>
+                                <option value="TUNA-BIGEYE">눈다랑어 (Bigeye Tuna)</option>
+                                <option value="TUNA-YELLOWFIN">황다랑어 (Yellowfin Tuna)</option>
                             </select>
                         </div>
 
@@ -177,23 +185,51 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                 value={supplierName}
                                 onChange={(e) => setSupplierName(e.target.value)}
                                 disabled={submitting}
-                                className="w-full px-4 py-3 rounded-2xl text-xs font-medium border bg-[#101a24] border-[#263c4e] text-slate-100 focus:outline-none focus:border-sky-400"
+                                className="w-full px-4 py-3 rounded-2xl text-xs font-medium border bg-[#101a24] border-[#263c4e] text-slate-100 focus:outline-none focus:border-sky-400 cursor-pointer"
                             >
                                 {fleets.length > 0 ? (
                                     fleets.map((fleet) => (
                                         <option key={fleet.id || fleet.code} value={fleet.koName}>
-                                            {fleet.koName} ({fleet.name} / {fleet.code} - 출항지: {fleet.homePort})
+                                            {fleet.koName} ({fleet.name})
                                         </option>
                                     ))
                                 ) : (
                                     <>
-                                        <option value="남태평양 원양선단 1팀">남태평양 원양선단 1팀 (Pacific Ocean Fleet No. 7 / PC7 - 출항지: 부산항 감천항만)</option>
-                                        <option value="태평양 원양선단 2팀">태평양 원양선단 2팀 (Pacific Ocean Fleet No. 12 / PF12 - 출항지: 인천항 제3부두)</option>
-                                        <option value="북서태평양 원양선단 3팀">북서태평양 원양선단 3팀 (North Pacific Ocean Fleet No. 3 / NP3 - 출항지: 포항 구룡포항)</option>
+                                        <option value="남태평양 원양선단 1팀">남태평양 원양선단 1팀 (Pacific Ocean Fleet No. 7)</option>
+                                        <option value="태평양 원양선단 2팀">태평양 원양선단 2팀 (Pacific Ocean Fleet No. 12)</option>
+                                        <option value="북서태평양 원양선단 3팀">북서태평양 원양선단 3팀 (North Pacific Ocean Fleet No. 3)</option>
                                     </>
                                 )}
                             </select>
+
+                            {/* Selected Fleet Info Display Card */}
+                            {selectedFleet && (
+                                <div className="mt-2.5 p-3.5 rounded-2xl bg-[#121f2b] border border-[#223647] flex items-center justify-between text-xs shadow-inner">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-cyan-300 p-[2px] shadow-sm shrink-0">
+                                            <div className="w-full h-full rounded-xl bg-slate-950 flex items-center justify-center font-black text-xs text-cyan-300">
+                                                {selectedFleet.code.slice(0, 2).toUpperCase()}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-white">{selectedFleet.koName}</span>
+                                                <span className="text-[10px] px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono border border-sky-400/30 font-bold">
+                                                    {selectedFleet.code}
+                                                </span>
+                                            </div>
+                                            <p className="text-[11px] text-slate-400 mt-0.5">{selectedFleet.name}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right pl-3 border-l border-[#24394a]">
+                                        <p className="text-[10px] text-slate-400 font-mono uppercase">출항지 / 모항</p>
+                                        <p className="text-xs font-bold text-cyan-300 font-digital">{selectedFleet.homePort}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
+
 
 
                         {/* Notes */}

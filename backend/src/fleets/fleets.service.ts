@@ -25,7 +25,6 @@ export class FleetsService implements OnModuleInit {
                     "name" varchar NOT NULL,
                     "ko_name" varchar NOT NULL UNIQUE,
                     "home_port" varchar NOT NULL,
-                    "initials" varchar NOT NULL DEFAULT 'TC',
                     "created_at" TIMESTAMP NOT NULL DEFAULT now(),
                     "updated_at" TIMESTAMP NOT NULL DEFAULT now()
                 );
@@ -40,23 +39,21 @@ export class FleetsService implements OnModuleInit {
                         name: 'Pacific Ocean Fleet No. 7',
                         koName: '남태평양 원양선단 1팀',
                         homePort: '부산항 감천항만',
-                        initials: 'TC',
                     },
                     {
                         code: 'PF12',
                         name: 'Pacific Ocean Fleet No. 12',
                         koName: '태평양 원양선단 2팀',
                         homePort: '인천항 제3부두',
-                        initials: 'PF',
                     },
                     {
                         code: 'NP3',
                         name: 'North Pacific Ocean Fleet No. 3',
                         koName: '북서태평양 원양선단 3팀',
                         homePort: '포항 구룡포항',
-                        initials: 'NP',
                     },
                 ];
+
 
                 for (const fleetData of defaultFleets) {
                     const fleet = this.fleetRepository.create(fleetData);

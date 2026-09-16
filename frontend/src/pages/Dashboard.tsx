@@ -95,7 +95,6 @@ const Dashboard: React.FC = () => {
       name: 'Pacific Ocean Fleet No. 7',
       koName: '남태평양 원양선단 1팀',
       homePort: '부산항 감천항만',
-      initials: 'TC',
     };
 
     if (!selectedPo || !selectedPo.supplierName) {
@@ -112,9 +111,9 @@ const Dashboard: React.FC = () => {
       name: 'Pacific Ocean Fleet No. 7',
       koName: selectedPo.supplierName,
       homePort: '부산항 감천항만',
-      initials: 'TC',
     };
   }, [selectedPo, fleets]);
+
 
   // 관심사의 분리를 위해 추상화된 useTelemetry 커스텀 훅 사용
 
@@ -546,10 +545,11 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center gap-3.5">
               <div className="relative">
                 <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-300 p-[2px] shadow-lg shadow-sky-500/20">
-                  <div className="w-full h-full rounded-2xl bg-slate-950 flex items-center justify-center font-black text-base text-cyan-300">
-                    {displayFleet.initials}
+                  <div className="w-full h-full rounded-2xl bg-slate-950 flex items-center justify-center font-black text-base text-cyan-300 font-mono">
+                    {displayFleet.code.slice(0, 2).toUpperCase()}
                   </div>
                 </div>
+
                 <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-slate-950" />
               </div>
 

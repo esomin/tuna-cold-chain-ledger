@@ -6,8 +6,8 @@ export interface Fleet {
     name: string;       // e.g. Pacific Ocean Fleet No. 7
     koName: string;     // e.g. 남태평양 원양선단 1팀
     homePort: string;   // e.g. 부산항 감천항만
-    initials: string;   // e.g. TC
 }
+
 
 export const fetchFleets = async (): Promise<Fleet[]> => {
     try {

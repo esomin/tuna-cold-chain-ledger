@@ -94,7 +94,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
 
             // 1. 유통 단계 변경 요청 (이더리움 서명 등 약 5~10초 소요)
             await updatePurchaseOrder(poId, { status: newStatus });
-            
+
             // 2. 최신 서버 상태로 전체 리스트 갱신
             await fetchOrders();
         } catch (err: any) {
@@ -293,13 +293,12 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                                                                                     if (isBackward) return;
                                                                                     handleUpdateStatus(e, order.id, opt.key);
                                                                                 }}
-                                                                                className={`px-3 py-2 rounded-xl text-[11px] font-medium outline-none transition-colors flex items-center justify-between ${
-                                                                                    isCurrent
+                                                                                className={`px-3 py-2 rounded-xl text-[11px] font-medium outline-none transition-colors flex items-center justify-between ${isCurrent
                                                                                         ? 'bg-sky-500/25 text-sky-300 font-bold border border-sky-400/40 shadow-sm cursor-default'
                                                                                         : isBackward
-                                                                                        ? 'opacity-40 text-slate-500 cursor-not-allowed select-none'
-                                                                                        : 'hover:bg-white/10 text-slate-300 hover:text-white cursor-pointer'
-                                                                                }`}
+                                                                                            ? 'opacity-40 text-slate-500 cursor-not-allowed select-none'
+                                                                                            : 'hover:bg-white/10 text-slate-300 hover:text-white cursor-pointer'
+                                                                                    }`}
                                                                             >
                                                                                 <span>{opt.label}</span>
                                                                                 {isBackward && <span className="text-[9px] text-rose-400/80 font-normal">이전단계 불가</span>}
@@ -343,28 +342,29 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                 onOrderCreated={handleOrderCreated}
             />
 
-            {/* 온체인 트랜잭션 진행 안내 토스트 팝업 */}
+            {/* 온체인 트랜잭션 진행 안내 토스트 팝업 (상단 중앙 고정 배치로 화면 배율 및 줌 환경에서도 100% 명확히 노출) */}
             {updatingStatusInfo && createPortal(
-                <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-bottom-5 fade-in duration-300">
-                    <div className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-[#182836] border-2 border-sky-400/50 shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_30px_rgba(56,189,248,0.3)] text-slate-100 font-digital max-w-md">
-                        <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center shrink-0">
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] animate-in slide-in-from-top-5 fade-in duration-300 w-[90%] max-w-xl">
+                    <div className="flex items-center gap-4 px-5 py-4 rounded-2xl bg-[#182836] border-2 border-sky-400/60 shadow-[0_20px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(56,189,248,0.4)] text-slate-100 font-digital">
+                        <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/50 flex items-center justify-center shrink-0 shadow-inner">
                             <Loader2 className="w-5 h-5 text-sky-400 animate-spin" />
                         </div>
-                        <div className="space-y-0.5 text-xs">
-                            <div className="flex items-center gap-2">
-                                <span className="font-bold text-sky-300">온체인 트랜잭션 체결 진행 중...</span>
-                                <span className="px-2 py-0.5 rounded-full text-[9px] bg-sky-400/20 text-sky-200 border border-sky-400/30 font-mono animate-pulse">
+                        <div className="space-y-0.5 text-xs flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                                <span className="font-bold text-sky-300 text-xs sm:text-sm">온체인 트랜잭션 체결 진행 중...</span>
+                                <span className="px-2.5 py-0.5 rounded-full text-[10px] bg-sky-400/20 text-sky-200 border border-sky-400/40 font-mono font-bold animate-pulse shrink-0">
                                     {updatingStatusInfo.newStatus}
                                 </span>
                             </div>
-                            <p className="text-[11px] text-slate-300 leading-snug">
-                                <strong className="text-white font-mono">{updatingStatusInfo.poNumber}</strong> | 스마트 계약 서명 및 Keccak256 무결성 락업 생성 중 (약 5~10초 소요)
+                            <p className="text-[11px] sm:text-xs text-slate-300 leading-snug">
+                                <strong className="text-white font-mono">{updatingStatusInfo.poNumber}</strong> | 스마트 계약 서명 및 Keccak256 무결성 락업 생성 중
                             </p>
                         </div>
                     </div>
                 </div>,
                 document.body
             )}
+
         </div>
     );
 };
