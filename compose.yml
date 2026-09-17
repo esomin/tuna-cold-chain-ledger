@@ -1,0 +1,82 @@
+# Production / Full-Stack Server Deployment Docker Compose
+# Use this on production servers / VM for full containerized deployment.
+version: '3.8'
+
+services:
+  # 1. PostgreSQL RDBMS
+  postgres:
+    image: postgres:15-alpine
+    container_name: coldchain_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres_secure_pass}
+      POSTGRES_DB: ${DB_DATABASE:-inventory_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Redis Cache & Session
+  redis:
+    image: redis:7.2-alpine
+    container_name: coldchain_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 3. NestJS Backend API & WebSocket Hub
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: coldchain_backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_TYPE: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres_secure_pass}
+      DB_DATABASE: ${DB_DATABASE:-inventory_db}
+      MONGO_URI: ${MONGO_URI:-mongodb+srv://user:pass@cluster.mongodb.net/coldchain}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS:-0xc4040d7Cdbc6923500A94427DB9c78156d70849A}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # 4. Vite React Frontend (Nginx Production Web Server)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: coldchain_frontend
+    restart: always
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:

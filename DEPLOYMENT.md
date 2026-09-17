@@ -30,12 +30,13 @@
 
 | 파일 경로 | 설명 |
 | :--- | :--- |
-| [`docker-compose.yml`](../docker-compose.yml) | VM/서버 환경 원터치 풀스택 컨테이너 오케스트레이션 설정 |
-| [`.env.example`](../.env.example) | 도커 환경 변수 템플릿 파일 |
-| [`backend/Dockerfile`](../backend/Dockerfile) | NestJS 백엔드 프로덕션용 Dockerfile |
-| [`backend/.dockerignore`](../backend/.dockerignore) | node_modules, dist, .env 등 불필요한 빌드 컨텍스트 제외 |
-| [`frontend/Dockerfile`](../frontend/Dockerfile) | React SPA 프로덕션용 멀티 스테이지 Dockerfile (Node Build -> Nginx Serve) |
-| [`frontend/.dockerignore`](../frontend/.dockerignore) | node_modules, dist, .env 등 빌드 제외 파일 설정 |
+| [`compose.yml`](file:///Users/somui/workplace/tuna-cold-chain-ledger/compose.yml) | VM/서버 배포 환경 원터치 풀스택 컨테이너 오케스트레이션 설정 |
+| [`compose-local.yml`](file:///Users/somui/workplace/tuna-cold-chain-ledger/compose-local.yml) | 로컬 개발용 인프라 전용 도커 설정 (프론트/백은 호스트 런타임 실행) |
+| [`.env.example`](file:///Users/somui/workplace/tuna-cold-chain-ledger/.env.example) | 도커 환경 변수 템플릿 파일 |
+| [`backend/Dockerfile`](file:///Users/somui/workplace/tuna-cold-chain-ledger/backend/Dockerfile) | NestJS 백엔드 프로덕션용 Dockerfile |
+| [`backend/.dockerignore`](file:///Users/somui/workplace/tuna-cold-chain-ledger/backend/.dockerignore) | node_modules, dist, .env 등 불필요한 빌드 컨텍스트 제외 |
+| [`frontend/Dockerfile`](file:///Users/somui/workplace/tuna-cold-chain-ledger/frontend/Dockerfile) | React SPA 프로덕션용 멀티 스테이지 Dockerfile (Node Build -> Nginx Serve) |
+| [`frontend/.dockerignore`](file:///Users/somui/workplace/tuna-cold-chain-ledger/frontend/.dockerignore) | node_modules, dist, .env 등 빌드 제외 파일 설정 |
 
 ---
 
@@ -90,14 +91,22 @@ HARDHAT_NETWORK_URL=http://hardhat:8545
 ```
 
 ### 4단계. 서비스 빌드 및 백그라운드 실행
+
+#### A. 로컬 개발 환경 (프론트/백엔드는 내 맥/PC 런타임에서 실행 시)
+인프라 데이터베이스(PostgreSQL, MongoDB, Redis)만 로컬 도커로 띄웁니다:
 ```bash
-docker-compose up -d --build
+docker compose -f compose-local.yml up -d
+```
+
+#### B. 서버/VM 실제 배포 환경 (풀스택 컨테이너 빌드 & 실행 시)
+```bash
+docker compose -f compose.yml up -d --build
 ```
 
 ### 5단계. 데이터베이스 마이그레이션 및 초기 시드 주입 (선택)
 데이터베이스 테이블 생성 및 초기 선단/발주 데이터를 주입합니다.
 ```bash
-docker-compose exec backend npm run migration:run
+docker compose -f compose.yml exec backend npm run migration:run
 ```
 
 ---
@@ -106,14 +115,14 @@ docker-compose exec backend npm run migration:run
 
 ```bash
 # 컨테이너 상태 확인
-docker-compose ps
+docker compose -f compose.yml ps
 
 # 실시간 전체 서비스 로그 확인
-docker-compose logs -f
+docker compose -f compose.yml logs -f
 
 # 서비스 중지 및 코드 수정 후 재시작
-docker-compose down
-docker-compose up -d --build
+docker compose -f compose.yml down
+docker compose -f compose.yml up -d --build
 ```
 
 ---

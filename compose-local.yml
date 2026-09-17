@@ -1,33 +1,33 @@
+# Local Development Infrastructure Services Only
+# Use this when running Frontend (npm run dev) and Backend (npm run start:dev) on host machine runtime.
 version: '3.8'
 
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: coldchain_postgres
-    env_file:
-      - ./backend/.env
+    container_name: coldchain_postgres_local
     environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_DATABASE:-inventory_db}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_local_data:/var/lib/postgresql/data
       - ./backend/migrations:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   mongodb:
     image: mongo:6.0
-    container_name: coldchain_mongo
+    container_name: coldchain_mongo_local
     ports:
       - "127.0.0.1:27018:27017"
     volumes:
-      - mongodb_data:/data/db
+      - mongodb_local_data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -36,11 +36,11 @@ services:
 
   redis:
     image: redis:7.2-alpine
-    container_name: coldchain_redis
+    container_name: coldchain_redis_local
     ports:
       - "127.0.0.1:6379:6379"
     volumes:
-      - redis_data:/data
+      - redis_local_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -48,6 +48,6 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
-  mongodb_data:
-  redis_data:
+  postgres_local_data:
+  mongodb_local_data:
+  redis_local_data:
