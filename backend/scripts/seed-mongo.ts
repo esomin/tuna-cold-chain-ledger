@@ -35,14 +35,16 @@ async function seedMongo() {
 
     // Stage 2: 초저온 가공 (24h ~ 33h) - 가공 중 노출 피크 포함
     { poNumber: 'PO-2026-SCENARIO-A', temperature: -48.0, latitude: 35.0845, longitude: 129.0185, timestamp: new Date(baseTime + 27 * HOUR) },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -36.5, latitude: 35.0855, longitude: 129.0198, timestamp: new Date(baseTime + 29 * HOUR), eventNote: '가공 중 노출 (Processing Exposure)' },
+    { poNumber: 'PO-2026-SCENARIO-A', temperature: -49.5, latitude: 35.0855, longitude: 129.0198, timestamp: new Date(baseTime + 29 * HOUR), eventNote: '가공 중 노출 (Processing Exposure)' },
     { poNumber: 'PO-2026-SCENARIO-A', temperature: -46.0, latitude: 35.0865, longitude: 129.0210, timestamp: new Date(baseTime + 31 * HOUR) },
     { poNumber: 'PO-2026-SCENARIO-A', temperature: -56.2, latitude: 35.0875, longitude: 129.0225, timestamp: new Date(baseTime + 33 * HOUR) },
 
     // Stage 3: 초저온 운송 (33h ~ 63h) - 도어 개폐 피크 포함
     { poNumber: 'PO-2026-SCENARIO-A', temperature: -55.0, latitude: 35.0888, longitude: 129.0240, timestamp: new Date(baseTime + 42 * HOUR) },
     { poNumber: 'PO-2026-SCENARIO-A', temperature: -54.8, latitude: 35.0895, longitude: 129.0250, timestamp: new Date(baseTime + 48 * HOUR) },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -45.0, latitude: 35.0905, longitude: 129.0265, timestamp: new Date(baseTime + 50 * HOUR), eventNote: '도어 개폐 (Door Open Event)' },
+
+
+    { poNumber: 'PO-2026-SCENARIO-A', temperature: -46.0, latitude: 35.0905, longitude: 129.0265, timestamp: new Date(baseTime + 50 * HOUR), eventNote: '도어 개폐 (Door Open Event)' },
     { poNumber: 'PO-2026-SCENARIO-A', temperature: -52.5, latitude: 35.0915, longitude: 129.0280, timestamp: new Date(baseTime + 52 * HOUR) },
     { poNumber: 'PO-2026-SCENARIO-A', temperature: -53.0, latitude: 35.0925, longitude: 129.0295, timestamp: new Date(baseTime + 60 * HOUR) },
     { poNumber: 'PO-2026-SCENARIO-A', temperature: -52.2, latitude: 35.0935, longitude: 129.0310, timestamp: new Date(baseTime + 63 * HOUR) },

@@ -31,7 +31,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
 }) => {
     // 데모 편의를 위한 기본값 설정
     const [skuId, setSkuId] = useState<string>('TUNA-BLUEFIN');
-    const [quantity, setQuantity] = useState<number>(150);
+    const [quantity, setQuantity] = useState<number | string>(150);
     const [supplierName, setSupplierName] = useState<string>('남태평양 원양선단 1팀');
     const [notes, setNotes] = useState<string>('어획 직후 초저온(-55°C) 급속 동결 및 온체인 무결성 검증건');
 
@@ -167,7 +167,14 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                 min="1"
                                 max="10000"
                                 value={quantity}
-                                onChange={(e) => setQuantity(Number(e.target.value))}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (val === '') {
+                                    setQuantity('');
+                                  } else {
+                                    setQuantity(Number(val));
+                                  }
+                                }}
                                 disabled={submitting}
                                 className="w-full px-4 py-3 rounded-2xl text-xs font-medium border bg-[#101a24] border-[#263c4e] text-slate-100 focus:outline-none focus:border-sky-400 font-mono placeholder:text-slate-500"
                                 placeholder="어획 수량 입력 (예: 150)"

@@ -144,6 +144,8 @@ const Dashboard: React.FC = () => {
 
 
   // 관심사의 분리를 위해 추상화된 useTelemetry 커스텀 훅 사용
+  const isPoCompleted = selectedPo?.status === 'COMPLETED' || selectedPo?.status === 'DELIVERED';
+
   const {
     telemetry: liveTelemetry,
     telemetryHistory,
@@ -152,10 +154,14 @@ const Dashboard: React.FC = () => {
     simTemperature,
     preset,
     refetchTelemetry,
-  } = useTelemetry(selectedPo?.poNumber, {
-    latitude: displayFleet.latitude,
-    longitude: displayFleet.longitude,
-  });
+  } = useTelemetry(
+    selectedPo?.poNumber,
+    {
+      latitude: displayFleet.latitude,
+      longitude: displayFleet.longitude,
+    },
+    isPoCompleted
+  );
 
 
   // '입고 완료' (COMPLETED / DELIVERED) 시 '72시간 추이' 탭만 고정, 이전 진행 단계(어획, 가공, 운송)는 '실시간 스트림' 고정
@@ -179,8 +185,13 @@ const Dashboard: React.FC = () => {
     if (isLive) {
       // '실시간 스트림' 필터버튼 선택 시: IoT 가상 센서(simulate-iot.ts / socket.io)에서 전송되는 실시간 패킷을 차트에 즉시 연동
       if (telemetryHistory && telemetryHistory.length > 0) {
-        const liveItems = telemetryHistory.slice(-10);
-        return liveItems.map((item: any, index: number) => {
+        const validLiveItems = telemetryHistory.filter((item: any) => {
+          const temp = item?.chamberTemp ?? item?.temperature;
+          return typeof temp === 'number' && !isNaN(temp);
+        });
+        const liveItems = validLiveItems.slice(-10);
+
+        const mappedLive = liveItems.map((item: any, index: number) => {
           const rawTemp = item?.chamberTemp ?? item?.temperature;
           const tempVal = typeof rawTemp === 'number' && !isNaN(rawTemp) ? rawTemp : currentChamberTemp;
           let timeStr = item?.time;
@@ -194,6 +205,8 @@ const Dashboard: React.FC = () => {
             isPin: index === liveItems.length - 1,
           };
         });
+
+        return [...mappedLive, { time: '', chamberTemp: null }];
       }
 
       const nowStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -201,56 +214,55 @@ const Dashboard: React.FC = () => {
         { time: '-60분', chamberTemp: Number((baseChamberTemp - 0.4).toFixed(1)) },
         { time: '-45분', chamberTemp: Number((baseChamberTemp - 1.8).toFixed(1)) },
         { time: '-30분', chamberTemp: Number((baseChamberTemp + 2.2).toFixed(1)) },
-        { time: '-15분', chamberTemp: Number((currentChamberTemp).toFixed(1)), isPin: true },
-        { time: `현재 (${nowStr})`, chamberTemp: Number((currentChamberTemp - 0.5).toFixed(1)) }
+        { time: '-15분', chamberTemp: Number((currentChamberTemp).toFixed(1)) },
+        { time: `현재 (${nowStr})`, chamberTemp: Number((currentChamberTemp - 0.5).toFixed(1)), isPin: true },
+        { time: '', chamberTemp: null }
       ];
     }
 
-    // SCENARIO 발주건 72시간 추이 시계열 데이터 연동 (DB에 저장된 72시간 데이터 1:1 정확하게 매핑)
+    // SCENARIO 발주건 72시간 추이 시계열 데이터 연동 (DB 수신 데이터 1:1 직접 사용)
     if (selectedPo?.poNumber.includes('SCENARIO') && telemetryHistory && telemetryHistory.length > 0) {
       const minTime = telemetryHistory[0]?.timestamp ? new Date(telemetryHistory[0].timestamp).getTime() : 0;
 
-      return telemetryHistory.map((item: any, index: number) => {
+      const mapped72h = telemetryHistory.map((item: any, index: number) => {
         const rawTemp = item?.chamberTemp ?? item?.temperature;
         const tempVal = typeof rawTemp === 'number' && !isNaN(rawTemp) ? rawTemp : baseChamberTemp;
-        
+
         let timeStr = item?.time;
         if (item?.timestamp) {
           const elapsedHours = Math.round((new Date(item.timestamp).getTime() - minTime) / (3600 * 1000));
           timeStr = `${elapsedHours}h`;
         }
 
-        const note = item?.eventNote || (
-          tempVal === -36.5 ? '가공 중 노출 (Processing Exposure)' :
-          tempVal === -45.0 ? '도어 개폐 (Door Open Event)' :
-          tempVal === -51.5 ? '입고 검수 완료 (Inspection Passed)' :
-          tempVal === -10.0 ? '어획 완료 (Harvesting)' : null
-        );
-
         return {
           time: timeStr,
           chamberTemp: Number(tempVal.toFixed(1)),
-          eventNote: note,
           isPin: item?.isPin ?? (index === telemetryHistory.length - 1),
         };
       });
+
+      return [...mapped72h, { time: '', chamberTemp: null }];
     }
 
     return [
-      { time: '0h (어획 완료)', chamberTemp: -10.0, eventNote: '어획 및 선내 보관' },
-      { time: '12h (초저온 동결)', chamberTemp: -58.2 },
-      { time: '24h (가공 시작)', chamberTemp: -57.0 },
-      { time: '29h (가공 중 노출)', chamberTemp: -36.5, eventNote: '가공 중 노출 (Processing Exposure)' },
-      { time: '33h (초저온 운송)', chamberTemp: -56.2 },
-      { time: '50h (도어 개폐)', chamberTemp: -45.0, eventNote: '도어 개폐 (Door Open Event)' },
-      { time: '63h (입고 검수)', chamberTemp: -52.2 },
-      { time: '68h (검수 완료)', chamberTemp: -51.5, eventNote: '입고 검수 완료 (Inspection Passed)', isPin: true },
-      { time: '72h (최종 완료)', chamberTemp: -52.0 }
+      { time: '0h', chamberTemp: -10.0 },
+      { time: '12h', chamberTemp: -58.2 },
+      { time: '24h', chamberTemp: -57.0 },
+      { time: '29h', chamberTemp: -36.5 },
+      { time: '33h', chamberTemp: -56.2 },
+      { time: '50h', chamberTemp: -45.0 },
+      { time: '63h', chamberTemp: -52.2 },
+      { time: '68h', chamberTemp: -51.5, isPin: true },
+      { time: '72h', chamberTemp: -52.0 },
+      { time: '', chamberTemp: null }
     ];
   }, [selectedTimeRange, baseChamberTemp, currentChamberTemp, selectedPo, telemetryHistory]);
 
   const activePinItem = useMemo(() => {
-    return chartData.find(d => d.isPin) || chartData[chartData.length - 2] || chartData[0];
+    const validPoints = chartData.filter(d => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
+    if (validPoints.length === 0) return null;
+    const pinned = validPoints.find(d => d.isPin);
+    return pinned || validPoints[validPoints.length - 1];
   }, [chartData]);
 
   const [isSyncing, setIsSyncing] = useState(false);
@@ -400,18 +412,28 @@ const Dashboard: React.FC = () => {
                 {[
                   { label: '실시간 스트림', key: 'Live Feed' },
                   { label: '72시간 추이', key: '72h' }
-                ].map((item) => (
-                  <button
-                    key={item.key}
-                    onClick={() => setSelectedTimeRange(item.key)}
-                    className={`px-3.5 py-1 rounded-lg text-xs font-medium transition-all ${selectedTimeRange === item.key || (item.key === '72h' && (selectedTimeRange === '72h' || selectedTimeRange === '24h')) || (item.key === 'Live Feed' && selectedTimeRange === 'Live Feed')
-                      ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
-                      : 'text-slate-400 hover:text-white'
-                      }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+                ].map((item) => {
+                  const isCompleted = selectedPo?.status === 'COMPLETED' || selectedPo?.status === 'DELIVERED';
+                  const isDisabled = item.key === 'Live Feed' && isCompleted;
+                  const isActive = selectedTimeRange === item.key || (item.key === '72h' && (selectedTimeRange === '72h' || selectedTimeRange === '24h'));
+
+                  return (
+                    <button
+                      key={item.key}
+                      disabled={isDisabled}
+                      onClick={() => !isDisabled && setSelectedTimeRange(item.key)}
+                      title={isDisabled ? '입고 완료 상태에서는 72시간 전체 추이만 제공됩니다' : ''}
+                      className={`px-3.5 py-1 rounded-lg text-xs font-medium transition-all ${isDisabled
+                        ? 'opacity-40 cursor-not-allowed text-slate-500 line-through'
+                        : isActive
+                          ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
+                          : 'text-slate-400 hover:text-white'
+                        }`}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -536,13 +558,15 @@ const Dashboard: React.FC = () => {
                   {/* Active Telemetry Pin Badge Dot */}
                   {activePinItem && (
                     <ReferenceDot
+                      key={`pin-${activePinItem.time}-${activePinItem.chamberTemp}`}
                       yAxisId="left"
                       x={activePinItem.time}
                       y={activePinItem.chamberTemp}
                       r={0}
+                      isFront={true}
                       shape={(props: any) => {
                         const { cx, cy } = props;
-                        if (!cx || !cy) return <g />;
+                        if (typeof cx !== 'number' || typeof cy !== 'number' || isNaN(cx) || isNaN(cy)) return <g />;
                         return (
                           <g transform={`translate(${cx}, ${cy})`}>
                             <circle r="7" fill="#00f0ff" opacity="0.4" className="animate-ping" />

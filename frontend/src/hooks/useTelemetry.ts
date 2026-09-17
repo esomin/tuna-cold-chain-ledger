@@ -5,7 +5,8 @@ import { TelemetryService, type TelemetryData, type AlertData } from '../service
 
 export const useTelemetry = (
   selectedPoNumber?: string,
-  baseCoords?: { latitude?: number; longitude?: number }
+  baseCoords?: { latitude?: number; longitude?: number },
+  isCompleted?: boolean
 ) => {
   const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
   const [telemetryHistory, setTelemetryHistory] = useState<TelemetryData[]>([]);
@@ -69,6 +70,9 @@ export const useTelemetry = (
 
     const newSocket = io(socketUrl);
     setSocket(newSocket);
+
+    // 입고 완료 건은 실시간 소켓 이력 수신을 차단
+    if (isCompleted) return;
 
     newSocket.on('live_telemetry', (data: TelemetryData) => {
       if (selectedPoNumber && data.poNumber === selectedPoNumber) {
