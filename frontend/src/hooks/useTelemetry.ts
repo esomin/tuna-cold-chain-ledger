@@ -8,6 +8,7 @@ export const useTelemetry = (
   baseCoords?: { latitude?: number; longitude?: number }
 ) => {
   const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
+  const [telemetryHistory, setTelemetryHistory] = useState<TelemetryData[]>([]);
   const [alerts, setAlerts] = useState<AlertData[]>([]);
   const [simTemperature, setSimTemperature] = useState<number>(-58);
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -15,6 +16,11 @@ export const useTelemetry = (
   // 1. 선택된 PO 변경 시 텔레메트리 초기화 (REST API 조회를 시도하고 실패 시 프리셋/선단 좌표 폴백)
   const refetchTelemetry = async (): Promise<TelemetryData | null> => {
     if (!selectedPoNumber) return null;
+    
+    // 시계열 전체 히스토리 가져오기
+    const history = await TelemetryService.getTelemetryHistory(selectedPoNumber);
+    setTelemetryHistory(history);
+
     const dbData = await TelemetryService.getLatestTelemetry(selectedPoNumber);
     if (dbData) {
       setTelemetry(dbData);
@@ -40,6 +46,7 @@ export const useTelemetry = (
   useEffect(() => {
     if (!selectedPoNumber) return;
 
+    setTelemetryHistory([]);
     let isMounted = true;
     refetchTelemetry().then(() => {
       if (!isMounted) return;
@@ -67,6 +74,7 @@ export const useTelemetry = (
       if (selectedPoNumber && data.poNumber === selectedPoNumber) {
         setTelemetry(data);
         setSimTemperature(data.temperature);
+        setTelemetryHistory((prev) => [...prev, data]);
       }
     });
 
@@ -109,6 +117,7 @@ export const useTelemetry = (
 
   return {
     telemetry,
+    telemetryHistory,
     alerts,
     clearAlerts,
     simTemperature,
@@ -118,3 +127,4 @@ export const useTelemetry = (
     refetchTelemetry,
   };
 };
+

@@ -190,6 +190,87 @@ export class PurchaseOrdersService {
         return null;
     }
 
+    // 시계열 센서 텔레메트리 히스토리 조회 함수 (최근 20건, 과거 -> 현재 순 정렬)
+    async getTelemetryHistory(idOrPoNumber: string) {
+        let poNumber = idOrPoNumber;
+        try {
+            const po = await this.findOne(idOrPoNumber);
+            if (po) poNumber = po.poNumber;
+        } catch (e) {}
+
+        if (this.sensorLogModel) {
+            try {
+                let logs = await this.sensorLogModel
+                    .find({ poNumber })
+                    .sort({ timestamp: 1 })
+                    .limit(200)
+                    .exec();
+
+                // DB에 기록된 히스토리가 없고 SCENARIO 건일 경우 기본 시드 데이터 자동 수집/생성
+                if ((!logs || logs.length === 0) && poNumber.includes('SCENARIO')) {
+                    const now = Date.now();
+                    const HOUR = 3600 * 1000;
+                    const baseTime = now - 72 * HOUR;
+                    const initialSeeds = [
+                        { poNumber, temperature: -10.0, latitude: 35.0784, longitude: 129.0069, timestamp: new Date(baseTime + 0 * HOUR), eventNote: '어획 완료' },
+                        { poNumber, temperature: -57.5, latitude: 35.0800, longitude: 129.0100, timestamp: new Date(baseTime + 6 * HOUR) },
+                        { poNumber, temperature: -57.0, latitude: 35.0838, longitude: 129.0175, timestamp: new Date(baseTime + 24 * HOUR) },
+                        { poNumber, temperature: -36.5, latitude: 35.0855, longitude: 129.0198, timestamp: new Date(baseTime + 29 * HOUR), eventNote: '가공 중 노출 (Processing Exposure)' },
+                        { poNumber, temperature: -56.2, latitude: 35.0875, longitude: 129.0225, timestamp: new Date(baseTime + 33 * HOUR) },
+                        { poNumber, temperature: -45.0, latitude: 35.0905, longitude: 129.0265, timestamp: new Date(baseTime + 50 * HOUR), eventNote: '도어 개폐 (Door Open Event)' },
+                        { poNumber, temperature: -52.2, latitude: 35.0935, longitude: 129.0310, timestamp: new Date(baseTime + 63 * HOUR) },
+                        { poNumber, temperature: -51.5, latitude: 35.0945, longitude: 129.0325, timestamp: new Date(baseTime + 68 * HOUR), eventNote: '입고 검수 완료 (Inspection Passed)' },
+                        { poNumber, temperature: -52.0, latitude: 35.0955, longitude: 129.0340, timestamp: new Date(baseTime + 72 * HOUR) },
+                    ];
+                    await this.sensorLogModel.insertMany(initialSeeds);
+                    logs = await this.sensorLogModel
+                        .find({ poNumber })
+                        .sort({ timestamp: 1 })
+                        .limit(200)
+                        .exec();
+                }
+
+                if (logs && logs.length > 0) {
+                    const sortedLogs = logs;
+                    const minTime = new Date(sortedLogs[0].timestamp).getTime();
+                    const maxTime = new Date(sortedLogs[sortedLogs.length - 1].timestamp).getTime();
+                    const timeSpanHours = (maxTime - minTime) / (3600 * 1000);
+
+                    return sortedLogs.map((l: any, index, array) => {
+                        const logTime = new Date(l.timestamp).getTime();
+                        let formattedTime = '';
+                        
+                        if (timeSpanHours > 6) {
+                            // 6시간 초과 시 경과 시간(0h, 6h 등) 형식 적용
+                            const elapsedHours = Math.round((logTime - minTime) / (3600 * 1000));
+                            formattedTime = `${elapsedHours}h`;
+                        } else {
+                            formattedTime = new Date(l.timestamp).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+                        }
+
+                        return {
+                            poNumber: l.poNumber,
+                            temperature: l.temperature,
+                            latitude: l.latitude,
+                            longitude: l.longitude,
+                            timestamp: l.timestamp,
+                            eventNote: l.eventNote || null,
+                            time: formattedTime,
+                            chamberTemp: l.temperature,
+                            ambientTemp: Number((22.0 + (Math.random() * 0.4 - 0.2)).toFixed(1)),
+                            isPin: index === array.length - 1,
+                        };
+                    });
+                }
+            } catch (err) {
+                console.warn('[getTelemetryHistory] MongoDB query failed:', err);
+            }
+        }
+        return [];
+
+    }
+
+
     // 소비자용 무결성 검증 메서드
     async verifyPo(id: string) {
         try {

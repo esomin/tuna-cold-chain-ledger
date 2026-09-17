@@ -21,7 +21,7 @@ import { ConfigModule } from '@nestjs/config';
       }),
     }),
     MongooseModule.forRoot(
-      process.env.MONGO_URI || 'mongodb://localhost:27018/coldchain',
+      process.env.MONGO_URI || 'mongodb://127.0.0.1:27018/coldchain',
     ),
   ],
 })

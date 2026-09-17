@@ -28,10 +28,10 @@
     "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
     "reset:logs": "bash scripts/reset-audit-logs.sh",
     "seed:mongo": "ts-node scripts/seed-mongo.ts",
+    "seed:onchain": "ts-node scripts/seed-onchain.ts",
     "simulate": "ts-node scripts/simulate-iot.ts"
   },
   "dependencies": {
-    "socket.io-client": "^4.7.5",
     "@nestjs/common": "^10.2.10",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^10.2.10",
@@ -55,6 +55,7 @@
     "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
+    "socket.io-client": "^4.8.3",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.17",
     "uuid": "^13.0.0"

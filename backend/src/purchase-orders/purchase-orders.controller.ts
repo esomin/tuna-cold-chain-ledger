@@ -26,6 +26,11 @@ export class PurchaseOrdersController {
         return this.poService.getLatestTelemetry(id);
     }
 
+    @Get(':id/telemetry/history')
+    getTelemetryHistory(@Param('id') id: string) {
+        return this.poService.getTelemetryHistory(id);
+    }
+
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.poService.findOne(id);

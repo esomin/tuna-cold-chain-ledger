@@ -57,16 +57,20 @@ const RechartsCustomTooltip = ({ active, payload, label }: any) => {
         <p className="font-bold text-slate-200 mb-1.5 border-b border-white/10 pb-1">
           {label}
         </p>
-        {chamber && (
+        {chamber && chamber.value !== undefined && chamber.value !== null && (
           <p className="text-cyan-300 font-mono flex items-center justify-between gap-4 py-0.5">
             <span className="text-slate-400 font-sans">실측 온도:</span>
-            <strong className="text-cyan-300 font-bold">{chamber.value.toFixed(1)}°C</strong>
+            <strong className="text-cyan-300 font-bold">
+              {typeof chamber.value === 'number' ? `${chamber.value.toFixed(1)}°C` : `${chamber.value}°C`}
+            </strong>
           </p>
         )}
-        {ambient && (
+        {ambient && ambient.value !== undefined && ambient.value !== null && (
           <p className="text-emerald-400 font-mono flex items-center justify-between gap-4 py-0.5">
             <span className="text-slate-400 font-sans">외기 환경:</span>
-            <strong className="text-emerald-300 font-bold">+{ambient.value.toFixed(1)}°C</strong>
+            <strong className="text-emerald-300 font-bold">
+              +{typeof ambient.value === 'number' ? `${ambient.value.toFixed(1)}°C` : `${ambient.value}°C`}
+            </strong>
           </p>
         )}
       </div>
@@ -78,7 +82,7 @@ const RechartsCustomTooltip = ({ active, payload, label }: any) => {
 const Dashboard: React.FC = () => {
   const [selectedPo, setSelectedPo] = useState<PurchaseOrder | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedTimeRange, setSelectedTimeRange] = useState('24h');
+  const [selectedTimeRange, setSelectedTimeRange] = useState('72h');
   const [fleets, setFleets] = useState<Fleet[]>([]);
 
   useEffect(() => {
@@ -142,10 +146,10 @@ const Dashboard: React.FC = () => {
   // 관심사의 분리를 위해 추상화된 useTelemetry 커스텀 훅 사용
   const {
     telemetry: liveTelemetry,
+    telemetryHistory,
     alerts,
     clearAlerts,
     simTemperature,
-    ambientTemp,
     preset,
     refetchTelemetry,
   } = useTelemetry(selectedPo?.poNumber, {
@@ -154,43 +158,96 @@ const Dashboard: React.FC = () => {
   });
 
 
-  // 신규 등록/진행 중인 배치 건은 아직 미경과 상태이므로 '실시간 스트림' 탭 자동 선택
+  // '입고 완료' (COMPLETED / DELIVERED) 시 '72시간 추이' 탭만 고정, 이전 진행 단계(어획, 가공, 운송)는 '실시간 스트림' 고정
   useEffect(() => {
-    if (selectedPo && selectedPo.status !== 'COMPLETED' && selectedPo.poNumber !== 'PO-2026-SCENARIO-A') {
-      setSelectedTimeRange('Live Feed');
+    if (selectedPo) {
+      if (selectedPo.status === 'COMPLETED' || selectedPo.status === 'DELIVERED') {
+        setSelectedTimeRange('72h');
+      } else {
+        setSelectedTimeRange('Live Feed');
+      }
     }
   }, [selectedPo]);
 
   const baseChamberTemp = preset?.defaultTemperature || -56.5;
   const currentChamberTemp = simTemperature !== undefined ? simTemperature : baseChamberTemp;
-  const currentAmbientTemp = ambientTemp !== undefined ? ambientTemp : (preset?.ambientTemperature || 22.0);
 
-  // Recharts Dynamic Data derived from selected filter tab ('Live Feed' vs '24h') & selected PO Preset
+  // Recharts Dynamic Data derived from MongoDB telemetryHistory, filter tab ('Live Feed' vs '72h') & selected PO Preset
   const chartData = useMemo(() => {
-    const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream' || (selectedPo && selectedPo.status !== 'COMPLETED' && selectedPo.poNumber !== 'PO-2026-SCENARIO-A');
+    const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream';
 
     if (isLive) {
+      // '실시간 스트림' 필터버튼 선택 시: IoT 가상 센서(simulate-iot.ts / socket.io)에서 전송되는 실시간 패킷을 차트에 즉시 연동
+      if (telemetryHistory && telemetryHistory.length > 0) {
+        const liveItems = telemetryHistory.slice(-10);
+        return liveItems.map((item: any, index: number) => {
+          const rawTemp = item?.chamberTemp ?? item?.temperature;
+          const tempVal = typeof rawTemp === 'number' && !isNaN(rawTemp) ? rawTemp : currentChamberTemp;
+          let timeStr = item?.time;
+          if (!timeStr) {
+            const d = item?.timestamp ? new Date(item.timestamp) : new Date();
+            timeStr = d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+          }
+          return {
+            time: timeStr,
+            chamberTemp: Number(tempVal.toFixed(1)),
+            isPin: index === liveItems.length - 1,
+          };
+        });
+      }
+
       const nowStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
       return [
-        { time: '-60분', chamberTemp: Number((baseChamberTemp - 0.4).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 2.8).toFixed(1)) },
-        { time: '-45분', chamberTemp: Number((baseChamberTemp - 1.8).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 1.8).toFixed(1)) },
-        { time: '-30분', chamberTemp: Number((baseChamberTemp + 2.2).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 2.2).toFixed(1)) },
-        { time: '-15분', chamberTemp: Number((currentChamberTemp).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 2.5).toFixed(1)), isPin: true },
-        { time: `현재 (${nowStr})`, chamberTemp: Number((currentChamberTemp - 0.5).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 3.2).toFixed(1)) }
-      ];
-    } else {
-      // 4단계 히스토리 완료 시나리오 (PO-2026-SCENARIO-A 등 유통 완료 건)
-      const ev = preset?.timelineEvents;
-      return [
-        { time: `${ev?.harvestedAt || '09/14 08:00'} (어획 완료)`, chamberTemp: Number((baseChamberTemp - 0.6).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 4.2).toFixed(1)) },
-        { time: `${ev?.processedAt || '09/14 14:00'} (초저온 가공)`, chamberTemp: Number((baseChamberTemp - 2.4).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 5.5).toFixed(1)) },
-        { time: '09/14 20:00 (해상 운송)', chamberTemp: Number((baseChamberTemp + 1.8).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 1.2).toFixed(1)) },
-        { time: `${ev?.inTransitAt || '09/15 02:00'} (초저온 운송중)`, chamberTemp: Number((baseChamberTemp + 0.2).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 1.8).toFixed(1)) },
-        { time: `${ev?.deliveredAt || '09/15 16:00'} (입고 완료)`, chamberTemp: Number((currentChamberTemp).toFixed(1)), ambientTemp: Number((currentAmbientTemp + 0.8).toFixed(1)), isPin: true },
-        { time: '현재 (실시간 완료)', chamberTemp: Number((currentChamberTemp - 0.5).toFixed(1)), ambientTemp: Number((currentAmbientTemp - 0.4).toFixed(1)) }
+        { time: '-60분', chamberTemp: Number((baseChamberTemp - 0.4).toFixed(1)) },
+        { time: '-45분', chamberTemp: Number((baseChamberTemp - 1.8).toFixed(1)) },
+        { time: '-30분', chamberTemp: Number((baseChamberTemp + 2.2).toFixed(1)) },
+        { time: '-15분', chamberTemp: Number((currentChamberTemp).toFixed(1)), isPin: true },
+        { time: `현재 (${nowStr})`, chamberTemp: Number((currentChamberTemp - 0.5).toFixed(1)) }
       ];
     }
-  }, [selectedTimeRange, baseChamberTemp, currentChamberTemp, currentAmbientTemp, preset, selectedPo]);
+
+    // SCENARIO 발주건 72시간 추이 시계열 데이터 연동 (DB에 저장된 72시간 데이터 1:1 정확하게 매핑)
+    if (selectedPo?.poNumber.includes('SCENARIO') && telemetryHistory && telemetryHistory.length > 0) {
+      const minTime = telemetryHistory[0]?.timestamp ? new Date(telemetryHistory[0].timestamp).getTime() : 0;
+
+      return telemetryHistory.map((item: any, index: number) => {
+        const rawTemp = item?.chamberTemp ?? item?.temperature;
+        const tempVal = typeof rawTemp === 'number' && !isNaN(rawTemp) ? rawTemp : baseChamberTemp;
+        
+        let timeStr = item?.time;
+        if (item?.timestamp) {
+          const elapsedHours = Math.round((new Date(item.timestamp).getTime() - minTime) / (3600 * 1000));
+          timeStr = `${elapsedHours}h`;
+        }
+
+        const note = item?.eventNote || (
+          tempVal === -36.5 ? '가공 중 노출 (Processing Exposure)' :
+          tempVal === -45.0 ? '도어 개폐 (Door Open Event)' :
+          tempVal === -51.5 ? '입고 검수 완료 (Inspection Passed)' :
+          tempVal === -10.0 ? '어획 완료 (Harvesting)' : null
+        );
+
+        return {
+          time: timeStr,
+          chamberTemp: Number(tempVal.toFixed(1)),
+          eventNote: note,
+          isPin: item?.isPin ?? (index === telemetryHistory.length - 1),
+        };
+      });
+    }
+
+    return [
+      { time: '0h (어획 완료)', chamberTemp: -10.0, eventNote: '어획 및 선내 보관' },
+      { time: '12h (초저온 동결)', chamberTemp: -58.2 },
+      { time: '24h (가공 시작)', chamberTemp: -57.0 },
+      { time: '29h (가공 중 노출)', chamberTemp: -36.5, eventNote: '가공 중 노출 (Processing Exposure)' },
+      { time: '33h (초저온 운송)', chamberTemp: -56.2 },
+      { time: '50h (도어 개폐)', chamberTemp: -45.0, eventNote: '도어 개폐 (Door Open Event)' },
+      { time: '63h (입고 검수)', chamberTemp: -52.2 },
+      { time: '68h (검수 완료)', chamberTemp: -51.5, eventNote: '입고 검수 완료 (Inspection Passed)', isPin: true },
+      { time: '72h (최종 완료)', chamberTemp: -52.0 }
+    ];
+  }, [selectedTimeRange, baseChamberTemp, currentChamberTemp, selectedPo, telemetryHistory]);
 
   const activePinItem = useMemo(() => {
     return chartData.find(d => d.isPin) || chartData[chartData.length - 2] || chartData[0];
@@ -342,12 +399,12 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/60 border border-white/10 text-xs self-start sm:self-auto">
                 {[
                   { label: '실시간 스트림', key: 'Live Feed' },
-                  { label: '24시간 추이', key: '24h' }
+                  { label: '72시간 추이', key: '72h' }
                 ].map((item) => (
                   <button
                     key={item.key}
                     onClick={() => setSelectedTimeRange(item.key)}
-                    className={`px-3.5 py-1 rounded-lg text-xs font-medium transition-all ${selectedTimeRange === item.key || (item.key === '24h' && selectedTimeRange === '24h Trajectory') || (item.key === 'Live Feed' && selectedTimeRange === 'Live Feed')
+                    className={`px-3.5 py-1 rounded-lg text-xs font-medium transition-all ${selectedTimeRange === item.key || (item.key === '72h' && (selectedTimeRange === '72h' || selectedTimeRange === '24h')) || (item.key === 'Live Feed' && selectedTimeRange === 'Live Feed')
                       ? 'bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/30'
                       : 'text-slate-400 hover:text-white'
                       }`}
@@ -365,25 +422,25 @@ const Dashboard: React.FC = () => {
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
                   <span>실시간 감지: <strong className="text-white font-mono">{simTemperature ? `${simTemperature.toFixed(1)}°C` : '-57.4°C'}</strong></span>
                 </span>
-                <span className="flex items-center gap-1.5 text-slate-400/80">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400/60 shadow-[0_0_6px_#10b981]" />
-                  <span className="text-[11px]">외기 환경 온도: <strong className="text-emerald-400/70 font-mono">+{ambientTemp ? ambientTemp.toFixed(1) : '22.0'}°C</strong></span>
-                </span>
                 <span className="flex items-center gap-1.5 text-slate-400">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
                   <span>안전 임계치 (-55°C)</span>
+                </span>
+                <span className="flex items-center gap-1.5 text-slate-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                  <span>경고 임계치 (-45°C)</span>
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
                 <span className="text-[11px] px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1.5 shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  {simTemperature > -55 ? 'TEMP ANOMALY DETECTED' : '✓ 100% CRYOGENIC STABLE'}
+                  {simTemperature > -45 ? 'TEMP ANOMALY DETECTED' : '✓ 100% CRYOGENIC STABLE'}
                 </span>
               </div>
             </div>
 
-            {/* Recharts Glowing Telemetry Spline Chart - Maximized Width */}
+            {/* Recharts Glowing Telemetry Spline Chart - Focused Chamber Trajectory */}
             <div className="w-full h-44 sm:h-48 z-10 pt-1 -mx-2">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 25, right: 0, left: 0, bottom: 0 }}>
@@ -417,13 +474,7 @@ const Dashboard: React.FC = () => {
                   <YAxis
                     yAxisId="left"
                     hide={true}
-                    domain={[-60, -45]}
-                  />
-
-                  <YAxis
-                    yAxisId="right"
-                    hide={true}
-                    domain={[15, 32]}
+                    domain={[-60, -40]}
                   />
 
                   <Tooltip content={<RechartsCustomTooltip />} />
@@ -432,7 +483,7 @@ const Dashboard: React.FC = () => {
                   <ReferenceLine yAxisId="left" y={-50} stroke="#ffffff" strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.12} />
                   <ReferenceLine yAxisId="left" y={-58} stroke="#ffffff" strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.08} />
 
-                  {/* Safety Threshold Line (-55°C Limit) with label */}
+                  {/* Safety Threshold Line (-55°C Limit) */}
                   <ReferenceLine
                     yAxisId="left"
                     y={-55}
@@ -446,22 +497,28 @@ const Dashboard: React.FC = () => {
                       fill: '#f43f5e',
                       fontSize: 10,
                       fontWeight: 600,
-                      dy: -4,
+                      dy: 12,
                       dx: 10
                     }}
                   />
 
-                  {/* Secondary Wave Line (Ambient External Temp - Dotted Green/Teal) */}
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="ambientTemp"
-                    stroke="#2dd4bf"
-                    strokeWidth={2.2}
-                    strokeDasharray="3 3"
-                    dot={false}
-                    opacity={0.75}
-                    isAnimationActive={true}
+                  {/* Warning Threshold Line (-45°C Limit) */}
+                  <ReferenceLine
+                    yAxisId="left"
+                    y={-45}
+                    stroke="#f59e0b"
+                    strokeDasharray="4 4"
+                    strokeWidth={1.2}
+                    strokeOpacity={0.8}
+                    label={{
+                      value: '-45°C',
+                      position: 'insideTopLeft',
+                      fill: '#f59e0b',
+                      fontSize: 10,
+                      fontWeight: 600,
+                      dy: -12,
+                      dx: 10
+                    }}
                   />
 
                   {/* Primary Neon Cyan Smooth Curve (Chamber Internal Temp) */}

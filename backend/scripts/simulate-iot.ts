@@ -1,4 +1,4 @@
-import { io } from 'socket.io-client';
+const { io } = require('socket.io-client');
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3000';
 const socket = io(BACKEND_URL);
@@ -7,7 +7,6 @@ console.log(`[IoT Simulator] Connecting to NestJS Gateway at ${BACKEND_URL}...`)
 
 const ACTIVE_POS = [
   { poNumber: 'PO-2026-SCENARIO-A', baseTemp: -58.0, lat: 35.0784, lng: 129.0069 },
-  { poNumber: 'PO-20260916-6842', baseTemp: -56.5, lat: 35.9892, lng: 129.5541 },
 ];
 
 socket.on('connect', () => {
@@ -38,6 +37,6 @@ socket.on('disconnect', () => {
   console.warn('[IoT Simulator] Disconnected from WebSocket server.');
 });
 
-socket.on('connect_error', (err) => {
-  console.error('[IoT Simulator Connection Error]', err.message);
+socket.on('connect_error', (err: any) => {
+  console.error('[IoT Simulator Connection Error]', err?.message || err);
 });

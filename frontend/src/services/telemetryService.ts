@@ -30,4 +30,18 @@ export const TelemetryService = {
       return null;
     }
   },
+
+  /**
+   * MongoDB에서 해당 발주(PO)의 전체 시계열 텔레메트리 센서 로그 조회
+   */
+  async getTelemetryHistory(poNumber: string): Promise<TelemetryData[]> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/purchase-orders/${poNumber}/telemetry/history`);
+      return response.data || [];
+    } catch (error) {
+      console.warn(`[TelemetryService] 텔레메트리 히스토리 쿼리 실패 (${poNumber})`);
+      return [];
+    }
+  },
 };
+
