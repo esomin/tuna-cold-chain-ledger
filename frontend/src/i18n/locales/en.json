@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "dashboardTooltip": "Integrated Cold Chain Control",
+    "ledger": "Ledger Explorer",
+    "ledgerTooltip": "On-Chain Audit Ledger Explorer",
+    "logout": "Log Out"
+  },
+  "language": {
+    "ko": "한국어",
+    "en": "ENG"
+  },
+  "common": {
+    "offline": "v1.0-OFFLINE",
+    "connecting": "v1.0-CONNECTING",
+    "live": "v1.0-LIVE",
+    "serverDisconnected": "Server Disconnected · Attempting to reconnect...",
+    "lastUpdated": "Last updated:",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "status": "Status",
+    "normal": "Normal",
+    "warning": "Warning",
+    "critical": "Critical",
+    "violation": "Violation"
+  },
+  "dashboard": {
+    "title": "Tuna Cold Chain",
+    "subtitle": "Dashboard",
+    "description": "Real-time Telemetry & On-Chain Integrity Tracking for Cryogenic Logistics",
+    "createOrder": "New Shipping Order",
+    "telemetryTitle": "Ultra-Low Chamber Telemetry",
+    "realtimeSensor": "Real-time Sensor Feed",
+    "syncData": "Sync Data",
+    "timeRanges": {
+      "live": "LIVE (Realtime)",
+      "6h": "6 Hours",
+      "12h": "12 Hours",
+      "24h": "24 Hours"
+    },
+    "metrics": {
+      "targetTemp": "Target Deep-Freeze Temp",
+      "complianceRate": "Cold Chain Compliance Rate",
+      "chamberTemp": "Current Chamber Temp",
+      "ambientTemp": "Ambient Temp",
+      "humidity": "Humidity",
+      "currentLocation": "Current Location",
+      "anomalies": "Anomalies Detected"
+    },
+    "timeline": {
+      "title": "Cryogenic Supply Chain Flow",
+      "subtitle": "Step-by-step cold chain verification timeline"
+    },
+    "map": {
+      "title": "Vessel & Carrier Live GPS Tracking",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "speed": "Knots",
+      "heading": "Heading"
+    },
+    "orders": {
+      "title": "Active Shipping Batches",
+      "batchId": "Batch ID",
+      "product": "Product",
+      "destination": "Destination",
+      "vessel": "Vessel",
+      "tempRange": "Temp Range"
+    }
+  },
+  "ledger": {
+    "title": "Blockchain Ledger Explorer",
+    "subtitle": "Tamper-proof Cryptographic Telemetry Audit Log on Ethereum/Sepolia Testnet",
+    "totalRecords": "Total Telemetry Logs",
+    "validBlocks": "On-Chain Verified Blocks",
+    "searchPlaceholder": "Search by Batch ID, Tx Hash, or Vessel...",
+    "columns": {
+      "blockNumber": "Block #",
+      "txHash": "Tx Hash",
+      "timestamp": "Timestamp",
+      "batchId": "Batch ID",
+      "chamberTemp": "Chamber Temp (°C)",
+      "status": "Verification Status",
+      "action": "View on Etherscan"
+    },
+    "verified": "Cryptographically Verified",
+    "unverified": "Pending Verification"
+  },
+  "consumer": {
+    "title": "Consumer Freshness & Origin Verification",
+    "subtitle": "Scan & Verify Ultra-Low Deep Freeze Integrity",
+    "freshnessIndex": "Freshness Integrity Score",
+    "verifiedOrigin": "Verified Deep Sea Origin",
+    "originInfo": {
+      "vessel": "Catching Vessel",
+      "catchDate": "Catch Date",
+      "location": "Catch Coordinates",
+      "species": "Species",
+      "targetTemp": "Deep Freeze Target"
+    },
+    "tempGraphTitle": "Complete Cold Chain Temperature History",
+    "verifiedBadge": "100% On-Chain Verified Cold Chain"
+  },
+  "orderModal": {
+    "title": "Create New Shipping Batch",
+    "subtitle": "Register a new deep-freeze tuna shipping batch on blockchain ledger",
+    "batchId": "Batch ID",
+    "vesselName": "Vessel / Carrier Name",
+    "productName": "Product Name / SKU",
+    "destination": "Destination Port / Warehouse",
+    "targetTemp": "Target Deep Freeze Temp (°C)",
+    "submit": "Create Batch",
+    "creating": "Creating Batch on-chain..."
+  }
+}

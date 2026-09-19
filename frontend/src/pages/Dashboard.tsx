@@ -233,7 +233,7 @@ const Dashboard: React.FC = () => {
     if (!chartData || chartData.length === 0) {
       return { anomalyCount: 0, complianceRate: 100, isStable: true };
     }
-    const validPoints = chartData.filter(d => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
+    const validPoints = chartData.filter((d): d is { time: string; chamberTemp: number; isPin: boolean } => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
     if (validPoints.length === 0) {
       return { anomalyCount: 0, complianceRate: 100, isStable: true };
     }
@@ -248,7 +248,7 @@ const Dashboard: React.FC = () => {
   }, [chartData, simTemperature]);
 
   const activePinItem = useMemo(() => {
-    const validPoints = chartData.filter(d => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
+    const validPoints = chartData.filter((d): d is { time: string; chamberTemp: number; isPin: boolean } => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
     if (validPoints.length === 0) return null;
     const pinned = validPoints.find(d => d.isPin);
     return pinned || validPoints[validPoints.length - 1];
@@ -616,14 +616,13 @@ const Dashboard: React.FC = () => {
                     />
 
                     {/* Active Telemetry Pin Badge Dot */}
-                    {activePinItem && (
+                    {activePinItem && activePinItem.chamberTemp !== null && (
                       <ReferenceDot
                         key={`pin-${activePinItem.time}-${activePinItem.chamberTemp}`}
                         yAxisId="left"
                         x={activePinItem.time}
                         y={activePinItem.chamberTemp}
                         r={0}
-                        isFront={true}
                         shape={(props: any) => {
                           const { cx, cy } = props;
                           if (typeof cx !== 'number' || typeof cy !== 'number' || isNaN(cx) || isNaN(cy)) return <g />;
@@ -634,7 +633,7 @@ const Dashboard: React.FC = () => {
                               <g transform="translate(0, -23)">
                                 <rect x="-35" y="-12" width="70" height="20" rx="5" fill="#020914" stroke="#00f0ff" strokeWidth="1.2" />
                                 <text x="0" y="1" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold" fontFamily="Pretendard, sans-serif">
-                                  {`${activePinItem.chamberTemp.toFixed(1)}°C`}
+                                  {`${(activePinItem.chamberTemp as number).toFixed(1)}°C`}
                                 </text>
                               </g>
                             </g>

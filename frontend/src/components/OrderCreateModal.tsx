@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { X, Loader2, Send, Package, Truck, FileText, AlertTriangle } from 'lucide-react';
 import { fetchFleets } from '../services/fleet.service';
 import type { Fleet } from '../services/fleet.service';
@@ -29,6 +30,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
     onClose,
     onOrderCreated,
 }) => {
+    const { t } = useTranslation();
     // 데모 편의를 위한 기본값 설정
     const [skuId, setSkuId] = useState<string>('TUNA-BLUEFIN');
     const [quantity, setQuantity] = useState<number | string>(150);
@@ -116,8 +118,8 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                             <Package className="w-5 h-5 stroke-[2.5]" />
                         </div>
                         <div>
-                            <h3 className="text-base sm:text-lg font-bold text-white tracking-wide font-digital">선단 어획 정보 등록</h3>
-                            <p className="text-xs text-slate-400">온체인 콜드체인 데이터 락업</p>
+                            <h3 className="text-base sm:text-lg font-bold text-white tracking-wide font-digital">{t('orderModal.title')}</h3>
+                            <p className="text-xs text-slate-400">{t('orderModal.subtitle')}</p>
                         </div>
                     </div>
                     <button

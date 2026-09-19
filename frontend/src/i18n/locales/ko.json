@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "dashboard": "대시보드",
+    "dashboardTooltip": "통합 관제 대시보드",
+    "ledger": "원장 탐색기",
+    "ledgerTooltip": "온체인 감사 원장 탐색기",
+    "logout": "로그아웃"
+  },
+  "language": {
+    "ko": "한국어",
+    "en": "ENG"
+  },
+  "common": {
+    "offline": "v1.0-OFFLINE",
+    "connecting": "v1.0-CONNECTING",
+    "live": "v1.0-LIVE",
+    "serverDisconnected": "서버 연결 끊김 · 재연결 시도 중…",
+    "lastUpdated": "마지막 갱신:",
+    "search": "검색",
+    "filter": "필터",
+    "close": "닫기",
+    "cancel": "취소",
+    "save": "저장",
+    "confirm": "확인",
+    "loading": "로딩 중...",
+    "status": "상태",
+    "normal": "정상",
+    "warning": "경고",
+    "critical": "위험",
+    "violation": "이탈"
+  },
+  "dashboard": {
+    "title": "Tuna Cold Chain",
+    "subtitle": "대시보드",
+    "description": "초저온 콜드체인 실시간 텔레메트리 & 온체인 무결성 추적",
+    "createOrder": "신규 수송 등록",
+    "telemetryTitle": "초저온 챔버 텔레메트리",
+    "realtimeSensor": "실시간 센서 피드",
+    "syncData": "데이터 동기화",
+    "timeRanges": {
+      "live": "LIVE (실시간)",
+      "6h": "6 시간",
+      "12h": "12 시간",
+      "24h": "24 시간"
+    },
+    "metrics": {
+      "targetTemp": "목표 초저온 보관 온도",
+      "complianceRate": "콜드체인 준수율",
+      "chamberTemp": "현재 챔버 온도",
+      "ambientTemp": "외기 온도",
+      "humidity": "습도",
+      "currentLocation": "현재 위치",
+      "anomalies": "온도 이탈 감지"
+    },
+    "timeline": {
+      "title": "초저온 유통 단계별 라이프사이클",
+      "subtitle": "단계별 콜드체인 검증 타임라인"
+    },
+    "map": {
+      "title": "선박 및 운송 차량 실시간 GPS 추적",
+      "latitude": "위도",
+      "longitude": "경도",
+      "speed": "속도(노트)",
+      "heading": "방위"
+    },
+    "orders": {
+      "title": "활성 수송 배치 목록",
+      "batchId": "배치 ID",
+      "product": "품목",
+      "destination": "목적지",
+      "vessel": "운송선박",
+      "tempRange": "온도범위"
+    }
+  },
+  "ledger": {
+    "title": "블록체인 원장 탐색기",
+    "subtitle": "Ethereum/Sepolia 테스트넷 기반 변조 불가능한 암호화 텔레메트리 감사 로그",
+    "totalRecords": "총 텔레메트리 로그 수",
+    "validBlocks": "온체인 검증 완료 블록",
+    "searchPlaceholder": "배치 ID, 트랜잭션 해시, 선박명 검색...",
+    "columns": {
+      "blockNumber": "블록 번호",
+      "txHash": "트랜잭션 해시",
+      "timestamp": "타임스탬프",
+      "batchId": "배치 ID",
+      "chamberTemp": "챔버 온도 (°C)",
+      "status": "검증 상태",
+      "action": "Etherscan 확인"
+    },
+    "verified": "암호화 검증 완료",
+    "unverified": "검증 대기 중"
+  },
+  "consumer": {
+    "title": "소비자 신선도 & 어획 원산지 검증",
+    "subtitle": "스캔 및 초저온 동결 무결성 검증",
+    "freshnessIndex": "신선도 무결성 점수",
+    "verifiedOrigin": "원양 어획 원산지 검증",
+    "originInfo": {
+      "vessel": "어획 선박",
+      "catchDate": "어획 일자",
+      "location": "어획 위치",
+      "species": "어종",
+      "targetTemp": "초저온 목표"
+    },
+    "tempGraphTitle": "전 과정 콜드체인 온도 이력",
+    "verifiedBadge": "100% 온체인 검증 콜드체인"
+  },
+  "orderModal": {
+    "title": "신규 수송 배치 등록",
+    "subtitle": "블록체인 원장에 새로운 초저온 참치 수송 배치를 등록합니다",
+    "batchId": "배치 ID",
+    "vesselName": "선박 / 운송 수단 명칭",
+    "productName": "품목명 / SKU",
+    "destination": "목적지 항구 / 창고",
+    "targetTemp": "목표 초저온 (°C)",
+    "submit": "배치 생성",
+    "creating": "온체인 배치 생성 중..."
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     ShieldCheck,
     CheckCircle2,
@@ -61,6 +62,7 @@ interface VerificationData {
 }
 
 const ConsumerVerify: React.FC = () => {
+    const { t } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const [loading, setLoading] = useState<boolean>(true);
     const [data, setData] = useState<VerificationData | null>(null);
@@ -136,7 +138,7 @@ const ConsumerVerify: React.FC = () => {
                         className="flex items-center text-xs font-semibold gap-1.5 transition-colors text-slate-300 hover:text-white"
                     >
                         <ArrowLeft className="w-4 h-4" />
-                        관제 대시보드
+                        {t('nav.dashboard')}
                     </Link>
                     <div 
                         className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-400/30"

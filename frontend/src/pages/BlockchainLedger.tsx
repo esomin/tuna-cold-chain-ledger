@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     Database,
     Search,
@@ -34,6 +35,7 @@ interface AuditLog {
 }
 
 const BlockchainLedger: React.FC = () => {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const initialQuery = searchParams.get('search') || searchParams.get('po') || '';
 
@@ -118,7 +120,7 @@ const BlockchainLedger: React.FC = () => {
                         className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 text-white border border-white/15 transition-all hover:scale-105"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-                        <span>원장 최신화</span>
+                        <span>{t('dashboard.syncData')}</span>
                     </button>
                 </div>
             </div>
@@ -127,7 +129,7 @@ const BlockchainLedger: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="glass-card rounded-2xl p-5 shadow-lg">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-slate-400">총 기록 블록수</span>
+                        <span className="text-xs font-semibold text-slate-400">{t('ledger.totalRecords')}</span>
                         <Boxes className="w-4 h-4 text-sky-400" />
                     </div>
                     <p className="text-2xl font-black font-mono mt-2 text-white">{auditLogs.length} Blocks</p>
@@ -135,7 +137,7 @@ const BlockchainLedger: React.FC = () => {
 
                 <div className="glass-card rounded-2xl p-5 shadow-lg">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-slate-400">스마트 계약 상태</span>
+                        <span className="text-xs font-semibold text-slate-400">Smart Contract</span>
                         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     </div>
                     <p className="text-sm font-bold mt-2 text-emerald-300 flex items-center gap-1.5">
@@ -153,7 +155,7 @@ const BlockchainLedger: React.FC = () => {
 
                 <div className="glass-card rounded-2xl p-5 shadow-lg">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-slate-400">해시 검증 무결성</span>
+                        <span className="text-xs font-semibold text-slate-400">Keccak256 Integrity</span>
                         <ShieldAlert className="w-4 h-4 text-cyan-400" />
                     </div>
                     <p className="text-2xl font-black font-mono mt-2 text-cyan-300">100% VERIFIED</p>
@@ -161,11 +163,11 @@ const BlockchainLedger: React.FC = () => {
 
                 <div className="glass-card rounded-2xl p-5 shadow-lg">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-slate-400">최초 원장 등록 시각</span>
+                        <span className="text-xs font-semibold text-slate-400">{t('ledger.columns.timestamp')}</span>
                         <Clock className="w-4 h-4 text-slate-400" />
                     </div>
                     <p className="text-xs font-mono mt-3 text-slate-200">
-                        {auditLogs.length > 0 ? new Date(auditLogs[auditLogs.length - 1].createdAt).toLocaleDateString('ko-KR') : '-'}
+                        {auditLogs.length > 0 ? new Date(auditLogs[auditLogs.length - 1].createdAt).toLocaleDateString() : '-'}
                     </p>
                 </div>
             </div>
@@ -178,7 +180,7 @@ const BlockchainLedger: React.FC = () => {
                         <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="PO 번호, Tx Hash, Data Hash 검색..."
+                            placeholder={t('ledger.searchPlaceholder')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 text-xs rounded-xl border bg-slate-950/60 border-white/10 text-white focus:outline-none focus:border-sky-400 transition-all placeholder:text-slate-500"
@@ -189,7 +191,7 @@ const BlockchainLedger: React.FC = () => {
                         className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-sky-400 hover:bg-sky-300 text-slate-950 transition-all shadow-md shadow-sky-500/20 shrink-0 font-digital"
                     >
                         <Search className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>검색</span>
+                        <span>{t('common.search')}</span>
                     </button>
                 </div>
 

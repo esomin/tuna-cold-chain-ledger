@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     LayoutDashboard,
     Database,
@@ -10,8 +11,10 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { CONTRACT_ADDRESS, ETHERSCAN_BASE_URL } from '../../config';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 const AppLayout: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const { logout, user } = useAuth();
@@ -33,14 +36,14 @@ const AppLayout: React.FC = () => {
         {
             path: '/',
             icon: <LayoutDashboard className="w-5 h-5" />,
-            label: '대시보드',
-            tooltip: '통합 관제 대시보드'
+            label: t('nav.dashboard'),
+            tooltip: t('nav.dashboardTooltip')
         },
         {
             path: '/blockchain-ledger',
             icon: <BookOpenCheck className="w-5 h-5" />,
-            label: '원장 탐색기',
-            tooltip: '온체인 감사 원장 탐색기'
+            label: t('nav.ledger'),
+            tooltip: t('nav.ledgerTooltip')
         },
     ];
 
@@ -153,7 +156,11 @@ const AppLayout: React.FC = () => {
                 </aside>
 
                 {/* Floating Large Glass Window Container */}
-                <main className="flex-1 flex flex-col min-w-0 glass-container rounded-[28px] lg:rounded-[36px] overflow-hidden shadow-2xl min-h-[calc(100vh-4rem)]">
+                <main className="relative flex-1 flex flex-col min-w-0 glass-container rounded-[28px] lg:rounded-[36px] overflow-hidden shadow-2xl min-h-[calc(100vh-4rem)]">
+                    {/* Top Right Header Actions Bar */}
+                    <div className="absolute top-5 right-6 sm:right-8 z-40 flex items-center gap-4">
+                        <LanguageSwitcher />
+                    </div>
                     <Outlet />
                 </main>
             </div>
