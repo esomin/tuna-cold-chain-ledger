@@ -3,6 +3,8 @@ import { io, type Socket } from 'socket.io-client';
 import { getPresetByPoNumber } from '../config/scenarios.config';
 import { TelemetryService, type TelemetryData, type AlertData } from '../services/telemetryService';
 
+export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected';
+
 export const useTelemetry = (
   selectedPoNumber?: string,
   baseCoords?: { latitude?: number; longitude?: number },
@@ -13,6 +15,8 @@ export const useTelemetry = (
   const [alerts, setAlerts] = useState<AlertData[]>([]);
   const [simTemperature, setSimTemperature] = useState<number>(-58);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   // 1. 선택된 PO 변경 시 텔레메트리 초기화 (REST API 조회를 시도하고 실패 시 프리셋/선단 좌표 폴백)
   const refetchTelemetry = async (): Promise<TelemetryData | null> => {
@@ -26,6 +30,7 @@ export const useTelemetry = (
     if (dbData) {
       setTelemetry(dbData);
       setSimTemperature(dbData.temperature);
+      setLastUpdated(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }));
       return dbData;
     } else {
       const preset = getPresetByPoNumber(selectedPoNumber);
@@ -40,6 +45,7 @@ export const useTelemetry = (
       };
       setTelemetry(fallback);
       setSimTemperature(preset.defaultTemperature);
+      setLastUpdated(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }));
       return fallback;
     }
   };
@@ -68,8 +74,26 @@ export const useTelemetry = (
       ? import.meta.env.VITE_API_URL.replace('/api', '')
       : 'http://localhost:3000';
 
-    const newSocket = io(socketUrl);
+    const newSocket = io(socketUrl, {
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      timeout: 3000,
+    });
     setSocket(newSocket);
+    setConnectionStatus('connecting');
+
+    newSocket.on('connect', () => {
+      setConnectionStatus('connected');
+    });
+
+    newSocket.on('disconnect', () => {
+      setConnectionStatus('disconnected');
+    });
+
+    newSocket.on('connect_error', () => {
+      setConnectionStatus('disconnected');
+    });
 
     // 입고 완료 건은 실시간 소켓 이력 수신을 차단
     if (isCompleted) return;
@@ -79,6 +103,7 @@ export const useTelemetry = (
         setTelemetry(data);
         setSimTemperature(data.temperature);
         setTelemetryHistory((prev) => [...prev, data]);
+        setLastUpdated(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }));
       }
     });
 
@@ -97,6 +122,7 @@ export const useTelemetry = (
   // 3. IoT 가상 센서 패킷 송신 시뮬레이션
   const handleSimulateTemperature = (newTemp: number) => {
     setSimTemperature(newTemp);
+    setLastUpdated(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }));
     if (!selectedPoNumber || !socket) return;
 
     const preset = getPresetByPoNumber(selectedPoNumber);
@@ -129,6 +155,8 @@ export const useTelemetry = (
     preset,
     handleSimulateTemperature,
     refetchTelemetry,
+    connectionStatus,
+    lastUpdated,
   };
 };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Loader2, Send, Package, Truck, FileText } from 'lucide-react';
+import { X, Loader2, Send, Package, Truck, FileText, AlertTriangle } from 'lucide-react';
 import { fetchFleets } from '../services/fleet.service';
 import type { Fleet } from '../services/fleet.service';
 
@@ -133,7 +133,8 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                 <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-[#182836]">
                     {error && (
                         <div className="p-4 text-xs rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 flex items-center gap-2 font-digital">
-                            <span>⚠️ {error}</span>
+                            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                            <span>{error}</span>
                         </div>
                     )}
 

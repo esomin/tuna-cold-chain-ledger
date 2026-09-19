@@ -48,7 +48,7 @@ socket.on('connect', () => {
 });
 
 socket.on('disconnect', () => {
-  console.warn('[IoT Simulator] Disconnected from WebSocket server.');
+  console.warn('[IoT Simula stor] Disconnected from WebSocket server.');
 });
 
 socket.on('connect_error', (err: any) => {

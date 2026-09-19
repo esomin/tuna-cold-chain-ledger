@@ -14,6 +14,8 @@ interface StageLog {
 interface DistributionTimelineProps {
     poNumber: string | null;
     status: string | null;
+    isLoading?: boolean;
+    isBackendError?: boolean;
 }
 
 interface StepInfo {
@@ -24,7 +26,7 @@ interface StepInfo {
     statusTrigger: string[];
 }
 
-export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNumber, status }) => {
+export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNumber, status, isLoading, isBackendError }) => {
     const [stageLogs, setStageLogs] = useState<StageLog[]>([]);
 
     const steps: StepInfo[] = [
@@ -59,7 +61,7 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
     ];
 
     useEffect(() => {
-        if (!poNumber) return;
+        if (!poNumber || isBackendError) return;
 
         const fetchVerification = async () => {
             try {
@@ -78,7 +80,7 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
         fetchVerification();
         const interval = setInterval(fetchVerification, 5000);
         return () => clearInterval(interval);
-    }, [poNumber, status]);
+    }, [poNumber, status, isBackendError]);
 
     const getStepStatus = (step: StepInfo): 'VERIFIED' | 'WARNING' | 'WAITING' => {
         if (!status) return 'WAITING';
@@ -102,6 +104,33 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
     const getStepStageLog = (stepKey: string) => {
         return stageLogs.find(log => log.stageKey === stepKey) || null;
     };
+
+    if (isLoading) {
+        return (
+            <div className="relative border-l border-white/10 ml-3 pl-5 space-y-6">
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="relative space-y-1.5 animate-pulse">
+                        <div className="absolute -left-[27px] top-1 w-3.5 h-3.5 rounded-full bg-slate-800 border-2 border-slate-700" />
+                        <div className="flex items-center justify-between">
+                            <div className="h-3.5 w-24 bg-slate-800 rounded" />
+                            <div className="h-3 w-14 bg-slate-800/60 rounded-full" />
+                        </div>
+                        <div className="h-3 w-4/5 bg-slate-800/50 rounded" />
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+
+
+    if (isBackendError) {
+        return (
+            <div className="flex items-center justify-center h-48 text-slate-400 text-xs font-digital text-center p-4">
+                서버 연결 후 이용할 수 있습니다.
+            </div>
+        );
+    }
 
     if (!poNumber) {
         return (
