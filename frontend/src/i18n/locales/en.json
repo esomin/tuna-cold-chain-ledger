@@ -27,15 +27,20 @@
     "normal": "Normal",
     "warning": "Warning",
     "critical": "Critical",
-    "violation": "Violation"
+    "violation": "Violation",
+    "delete": "Delete",
+    "tryAgain": "Try Again"
   },
   "dashboard": {
     "title": "Tuna Cold Chain",
     "subtitle": "Dashboard",
     "description": "Real-time Telemetry & On-Chain Integrity Tracking for Cryogenic Logistics",
-    "createOrder": "New Shipping Order",
-    "telemetryTitle": "Ultra-Low Chamber Telemetry",
+    "createOrder": "New Registration",
+    "telemetryTitle": "Cryogenic Temp Telemetry",
     "realtimeSensor": "Real-time Sensor Feed",
+    "fleetInfo": {
+      "title": "Vessel & Batch Details"
+    },
     "syncData": "Sync Data",
     "timeRanges": {
       "live": "LIVE (Realtime)",
@@ -44,20 +49,55 @@
       "24h": "24 Hours"
     },
     "metrics": {
+      "totalMonitoring": "Total Monitoring Volume",
+      "batchCount": "1 Batch",
       "targetTemp": "Target Deep-Freeze Temp",
+      "safetyStandard": "Safety Standard",
       "complianceRate": "Cold Chain Compliance Rate",
       "chamberTemp": "Current Chamber Temp",
       "ambientTemp": "Ambient Temp",
       "humidity": "Humidity",
       "currentLocation": "Current Location",
-      "anomalies": "Anomalies Detected"
+      "anomalies": "Anomalies Detected",
+      "freshnessIndex": "Freshness Index",
+      "premiumQuality": "✓ Premium Grade Tuna",
+      "smartContractLock": "Smart Contract Lock",
+      "homePort": "Home Port",
+      "safeBaseTemp": "Safe Base Temp",
+      "totalBatchWeight": "Total Batch Weight"
+    },
+    "labels": {
+      "pending": "Pending",
+      "selectGpsInfo": "Real-time GPS tracking for selected shipment will be displayed.",
+      "sensorRules": "Real-time Ultra-Low Cold Chain Compliance (-55°C Standard)",
+      "liveFeed": "Live Stream",
+      "72hTrend": "72h Trend",
+      "realtimeDetected": "Live Temp:",
+      "safetyThreshold": "Safety Threshold (-55°C)",
+      "warningThreshold": "Warning Threshold (-45°C)",
+      "stable": "✓ 100% CRYOGENIC STABLE",
+      "anomaliesCount": "TEMP ANOMALY DETECTED ({{count}})",
+      "anomalyZero": "0 Temperature Anomalies",
+      "anomalyCount": "{{count}} Temp Anomalies",
+      "noTelemetryData": "No ultra-low sensor telemetry data received",
+      "noFleetSelected": "No fishing fleet selected",
+      "noOrderSelected": "No shipping batch selected",
+      "needServerConnection": "Server Connection Required",
+      "needOrderSelected": "Select a shipping batch first",
+      "needConnection": "Connection Required",
+      "tunaProduct": "Tuna Product",
+      "sensorSync": "Sensor Sync",
+      "syncing": "Syncing...",
+      "blockchainVerify": "Blockchain Verify",
+      "qrVerify": "QR Verify",
+      "notification": "Notification"
     },
     "timeline": {
-      "title": "Cryogenic Supply Chain Flow",
+      "title": "On-Chain Supply Chain Timeline",
       "subtitle": "Step-by-step cold chain verification timeline"
     },
     "map": {
-      "title": "Vessel & Carrier Live GPS Tracking",
+      "title": "Live GPS Tracking",
       "latitude": "Latitude",
       "longitude": "Longitude",
       "speed": "Knots",
@@ -72,12 +112,42 @@
       "tempRange": "Temp Range"
     }
   },
+  "orderList": {
+    "title": "Shipping Batch Feed",
+    "newOrder": "New Batch",
+    "demoRestricted": "Registration is restricted in demo environment (Local Dev Only)",
+    "noOrders": "No shipping batches registered",
+    "changeStage": "Change Stage",
+    "cannotBackward": "Cannot revert stage",
+    "deleteOrder": "Delete",
+    "quantity": "Qty:",
+    "txInProgress": "On-Chain Transaction Signing in progress...",
+    "stages": {
+      "harvested": "Harvested",
+      "processing": "Cryogenic Processing",
+      "inTransit": "In Transit",
+      "delivered": "Delivered"
+    }
+  },
+  "timeline": {
+    "harvestedLabel": "Harvest Completed",
+    "harvestedDesc": "Origin (South Pacific Fishery) confirmed & initial on-chain integrity hash logged",
+    "processingLabel": "Cryogenic Processing",
+    "processingDesc": "Deep freeze (-55°C) storage & packaging specs logged on blockchain",
+    "inTransitLabel": "In Transit",
+    "inTransitDesc": "Refrigerated transport vehicle real-time GPS & telemetry integrity verified",
+    "deliveredLabel": "Delivered",
+    "deliveredDesc": "On-chain digital certificate (NFT Hash) issued for consumer verification",
+    "serverRequired": "Available after server connection.",
+    "selectOrder": "Select a purchase order on the left to view timeline."
+  },
   "ledger": {
     "title": "Blockchain Ledger Explorer",
     "subtitle": "Tamper-proof Cryptographic Telemetry Audit Log on Ethereum/Sepolia Testnet",
     "totalRecords": "Total Telemetry Logs",
     "validBlocks": "On-Chain Verified Blocks",
     "searchPlaceholder": "Search by Batch ID, Tx Hash, or Vessel...",
+    "noLogs": "No matching on-chain audit logs found.",
     "columns": {
       "blockNumber": "Block #",
       "txHash": "Tx Hash",
@@ -88,7 +158,13 @@
       "action": "View on Etherscan"
     },
     "verified": "Cryptographically Verified",
-    "unverified": "Pending Verification"
+    "unverified": "Pending Verification",
+    "modal": {
+      "title": "On-Chain Transaction Audit Detail",
+      "viewOnEtherscan": "View Transaction on Etherscan ↗",
+      "contractAddress": "Smart Contract Address",
+      "signatureStatus": "Signature Status"
+    }
   },
   "consumer": {
     "title": "Consumer Freshness & Origin Verification",
@@ -113,6 +189,14 @@
     "productName": "Product Name / SKU",
     "destination": "Destination Port / Warehouse",
     "targetTemp": "Target Deep Freeze Temp (°C)",
+    "species": "Tuna Species",
+    "quantityKg": "Catch Weight (kg)",
+    "quantityPlaceholder": "Enter catch weight (e.g. 150)",
+    "fishingFleet": "Catching Fleet",
+    "notes": "Special Notes",
+    "notesPlaceholder": "Enter ultra-low freezer temp specs & on-chain integrity notes...",
+    "submittingOnChain": "Signing smart contract & broadcasting on-chain transaction...",
+    "submittingHash": "Locking Keccak256 cryptographic integrity hash in progress.",
     "submit": "Create Batch",
     "creating": "Creating Batch on-chain..."
   }

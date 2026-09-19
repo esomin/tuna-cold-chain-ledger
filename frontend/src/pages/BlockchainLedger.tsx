@@ -284,7 +284,7 @@ const BlockchainLedger: React.FC = () => {
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={5} className="p-12 text-center text-slate-400">
-                                    일치하는 온체인 감사 로그가 없습니다.
+                                    {t('ledger.noLogs')}
                                 </TableCell>
                             </TableRow>
                         )}
@@ -306,7 +306,7 @@ const BlockchainLedger: React.FC = () => {
                         <div className="flex items-center justify-between pr-8">
                             <div className="flex items-center gap-2.5">
                                 <Database className="w-5 h-5 text-sky-400" />
-                                <h3 className="text-base font-bold text-white">온체인 트랜잭션 상세 원장</h3>
+                                <h3 className="text-base font-bold text-white">{t('ledger.modal.title')}</h3>
                             </div>
                             <a
                                 href={selectedLog.txHash.startsWith('0x') && !selectedLog.txHash.includes('ffffff') ? `${ETHERSCAN_BASE_URL}/tx/${selectedLog.txHash}` : `${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
@@ -333,7 +333,7 @@ const BlockchainLedger: React.FC = () => {
                                         rel="noopener noreferrer"
                                         className="text-[10px] font-bold hover:underline flex items-center gap-1 text-sky-300"
                                     >
-                                        <span>Etherscan에서 트랜잭션 보기 ↗</span>
+                                        <span>{t('ledger.modal.viewOnEtherscan')}</span>
                                     </a>
                                 </div>
                                 <p className="text-xs font-mono text-cyan-300 break-all">{selectedLog.txHash}</p>
@@ -346,7 +346,7 @@ const BlockchainLedger: React.FC = () => {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3.5 rounded-2xl bg-[#101a24] border border-[#263c4e] space-y-1">
-                                    <p className="text-[10px] uppercase font-bold text-slate-400">스마트 계약 주소</p>
+                                    <p className="text-[10px] uppercase font-bold text-slate-400">{t('ledger.modal.contractAddress')}</p>
                                     <a
                                         href={`${ETHERSCAN_BASE_URL}/address/${CONTRACT_ADDRESS}`}
                                         target="_blank"
@@ -358,7 +358,7 @@ const BlockchainLedger: React.FC = () => {
                                     </a>
                                 </div>
                                 <div className="p-3.5 rounded-2xl bg-[#101a24] border border-[#263c4e] space-y-1">
-                                    <p className="text-[10px] uppercase font-bold text-slate-400">서명 상태</p>
+                                    <p className="text-[10px] uppercase font-bold text-slate-400">{t('ledger.modal.signatureStatus')}</p>
                                     <p className="text-xs font-bold text-emerald-300 flex items-center gap-1">
                                         <CheckCircle2 className="w-3.5 h-3.5" />
                                         <span>ON-CHAIN VERIFIED</span>
@@ -372,7 +372,7 @@ const BlockchainLedger: React.FC = () => {
                                 onClick={() => setSelectedLog(null)}
                                 className="px-5 py-2 bg-[#223647] hover:bg-[#2c455a] text-xs font-bold rounded-xl transition-colors text-white"
                             >
-                                닫기
+                                {t('common.close')}
                             </button>
                         </div>
                     </div>

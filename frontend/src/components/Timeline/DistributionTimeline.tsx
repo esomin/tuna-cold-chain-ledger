@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ExternalLink } from 'lucide-react';
 import { ETHERSCAN_BASE_URL } from '../../config';
 
@@ -27,35 +28,36 @@ interface StepInfo {
 }
 
 export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNumber, status, isLoading, isBackendError }) => {
+    const { t } = useTranslation();
     const [stageLogs, setStageLogs] = useState<StageLog[]>([]);
 
     const steps: StepInfo[] = [
         {
             key: 'HARVESTED',
-            label: '어획 완료',
+            label: t('timeline.harvestedLabel'),
             codeLabel: 'HARVESTED',
-            description: '원산지(남태평양 어장) 정보 확정 및 최초 온체인 무결성 해시 등록',
+            description: t('timeline.harvestedDesc'),
             statusTrigger: ['HARVESTED', 'DRAFT', 'PENDING', 'COMPLETED'],
         },
         {
             key: 'PROCESSING',
-            label: '초저온 가공',
+            label: t('timeline.processingLabel'),
             codeLabel: 'PROCESSED',
-            description: '초저온(-55°C) 급랭 동결고 입고 및 포장 규격 해시 블록체인 기록',
+            description: t('timeline.processingDesc'),
             statusTrigger: ['PROCESSING', 'PENDING', 'COMPLETED'],
         },
         {
             key: 'IN_TRANSIT',
-            label: '초저온 운송중',
+            label: t('timeline.inTransitLabel'),
             codeLabel: 'IN-TRANSIT',
-            description: '초저온 유통 차량 실시간 GPS/온도 텔레메트리 연동 무결성 검증',
+            description: t('timeline.inTransitDesc'),
             statusTrigger: ['IN_TRANSIT', 'PENDING', 'COMPLETED'],
         },
         {
             key: 'DELIVERED',
-            label: '입고 완료',
+            label: t('timeline.deliveredLabel'),
             codeLabel: 'DELIVERED',
-            description: '소비자 검증용 온체인 디지털 정품 보증서(NFT Hash) 발행 완료',
+            description: t('timeline.deliveredDesc'),
             statusTrigger: ['DELIVERED', 'COMPLETED'],
         },
     ];

@@ -158,7 +158,7 @@ const AppLayout: React.FC = () => {
                 {/* Floating Large Glass Window Container */}
                 <main className="relative flex-1 flex flex-col min-w-0 glass-container rounded-[28px] lg:rounded-[36px] overflow-hidden shadow-2xl min-h-[calc(100vh-4rem)]">
                     {/* Top Right Header Actions Bar */}
-                    <div className="absolute top-5 right-6 sm:right-8 z-40 flex items-center gap-4">
+                    <div className="absolute top-4 right-7 sm:right-10 z-40 flex items-center gap-4">
                         <LanguageSwitcher />
                     </div>
                     <Outlet />

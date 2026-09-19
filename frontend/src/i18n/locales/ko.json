@@ -27,15 +27,20 @@
     "normal": "정상",
     "warning": "경고",
     "critical": "위험",
-    "violation": "이탈"
+    "violation": "이탈",
+    "delete": "삭제",
+    "tryAgain": "다시 시도"
   },
   "dashboard": {
     "title": "Tuna Cold Chain",
     "subtitle": "대시보드",
     "description": "초저온 콜드체인 실시간 텔레메트리 & 온체인 무결성 추적",
     "createOrder": "신규 수송 등록",
-    "telemetryTitle": "초저온 챔버 텔레메트리",
+    "telemetryTitle": "초저온 온도 텔레메트리",
     "realtimeSensor": "실시간 센서 피드",
+    "fleetInfo": {
+      "title": "선단 및 수송 배치 상세"
+    },
     "syncData": "데이터 동기화",
     "timeRanges": {
       "live": "LIVE (실시간)",
@@ -44,20 +49,55 @@
       "24h": "24 시간"
     },
     "metrics": {
-      "targetTemp": "목표 초저온 보관 온도",
-      "complianceRate": "콜드체인 준수율",
+      "totalMonitoring": "총 모니터링 물량",
+      "batchCount": "1 배치",
+      "targetTemp": "목표 초저온",
+      "safetyStandard": "안전 표준",
+      "complianceRate": "초저온 규격 준수율",
       "chamberTemp": "현재 챔버 온도",
       "ambientTemp": "외기 온도",
       "humidity": "습도",
       "currentLocation": "현재 위치",
-      "anomalies": "온도 이탈 감지"
+      "anomalies": "온도 이탈 감지",
+      "freshnessIndex": "신선도 지수",
+      "premiumQuality": "✓ 최고 등급 프리미엄 참다랑어",
+      "smartContractLock": "스마트 컨트랙트 잠금",
+      "homePort": "출항지",
+      "safeBaseTemp": "안전 기준 온도",
+      "totalBatchWeight": "배치 총 중량"
+    },
+    "labels": {
+      "pending": "대기 중",
+      "selectGpsInfo": "선택된 발주/운송 건의 실시간 GPS 관제가 표시됩니다.",
+      "sensorRules": "초저온 보관 규정 준수 센서 실시간 가동 현황 (-55°C 기준)",
+      "liveFeed": "실시간 스트림",
+      "72hTrend": "72시간 추이",
+      "realtimeDetected": "실시간 감지:",
+      "safetyThreshold": "안전 임계치 (-55°C)",
+      "warningThreshold": "경고 임계치 (-45°C)",
+      "stable": "✓ 100% CRYOGENIC STABLE",
+      "anomaliesCount": "온도 이탈 {{count}}건",
+      "anomalyZero": "온도 이탈 0건",
+      "anomalyCount": "온도 이탈 {{count}}건",
+      "noTelemetryData": "수신된 초저온 센서 텔레메트리 데이터가 없습니다",
+      "noFleetSelected": "선택된 원양선단 정보가 없습니다",
+      "noOrderSelected": "선택된 발주/운송 건이 없습니다",
+      "needServerConnection": "서버 연결 필요",
+      "needOrderSelected": "운송 건 선택 필요",
+      "needConnection": "연결 필요",
+      "tunaProduct": "참치 상품",
+      "sensorSync": "Sensor 동기화",
+      "syncing": "동기화중...",
+      "blockchainVerify": "Blockchain 검증",
+      "qrVerify": "QR 검증",
+      "notification": "알림 통지"
     },
     "timeline": {
-      "title": "초저온 유통 단계별 라이프사이클",
+      "title": "온체인 공급망 타임라인",
       "subtitle": "단계별 콜드체인 검증 타임라인"
     },
     "map": {
-      "title": "선박 및 운송 차량 실시간 GPS 추적",
+      "title": "라이브 GPS 추적",
       "latitude": "위도",
       "longitude": "경도",
       "speed": "속도(노트)",
@@ -72,12 +112,42 @@
       "tempRange": "온도범위"
     }
   },
+  "orderList": {
+    "title": "수송 배치 피드",
+    "newOrder": "신규 등록",
+    "demoRestricted": "배포 데모 환경에서는 신규 어획 등록이 제한됩니다 (로컬 개발 환경 전용)",
+    "noOrders": "등록된 운송 건이 없습니다",
+    "changeStage": "유통 단계 변경",
+    "cannotBackward": "이전단계 불가",
+    "deleteOrder": "삭제",
+    "quantity": "수량:",
+    "txInProgress": "온체인 트랜잭션 체결 진행 중...",
+    "stages": {
+      "harvested": "어획 완료",
+      "processing": "초저온 가공",
+      "inTransit": "초저온 운송중",
+      "delivered": "입고 완료"
+    }
+  },
+  "timeline": {
+    "harvestedLabel": "어획 완료",
+    "harvestedDesc": "원산지(남태평양 어장) 정보 확정 및 최초 온체인 무결성 해시 등록",
+    "processingLabel": "초저온 가공",
+    "processingDesc": "초저온(-55°C) 급랭 동결고 입고 및 포장 규격 해시 블록체인 기록",
+    "inTransitLabel": "초저온 운송중",
+    "inTransitDesc": "초저온 유통 차량 실시간 GPS/온도 텔레메트리 연동 무결성 검증",
+    "deliveredLabel": "입고 완료",
+    "deliveredDesc": "소비자 검증용 온체인 디지털 정품 보증서(NFT Hash) 발행 완료",
+    "serverRequired": "서버 연결 후 이용할 수 있습니다.",
+    "selectOrder": "좌측에서 발주/운송 건을 선택하면 타임라인이 표기됩니다."
+  },
   "ledger": {
     "title": "블록체인 원장 탐색기",
     "subtitle": "Ethereum/Sepolia 테스트넷 기반 변조 불가능한 암호화 텔레메트리 감사 로그",
     "totalRecords": "총 텔레메트리 로그 수",
     "validBlocks": "온체인 검증 완료 블록",
     "searchPlaceholder": "배치 ID, 트랜잭션 해시, 선박명 검색...",
+    "noLogs": "일치하는 온체인 감사 로그가 없습니다.",
     "columns": {
       "blockNumber": "블록 번호",
       "txHash": "트랜잭션 해시",
@@ -88,7 +158,13 @@
       "action": "Etherscan 확인"
     },
     "verified": "암호화 검증 완료",
-    "unverified": "검증 대기 중"
+    "unverified": "검증 대기 중",
+    "modal": {
+      "title": "온체인 트랜잭션 상세 원장",
+      "viewOnEtherscan": "Etherscan에서 트랜잭션 보기 ↗",
+      "contractAddress": "스마트 계약 주소",
+      "signatureStatus": "서명 상태"
+    }
   },
   "consumer": {
     "title": "소비자 신선도 & 어획 원산지 검증",
@@ -113,6 +189,14 @@
     "productName": "품목명 / SKU",
     "destination": "목적지 항구 / 창고",
     "targetTemp": "목표 초저온 (°C)",
+    "species": "어종",
+    "quantityKg": "어획량 (kg)",
+    "quantityPlaceholder": "어획 수량 입력 (예: 150)",
+    "fishingFleet": "어획 선단",
+    "notes": "특이사항",
+    "notesPlaceholder": "초저온 동결고 온도 규격 및 온체인 무결성 특이사항 작성...",
+    "submittingOnChain": "스마트 계약 온체인 서명 및 트랜잭션 발행 중...",
+    "submittingHash": "Keccak256 무결성 해시 락업 체결 진행 중입니다.",
     "submit": "배치 생성",
     "creating": "온체인 배치 생성 중..."
   }

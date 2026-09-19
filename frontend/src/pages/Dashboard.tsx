@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -81,6 +82,7 @@ const RechartsCustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const Dashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [selectedPo, setSelectedPo] = useState<PurchaseOrder | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState('72h');
@@ -318,31 +320,33 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Top Summary Stat Capsule */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
-            <div className="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center">
+        <div className="flex flex-wrap items-center gap-1">
+          <div className="glass-pill px-4 py-2.5 mt-3 rounded-2xl flex items-center gap-3 shadow-lg w-[220px] shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0">
               <Boxes className="w-4 h-4" />
             </div>
-            <div>
-              <p className="text-[10px] uppercase font-semibold text-slate-400">총 모니터링 물량</p>
-              <p className="text-sm font-bold text-white">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] uppercase font-semibold text-slate-400 truncate">{t('dashboard.metrics.totalMonitoring')}</p>
+              <p className="text-sm font-bold text-white truncate">
                 <span className="font-mono">
                   {selectedPo && !isDisconnected ? `${selectedPo.quantity.toLocaleString()} kg` : '-- kg'}
                 </span>{' '}
                 <span className="text-[10px] text-sky-300 font-normal font-sans">
-                  / {selectedPo && !isDisconnected ? '1 배치' : '-- 배치'}
+                  / {selectedPo && !isDisconnected ? t('dashboard.metrics.batchCount') : '--'}
                 </span>
               </p>
             </div>
           </div>
 
-          <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg">
-            <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center">
+          <div className="glass-pill px-4 py-2.5 mt-3 rounded-2xl flex items-center gap-3 shadow-lg w-[220px] shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center shrink-0">
               <Thermometer className="w-4 h-4" />
             </div>
-            <div>
-              <p className="text-[10px] uppercase font-semibold text-slate-400">목표 초저온</p>
-              <p className="text-sm font-bold text-cyan-300"><span className="font-mono">-55.0°C</span> <span className="text-[10px] text-slate-400 font-normal font-sans">안전 표준</span></p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] uppercase font-semibold text-slate-400 truncate">{t('dashboard.metrics.targetTemp')}</p>
+              <p className="text-sm font-bold text-cyan-300 truncate">
+                <span className="font-mono">-55.0°C</span> <span className="text-[10px] text-slate-400 font-normal font-sans">{t('dashboard.metrics.safetyStandard')}</span>
+              </p>
             </div>
           </div>
         </div>
@@ -377,7 +381,7 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-sky-400" />
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Live GPS Tracking</h3>
+                  <h3 className="text-sm font-bold text-white tracking-wider">{t('dashboard.map.title')}</h3>
                 </div>
                 {isInitialLoading ? (
                   <div className="h-3.5 w-20 bg-slate-800 rounded animate-pulse" />
@@ -441,18 +445,18 @@ const Dashboard: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <Activity className="w-4 h-4 text-cyan-400" />
-                  <h2 className="text-base font-bold text-white tracking-wide uppercase">Cold Chain Temp Track</h2>
+                  <h2 className="text-base font-bold text-white tracking-wide">{t('dashboard.telemetryTitle')}</h2>
                 </div>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  초저온 보관 규정 준수 센서 실시간 가동 현황 (-55°C 기준)
+                  {t('dashboard.labels.sensorRules')}
                 </p>
               </div>
 
               {/* Range filter pill */}
               <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/60 border border-white/10 text-xs self-start sm:self-auto">
                 {[
-                  { label: '실시간 스트림', key: 'Live Feed' },
-                  { label: '72시간 추이', key: '72h' }
+                  { label: t('dashboard.labels.liveFeed'), key: 'Live Feed' },
+                  { label: t('dashboard.labels.72hTrend'), key: '72h' }
                 ].map((item) => {
                   const isCompleted = selectedPo?.status === 'COMPLETED' || selectedPo?.status === 'DELIVERED';
                   const isDisabled = item.key === 'Live Feed' && isCompleted;
@@ -463,7 +467,6 @@ const Dashboard: React.FC = () => {
                       key={item.key}
                       disabled={isDisabled}
                       onClick={() => !isDisabled && setSelectedTimeRange(item.key)}
-                      title={isDisabled ? '입고 완료 상태에서는 72시간 전체 추이만 제공됩니다' : ''}
                       className={`px-3.5 py-1 rounded-lg text-xs font-medium transition-all ${isDisabled
                         ? 'opacity-40 cursor-not-allowed text-slate-500 line-through'
                         : isActive
@@ -483,26 +486,25 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5 text-slate-300">
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]" />
-                  <span>실시간 감지: <strong className="text-white font-mono">{isDisconnected || !selectedPo || simTemperature === undefined ? '--' : `${simTemperature.toFixed(1)}°C`}</strong></span>
+                  <span>{t('dashboard.labels.realtimeDetected')} <strong className="text-white font-mono">{isDisconnected || !selectedPo || simTemperature === undefined ? '--' : `${simTemperature.toFixed(1)}°C`}</strong></span>
                 </span>
                 <span className="flex items-center gap-1.5 text-slate-400">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                  <span>안전 임계치 (-55°C)</span>
+                  <span>{t('dashboard.labels.safetyThreshold')}</span>
                 </span>
                 <span className="flex items-center gap-1.5 text-slate-400">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                  <span>경고 임계치 (-45°C)</span>
+                  <span>{t('dashboard.labels.warningThreshold')}</span>
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className={`text-[11px] px-2.5 py-1 rounded-full border font-semibold flex items-center gap-1.5 shadow-sm ${
-                  tempStats.isStable
-                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                    : 'bg-rose-500/15 text-rose-300 border-rose-500/30'
-                }`}>
+                <span className={`text-[11px] px-2.5 py-1 rounded-full border font-semibold flex items-center gap-1.5 shadow-sm ${tempStats.isStable
+                  ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                  : 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                  }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${tempStats.isStable ? 'bg-emerald-400 animate-ping' : 'bg-rose-400 animate-pulse'}`} />
-                  {tempStats.isStable ? '✓ 100% CRYOGENIC STABLE' : `TEMP ANOMALY DETECTED (${tempStats.anomalyCount}건)`}
+                  {tempStats.isStable ? t('dashboard.labels.stable') : t('dashboard.labels.anomaliesCount', { count: tempStats.anomalyCount })}
                 </span>
               </div>
             </div>
@@ -521,7 +523,7 @@ const Dashboard: React.FC = () => {
               ) : chartData.length === 0 ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 bg-slate-950/40 text-slate-400 text-xs font-digital rounded-2xl border border-white/5 gap-2">
                   <Activity className="w-8 h-8 text-slate-600 mb-1 animate-pulse" />
-                  <p className="font-semibold text-slate-300">수신된 초저온 센서 텔레메트리 데이터가 없습니다</p>
+                  <p className="font-semibold text-slate-300">{t('dashboard.labels.noTelemetryData')}</p>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -664,9 +666,9 @@ const Dashboard: React.FC = () => {
               ) : (
                 <>
                   <div>
-                    <p className="text-[11px] font-semibold text-slate-400">신선도 지수</p>
+                    <p className="text-[11px] font-semibold text-slate-400">{t('dashboard.metrics.freshnessIndex')}</p>
                     <p className="text-2xl font-black text-white font-mono mt-1">{isDisconnected ? '--' : '99.8%'}</p>
-                    <p className="text-[10px] text-emerald-400 mt-0.5">{isDisconnected ? '연결 필요' : '✓ 최고 등급 프리미엄 참다랑어'}</p>
+                    <p className="text-[10px] text-emerald-400 mt-0.5">{isDisconnected ? t('dashboard.labels.needConnection') : t('dashboard.metrics.premiumQuality')}</p>
                   </div>
                   <div className="w-12 h-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-400 flex items-center justify-center font-bold text-xs text-emerald-300">
                     {isDisconnected ? '--' : 'A+'}
@@ -689,9 +691,9 @@ const Dashboard: React.FC = () => {
               ) : (
                 <>
                   <div>
-                    <p className="text-[11px] font-semibold text-slate-400">스마트 컨트랙트 잠금</p>
+                    <p className="text-[11px] font-semibold text-slate-400">{t('dashboard.metrics.smartContractLock')}</p>
                     <p className="text-2xl font-black text-white font-mono mt-1">{isDisconnected ? '--' : '100%'}</p>
-                    <p className="text-[10px] text-cyan-300 mt-0.5">{isDisconnected ? '연결 필요' : 'Keccak256 SHA-3'}</p>
+                    <p className="text-[10px] text-cyan-300 mt-0.5">{isDisconnected ? t('dashboard.labels.needConnection') : 'Keccak256 SHA-3'}</p>
                   </div>
                   <div className="w-12 h-12 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 flex items-center justify-center font-bold text-xs text-cyan-300">
                     {isDisconnected ? '--' : 'L1'}
@@ -714,10 +716,10 @@ const Dashboard: React.FC = () => {
               ) : (
                 <>
                   <div>
-                    <p className="text-[11px] font-semibold text-slate-400">초저온 규격 준수율</p>
+                    <p className="text-[11px] font-semibold text-slate-400">{t('dashboard.metrics.complianceRate')}</p>
                     <p className="text-2xl font-black text-white font-mono mt-1">{isDisconnected ? '--' : '< -55°C'}</p>
                     <p className="text-[10px] text-sky-400 mt-0.5">
-                      {isDisconnected ? '연결 필요' : tempStats.anomalyCount > 0 ? `온도 이탈 ${tempStats.anomalyCount}건` : '온도 이탈 0건'}
+                      {isDisconnected ? t('dashboard.labels.needConnection') : tempStats.anomalyCount > 0 ? t('dashboard.labels.anomalyCount', { count: tempStats.anomalyCount }) : t('dashboard.labels.anomalyZero')}
                     </p>
                   </div>
                   <div className="w-12 h-12 rounded-full border-4 border-sky-500/20 border-t-sky-400 flex items-center justify-center font-bold text-xs text-sky-300">
@@ -741,7 +743,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Compass className="w-4 h-4 text-sky-400" />
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Fishing Fleet Info</h3>
+                <h3 className="text-sm font-bold text-white tracking-wider">{t('dashboard.fleetInfo.title')}</h3>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -785,7 +787,7 @@ const Dashboard: React.FC = () => {
                       <span className="text-slate-600">|</span>
                       <span className="text-cyan-300/90 font-digital flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                        <span>출항지: {displayFleet.homePort}</span>
+                        <span>{t('dashboard.metrics.homePort')}: {displayFleet.homePort}</span>
                       </span>
                     </div>
                   </div>
@@ -793,7 +795,7 @@ const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center p-3 text-center text-slate-400 text-xs font-digital glass-card-inner rounded-2xl border border-white/5 min-h-[52px]">
-                <p className="font-semibold text-slate-400">선택된 원양선단 정보가 없습니다</p>
+                <p className="font-semibold text-slate-400">{t('dashboard.labels.noFleetSelected')}</p>
               </div>
             )}
 
@@ -821,7 +823,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex justify-between items-start z-10">
                   <div>
                     <p className="text-[10px] font-mono tracking-widest uppercase text-cyan-200">MARITIME INTEGRITY NFT</p>
-                    <p className="text-base font-extrabold tracking-tight mt-0.5">{selectedPo.product?.name || '참치 상품'}</p>
+                    <p className="text-base font-extrabold tracking-tight mt-0.5">{selectedPo.product?.name || t('dashboard.labels.tunaProduct')}</p>
                   </div>
                   <span className="text-sm font-black italic tracking-wider text-cyan-200">TUNA CHAIN</span>
                 </div>
@@ -835,11 +837,11 @@ const Dashboard: React.FC = () => {
 
                 <div className="flex justify-between items-end z-10 pt-2 border-t border-white/15">
                   <div>
-                    <p className="text-[9px] uppercase text-cyan-200">안전 기준 온도</p>
+                    <p className="text-[9px] uppercase text-cyan-200">{t('dashboard.metrics.safeBaseTemp')}</p>
                     <p className="text-xs font-bold font-mono">-55.0°C ULTRA COLD</p>
                   </div>
                   <div>
-                    <p className="text-[9px] uppercase text-cyan-200 text-right">배치 총 중량</p>
+                    <p className="text-[9px] uppercase text-cyan-200 text-right">{t('dashboard.metrics.totalBatchWeight')}</p>
                     <p className="text-sm font-black font-mono text-right">{selectedPo.quantity} kg</p>
                   </div>
                 </div>
@@ -847,7 +849,7 @@ const Dashboard: React.FC = () => {
             ) : (
               <div className="rounded-2xl p-5 bg-slate-900/40 text-slate-400 flex flex-col items-center justify-center gap-2 h-48 border border-white/10 text-xs font-digital">
                 <Boxes className="w-8 h-8 text-slate-600 mb-1" />
-                <p className="font-semibold text-slate-300">선택된 발주/운송 건이 없습니다</p>
+                <p className="font-semibold text-slate-300">{t('dashboard.labels.noOrderSelected')}</p>
               </div>
             )}
 
@@ -856,25 +858,24 @@ const Dashboard: React.FC = () => {
               <button
                 onClick={handleSensorSync}
                 disabled={isDisconnected || !selectedPo}
-                title={isDisconnected ? '서버 연결 필요' : !selectedPo ? '운송 건 선택 필요' : ''}
-                className={`flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl border transition-all group ${
-                  isDisconnected || !selectedPo
-                    ? 'bg-slate-800/40 border-slate-700/40 text-slate-500 opacity-60 cursor-not-allowed'
-                    : 'bg-white/5 border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)]'
-                }`}
+                title={isDisconnected ? t('dashboard.labels.needServerConnection') : !selectedPo ? t('dashboard.labels.needOrderSelected') : ''}
+                className={`flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl border transition-all group ${isDisconnected || !selectedPo
+                  ? 'bg-slate-800/40 border-slate-700/40 text-slate-500 opacity-60 cursor-not-allowed'
+                  : 'bg-white/5 border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)]'
+                  }`}
               >
                 <Radio className={`w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform ${isSyncing ? 'animate-spin text-sky-200' : ''}`} />
-                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{isSyncing ? '동기화중...' : 'Sensor 동기화'}</span>
+                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{isSyncing ? t('dashboard.labels.syncing') : t('dashboard.labels.sensorSync')}</span>
               </button>
 
               {isDisconnected || !selectedPo ? (
                 <button
                   disabled
-                  title={isDisconnected ? '서버 연결 필요' : '운송 건 선택 필요'}
+                  title={isDisconnected ? t('dashboard.labels.needServerConnection') : t('dashboard.labels.needOrderSelected')}
                   className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-slate-800/40 border border-slate-700/40 text-slate-500 opacity-60 cursor-not-allowed select-none"
                 >
                   <BookOpenCheck className="w-6 h-6 text-slate-500" />
-                  <span className="text-xs font-semibold font-digital">Blockchain 검증</span>
+                  <span className="text-xs font-semibold font-digital">{t('dashboard.labels.blockchainVerify')}</span>
                 </button>
               ) : (
                 <Link
@@ -882,18 +883,18 @@ const Dashboard: React.FC = () => {
                   className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
                 >
                   <BookOpenCheck className="w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">Blockchain 검증</span>
+                  <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{t('dashboard.labels.blockchainVerify')}</span>
                 </Link>
               )}
 
               {isDisconnected || !selectedPo ? (
                 <button
                   disabled
-                  title={isDisconnected ? '서버 연결 필요' : '운송 건 선택 필요'}
+                  title={isDisconnected ? t('dashboard.labels.needServerConnection') : t('dashboard.labels.needOrderSelected')}
                   className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-slate-800/40 border border-slate-700/40 text-slate-500 opacity-60 cursor-not-allowed select-none"
                 >
                   <QrCode className="w-6 h-6 text-slate-500" />
-                  <span className="text-xs font-semibold font-digital">QR 검증</span>
+                  <span className="text-xs font-semibold font-digital">{t('dashboard.labels.qrVerify')}</span>
                 </button>
               ) : (
                 <a
@@ -903,7 +904,7 @@ const Dashboard: React.FC = () => {
                   className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
                 >
                   <QrCode className="w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">QR 검증</span>
+                  <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{t('dashboard.labels.qrVerify')}</span>
                 </a>
               )}
             </div>
@@ -913,9 +914,9 @@ const Dashboard: React.FC = () => {
           {/* Panel 5: 3.3 ON-CHAIN TIMELINE & ALERTS */}
           <div className="glass-card rounded-3xl p-6 flex flex-col gap-4 flex-1">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-sm font-bold text-white tracking-wider flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>On-Chain Supply Timeline</span>
+                <span>{t('dashboard.timeline.title')}</span>
               </h3>
             </div>
 

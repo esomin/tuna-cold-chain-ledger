@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { Plus, Truck, MoreVertical, ChevronRight, RefreshCw, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { OrderCreateModal } from './OrderCreateModal';
@@ -38,13 +39,14 @@ const STAGE_ORDER: Record<string, number> = {
 };
 
 const STAGE_OPTIONS = [
-    { key: 'HARVESTED', label: '1단계: HARVESTED (어획 완료)' },
-    { key: 'PROCESSING', label: '2단계: PROCESSED (초저온 가공)' },
-    { key: 'IN_TRANSIT', label: '3단계: IN_TRANSIT (초저온 운송중)' },
-    { key: 'DELIVERED', label: '4단계: DELIVERED (입고 완료)' },
+    { key: 'HARVESTED', step: 1, labelKey: 'orderList.stages.harvested' },
+    { key: 'PROCESSING', step: 2, labelKey: 'orderList.stages.processing' },
+    { key: 'IN_TRANSIT', step: 3, labelKey: 'orderList.stages.inTransit' },
+    { key: 'DELIVERED', step: 4, labelKey: 'orderList.stages.delivered' },
 ];
 
 export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, onSelectPo, isLoading, onErrorChange, connectionStatus }) => {
+    const { t } = useTranslation();
     const [orders, setOrders] = useState<PurchaseOrder[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -179,18 +181,18 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
         switch (status.toUpperCase()) {
             case 'COMPLETED':
             case 'DELIVERED':
-                return '입고 완료';
+                return t('orderList.stages.delivered');
             case 'HARVESTED':
-                return '어획 완료';
+                return t('orderList.stages.harvested');
             case 'PROCESSING':
             case 'PROCESSED':
-                return '초저온 가공';
+                return t('orderList.stages.processing');
             case 'IN_TRANSIT':
             case 'PENDING':
-                return '초저온 운송중';
+                return t('orderList.stages.inTransit');
             case 'DRAFT':
             default:
-                return '어획 완료';
+                return t('orderList.stages.harvested');
         }
     };
 
@@ -223,7 +225,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                         <Truck className="w-4 h-4 text-sky-400 shrink-0" />
-                        <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-digital truncate">Fleet Transport Feed</h3>
+                        <h3 className="text-xs sm:text-sm font-bold text-white tracking-wider font-digital truncate">{t('orderList.title')}</h3>
                     </div>
                 </div>
                 <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-digital flex flex-col items-center justify-center gap-2.5 text-center min-h-[160px]">
@@ -246,13 +248,13 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
             <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                     <Truck className="w-4 h-4 text-sky-400 shrink-0" />
-                    <h3 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider font-digital truncate">Fleet Transport Feed</h3>
+                    <h3 className="text-xs sm:text-sm font-bold text-white tracking-wider font-digital truncate">{t('orderList.title')}</h3>
                 </div>
                 {isDev ? (
                     <button
                         disabled={isDisconnected}
                         onClick={() => setIsModalOpen(true)}
-                        title={isDisconnected ? '서버 연결 필요' : ''}
+                        title={isDisconnected ? t('dashboard.labels.needServerConnection') : ''}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md font-digital shrink-0 whitespace-nowrap select-none ${
                             isDisconnected
                                 ? 'bg-slate-800 text-slate-500 border border-slate-700/60 opacity-60 cursor-not-allowed'
@@ -260,16 +262,16 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                         }`}
                     >
                         <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>신규 등록</span>
+                        <span>{t('orderList.newOrder')}</span>
                     </button>
                 ) : (
                     <button
                         disabled
-                        title="배포 데모 환경에서는 신규 어획 등록이 제한됩니다 (로컬 개발 환경 전용)"
+                        title={t('orderList.demoRestricted')}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-500 border border-slate-700/60 opacity-60 cursor-not-allowed font-digital shrink-0 whitespace-nowrap select-none"
                     >
                         <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>신규 등록</span>
+                        <span>{t('orderList.newOrder')}</span>
                     </button>
                 )}
             </div>
@@ -356,8 +358,8 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                                                                                             : 'hover:bg-white/10 text-slate-300 hover:text-white cursor-pointer'
                                                                                     }`}
                                                                                 >
-                                                                                    <span>{opt.label}</span>
-                                                                                    {isBackward && <span className="text-[9px] text-rose-400/80 font-normal">이전단계 불가</span>}
+                                                                                    <span>{opt.step}. {opt.key} ({t(opt.labelKey)})</span>
+                                                                                    {isBackward && <span className="text-[9px] text-rose-400/80 font-normal">{t('orderList.cannotBackward')}</span>}
                                                                                 </DropdownMenu.Item>
                                                                             );
                                                                         })}
@@ -372,7 +374,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                                                                 className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 cursor-pointer outline-none transition-colors font-medium"
                                                             >
                                                                 <Trash2 className="w-3.5 h-3.5" />
-                                                                <span>삭제</span>
+                                                                <span>{t('orderList.deleteOrder')}</span>
                                                             </DropdownMenu.Item>
                                                         </DropdownMenu.Content>
                                                     </DropdownMenu.Portal>
@@ -382,8 +384,8 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                                     </div>
                                 </div>
                                 <div className="text-xs space-y-0.5 text-slate-300">
-                                    <p className="font-semibold text-slate-100">{order.product?.name || '참치 상품'}</p>
-                                    <p className="text-[11px] text-slate-400">수량: <strong className="text-slate-200">{order.quantity}kg</strong> | {order.supplierName}</p>
+                                    <p className="font-semibold text-slate-100">{order.product?.name || t('dashboard.labels.tunaProduct')}</p>
+                                    <p className="text-[11px] text-slate-400">{t('orderList.quantity')} <strong className="text-slate-200">{order.quantity}kg</strong> | {order.supplierName}</p>
                                     <p className="text-[10px] text-slate-400/80 italic line-clamp-1">{order.notes}</p>
                                 </div>
                             </div>

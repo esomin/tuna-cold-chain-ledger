@@ -145,7 +145,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-slate-300 flex items-center gap-2 font-digital">
                                 <Package className="w-4 h-4 text-sky-400" />
-                                어종
+                                {t('orderModal.species')}
                             </label>
                             <select
                                 value={skuId}
@@ -163,7 +163,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-slate-300 flex items-center gap-2 font-digital">
                                 <Truck className="w-4 h-4 text-sky-400" />
-                                어획량 (kg)
+                                {t('orderModal.quantityKg')}
                             </label>
                             <input
                                 type="number"
@@ -180,7 +180,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                 }}
                                 disabled={submitting}
                                 className="w-full px-4 py-3 rounded-2xl text-xs font-medium border bg-[#101a24] border-[#263c4e] text-slate-100 focus:outline-none focus:border-sky-400 font-mono placeholder:text-slate-500"
-                                placeholder="어획 수량 입력 (예: 150)"
+                                placeholder={t('orderModal.quantityPlaceholder')}
                                 required
                             />
                         </div>
@@ -189,7 +189,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                         <div className="space-y-2 md:col-span-2">
                             <label className="text-xs font-bold text-slate-300 flex items-center gap-2 font-digital">
                                 <Truck className="w-4 h-4 text-sky-400" />
-                                어획 선단
+                                {t('orderModal.fishingFleet')}
                             </label>
                             <select
                                 value={supplierName}
@@ -227,7 +227,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                             <p className="text-[11px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-1.5 font-digital">
                                                 <span>{selectedFleet.name}</span>
                                                 <span className="text-slate-600">•</span>
-                                                <span className="text-cyan-300 font-semibold">출항지: {selectedFleet.homePort}</span>
+                                                <span className="text-cyan-300 font-semibold">{t('dashboard.metrics.homePort')}: {selectedFleet.homePort}</span>
                                             </p>
                                         </div>
                                     </div>
@@ -242,7 +242,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                         <div className="space-y-2 md:col-span-2">
                             <label className="text-xs font-bold text-slate-300 flex items-center gap-2 font-digital">
                                 <FileText className="w-4 h-4 text-sky-400" />
-                                특이사항
+                                {t('orderModal.notes')}
                             </label>
                             <textarea
                                 value={notes}
@@ -250,7 +250,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                 disabled={submitting}
                                 rows={3}
                                 className="w-full px-4 py-3 rounded-2xl text-xs font-medium border bg-[#101a24] border-[#263c4e] text-slate-100 focus:outline-none focus:border-sky-400 resize-none placeholder:text-slate-500"
-                                placeholder="초저온 동결고 온도 규격 및 온체인 무결성 특이사항 작성..."
+                                placeholder={t('orderModal.notesPlaceholder')}
                             />
                         </div>
                     </div>
@@ -260,8 +260,8 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                         <div className="p-4 rounded-2xl bg-sky-500/15 border border-sky-400/30 text-sky-300 flex items-center gap-3 font-digital">
                             <Loader2 className="w-5 h-5 animate-spin shrink-0 text-cyan-400" />
                             <div className="text-xs font-medium leading-relaxed">
-                                <p className="font-bold">스마트 계약 온체인 서명 및 트랜잭션 발행 중...</p>
-                                <p className="text-[11px] text-sky-300/80">Keccak256 무결성 해시 락업 체결 진행 중입니다.</p>
+                                <p className="font-bold">{t('orderModal.submittingOnChain')}</p>
+                                <p className="text-[11px] text-sky-300/80">{t('orderModal.submittingHash')}</p>
                             </div>
                         </div>
                     )}
@@ -274,7 +274,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                             disabled={submitting}
                             className="px-5 py-3 rounded-2xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#223647] disabled:opacity-50"
                         >
-                            취소
+                            {t('common.cancel')}
                         </button>
                         <button
                             type="submit"
@@ -284,12 +284,12 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                             {submitting ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    <span>등록 중...</span>
+                                    <span>{t('common.loading')}</span>
                                 </>
                             ) : (
                                 <>
                                     <Send className="w-4 h-4 stroke-[2.5]" />
-                                    <span>신규 등록 및 온체인 서명</span>
+                                    <span>{t('orderModal.submit')}</span>
                                 </>
                             )}
                         </button>
