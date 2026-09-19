@@ -22,44 +22,99 @@ async function seedMongo() {
 
   const now = Date.now();
   const HOUR = 3600 * 1000;
-  const baseTime = now - 72 * HOUR; // 72시간 전 기준
+  const TOTAL_HOURS = 336; // 14일
+  const baseTime = now - TOTAL_HOURS * HOUR; // 336시간(14일) 전 기준
 
-  const mockLogs = [
-    // Stage 1: 어획 및 선내 보관 (0h ~ 24h)
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -10.0, latitude: 35.0784, longitude: 129.0069, timestamp: new Date(baseTime + 0 * HOUR), eventNote: '어획 완료' },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -35.0, latitude: 35.0790, longitude: 129.0080, timestamp: new Date(baseTime + 3 * HOUR) },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -57.5, latitude: 35.0800, longitude: 129.0100, timestamp: new Date(baseTime + 6 * HOUR) },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -58.2, latitude: 35.0812, longitude: 129.0125, timestamp: new Date(baseTime + 12 * HOUR) },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -57.8, latitude: 35.0825, longitude: 129.0150, timestamp: new Date(baseTime + 18 * HOUR) },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -57.0, latitude: 35.0838, longitude: 129.0175, timestamp: new Date(baseTime + 24 * HOUR) },
+  // 좌표는 기존 로직 유지: 시간 진행에 따라 약간씩 drift
+  const coord = (h: number) => ({
+    latitude: Number((35.0784 + h * 0.00007).toFixed(4)),
+    longitude: Number((129.0069 + h * 0.0001).toFixed(4)),
+  });
 
-    // Stage 2: 초저온 가공 (24h ~ 33h) - 가공 중 노출 피크 포함
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -48.0, latitude: 35.0845, longitude: 129.0185, timestamp: new Date(baseTime + 27 * HOUR) },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -49.5, latitude: 35.0855, longitude: 129.0198, timestamp: new Date(baseTime + 29 * HOUR), eventNote: '가공 중 노출 (Processing Exposure)' },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -46.0, latitude: 35.0865, longitude: 129.0210, timestamp: new Date(baseTime + 31 * HOUR) },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -56.2, latitude: 35.0875, longitude: 129.0225, timestamp: new Date(baseTime + 33 * HOUR) },
+  const poNumber = 'PO-2026-SCENARIO-A';
 
-    // Stage 3: 초저온 운송 (33h ~ 63h) - 도어 개폐 피크 포함
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -55.0, latitude: 35.0888, longitude: 129.0240, timestamp: new Date(baseTime + 42 * HOUR) },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -54.8, latitude: 35.0895, longitude: 129.0250, timestamp: new Date(baseTime + 48 * HOUR) },
-
-
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -46.0, latitude: 35.0905, longitude: 129.0265, timestamp: new Date(baseTime + 50 * HOUR), eventNote: '도어 개폐 (Door Open Event)' },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -52.5, latitude: 35.0915, longitude: 129.0280, timestamp: new Date(baseTime + 52 * HOUR) },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -53.0, latitude: 35.0925, longitude: 129.0295, timestamp: new Date(baseTime + 60 * HOUR) },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -52.2, latitude: 35.0935, longitude: 129.0310, timestamp: new Date(baseTime + 63 * HOUR) },
-
-    // Stage 4: 입고 및 검수 (63h ~ 72h) - 검수 완료 포함
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -51.5, latitude: 35.0945, longitude: 129.0325, timestamp: new Date(baseTime + 68 * HOUR), eventNote: '입고 검수 완료 (Inspection Passed)' },
-    { poNumber: 'PO-2026-SCENARIO-A', temperature: -52.0, latitude: 35.0955, longitude: 129.0340, timestamp: new Date(baseTime + 72 * HOUR) },
-
-    // 기타 레거시 PO 샘플
-    { poNumber: 'PO-20260916-6842', temperature: -56.4, latitude: 35.9892, longitude: 129.5541, timestamp: new Date() }
+  // ── Stage 1: 어획 및 선내 초저온 보관 (0h ~ 228h, 9.5일, 전체의 68%)
+  // 급속동결 램프다운(0~6h)만 촘촘히, 이후엔 24시간(1일) 간격으로 안정구간 표집
+  const harvested = [
+    { h: 0, t: -10.0, note: '어획 완료' },
+    { h: 3, t: -35.0 },
+    { h: 6, t: -57.5, note: '선내 급속동결 완료' },
+    { h: 24, t: -58.2 },
+    { h: 48, t: -57.8 },
+    { h: 72, t: -58.0 },
+    { h: 96, t: -57.5 },
+    { h: 120, t: -58.3 },
+    { h: 144, t: -57.9 },
+    { h: 168, t: -58.1 },
+    { h: 192, t: -57.6 },
+    { h: 216, t: -57.9 },
   ];
+
+  // ── Stage 2: 초저온 가공 (228h ~ 252h, 1일, 전체의 7%)
+  // 2시간 간격, "가공 중 노출" 이벤트 포함
+  const processing = [
+    { h: 228, t: -57.0 },
+    { h: 230, t: -52.0 },
+    { h: 232, t: -48.5 },
+    { h: 234, t: -46.0, note: '가공 중 노출 (Processing Exposure)' },
+    { h: 236, t: -47.5 },
+    { h: 238, t: -50.0 },
+    { h: 240, t: -52.5 },
+    { h: 242, t: -54.5 },
+    { h: 244, t: -55.5 },
+    { h: 246, t: -56.0 },
+    { h: 248, t: -56.5 },
+    { h: 250, t: -57.0 },
+    { h: 252, t: -57.2 },
+  ];
+
+  // ── Stage 3: 초저온 운송 (252h ~ 324h, 3일, 전체의 21%)
+  // 3시간 간격 (가장 촘촘), "도어 개폐" 이벤트 포함
+  const transit = [
+    { h: 255, t: -55.2 }, { h: 258, t: -54.8 }, { h: 261, t: -55.3 },
+    { h: 264, t: -54.9 }, { h: 267, t: -55.4 }, { h: 270, t: -54.7 },
+    { h: 273, t: -55.5 }, { h: 276, t: -54.6 }, { h: 279, t: -55.2 },
+    { h: 282, t: -54.8 }, { h: 285, t: -55.1 }, { h: 288, t: -52.0 },
+    { h: 291, t: -46.0, note: '도어 개폐 (Door Open Event)' },
+    { h: 294, t: -49.5 }, { h: 297, t: -52.5 }, { h: 300, t: -54.0 },
+    { h: 303, t: -54.8 }, { h: 306, t: -55.0 }, { h: 309, t: -54.7 },
+    { h: 312, t: -55.2 }, { h: 315, t: -54.9 }, { h: 318, t: -55.3 },
+    { h: 321, t: -54.8 }, { h: 324, t: -55.0 },
+  ];
+
+  // ── Stage 4: 입고 및 검수 (326h ~ 336h, 0.5일, 전체의 4%)
+  // 2시간 간격, "입고 검수 완료" 이벤트 포함
+  const delivered = [
+    { h: 326, t: -57.0 },
+    { h: 328, t: -58.0 },
+    { h: 330, t: -58.5 },
+    { h: 332, t: -59.0, note: '입고 검수 완료 (Inspection Passed)' },
+    { h: 334, t: -59.1 },
+    { h: 336, t: -59.2 },
+  ];
+
+  const allPoints = [...harvested, ...processing, ...transit, ...delivered];
+
+  const mockLogs = allPoints.map(({ h, t, note }) => ({
+    poNumber,
+    temperature: t,
+    ...coord(h),
+    timestamp: new Date(baseTime + h * HOUR),
+    ...(note ? { eventNote: note } : {}),
+  }));
+
+  // 기타 레거시 PO 샘플 (기존과 동일)
+  mockLogs.push({
+    poNumber: 'PO-20260916-6842',
+    temperature: -56.4,
+    latitude: 35.9892,
+    longitude: 129.5541,
+    timestamp: new Date(),
+  });
 
   await SensorRawLog.deleteMany({});
   const inserted = await SensorRawLog.insertMany(mockLogs);
-  console.log(`[Mongo Seed] Successfully inserted ${inserted.length} 72-hour telemetry sensor logs!`);
+  console.log(`[Mongo Seed] Successfully inserted ${inserted.length} 14-day(336h) telemetry sensor logs!`);
 
   await mongoose.disconnect();
   process.exit(0);
@@ -69,4 +124,3 @@ seedMongo().catch((err) => {
   console.error('[Mongo Seed Error]', err);
   process.exit(1);
 });
-

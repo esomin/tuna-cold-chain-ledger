@@ -213,9 +213,10 @@ const Dashboard: React.FC = () => {
             timeStr = d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
           } else if (item?.timestamp) {
             const elapsedHours = Math.round((new Date(item.timestamp).getTime() - minTime) / (3600 * 1000));
-            timeStr = `${elapsedHours}h`;
+            const elapsedDays = Math.floor(elapsedHours / 24) + 1;
+            timeStr = `Day ${elapsedDays}`;
           } else {
-            timeStr = `${index}h`;
+            timeStr = `Day ${Math.floor(index / 24) + 1}`;
           }
         }
         return {
@@ -829,7 +830,16 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 <div className="z-10 flex items-center gap-3">
-                  <div className="w-9 h-6 rounded-md bg-amber-400/80 border border-amber-200/60 shadow-sm" />
+                  {/* Realistic Credit Card IC Chip (Rounded Rectangular) */}
+                  <div className="w-10 h-7 rounded-md bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 border border-amber-200/80 shadow-inner relative overflow-hidden flex flex-col justify-between p-0.5 shrink-0">
+                    <div className="w-full h-[1px] bg-amber-700/40" />
+                    <div className="flex justify-between items-center h-full px-1">
+                      <div className="w-3.5 h-3 rounded-[3px] border border-amber-700/50 bg-amber-200/50" />
+                      <div className="w-[1px] h-full bg-amber-700/40" />
+                      <div className="w-3.5 h-3 rounded-[3px] border border-amber-700/50 bg-amber-200/50" />
+                    </div>
+                    <div className="w-full h-[1px] bg-amber-700/40" />
+                  </div>
                   <span className="font-mono text-xs tracking-wider text-slate-200">
                     {selectedPo.poNumber}
                   </span>
