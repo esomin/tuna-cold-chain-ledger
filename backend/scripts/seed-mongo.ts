@@ -2,6 +2,28 @@ import mongoose from 'mongoose';
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27018/coldchain';
 
+// ── 단계 타입을 명시적으로 정의 (STAGE_CONFIG, points 배열, stageGroups에서 재사용)
+type Stage = 'HARVESTED' | 'PROCESSING' | 'IN_TRANSIT' | 'DELIVERED';
+
+interface StageThreshold {
+  targetTemp: number;
+  warningTemp: number;
+}
+
+const STAGE_CONFIG: Record<Stage, StageThreshold> = {
+  HARVESTED: { targetTemp: -55, warningTemp: -45 },
+  PROCESSING: { targetTemp: -25, warningTemp: -22 },
+  IN_TRANSIT: { targetTemp: -55, warningTemp: -45 },
+  DELIVERED: { targetTemp: -55, warningTemp: -50 },
+};
+
+// ── 시간(h)-온도(t) 포인트 타입. note는 있을 수도 없을 수도 있어서 optional(?)
+interface SeedPoint {
+  h: number;
+  t: number;
+  note?: string;
+}
+
 const SensorRawLogSchema = new mongoose.Schema(
   {
     poNumber: { type: String, required: true, index: true },
@@ -10,6 +32,14 @@ const SensorRawLogSchema = new mongoose.Schema(
     longitude: { type: Number, required: true },
     timestamp: { type: Date, default: Date.now },
     eventNote: { type: String, required: false },
+    stage: {
+      type: String,
+      required: true,
+      enum: ['HARVESTED', 'PROCESSING', 'IN_TRANSIT', 'DELIVERED'],
+      index: true,
+    },
+    targetTemp: { type: Number, required: true },
+    warningTemp: { type: Number, required: true },
   },
   { collection: 'sensor_raw_logs', timestamps: true }
 );
@@ -22,10 +52,10 @@ async function seedMongo() {
 
   const now = Date.now();
   const HOUR = 3600 * 1000;
-  const TOTAL_HOURS = 336; // 14일
-  const baseTime = now - TOTAL_HOURS * HOUR; // 336시간(14일) 전 기준
+  const TOTAL_HOURS = 336;
+  const baseTime = now - TOTAL_HOURS * HOUR;
 
-  // 좌표는 기존 로직 유지: 시간 진행에 따라 약간씩 drift
+  // 파라미터 h에 타입 명시
   const coord = (h: number) => ({
     latitude: Number((35.0784 + h * 0.00007).toFixed(4)),
     longitude: Number((129.0069 + h * 0.0001).toFixed(4)),
@@ -33,9 +63,8 @@ async function seedMongo() {
 
   const poNumber = 'PO-2026-SCENARIO-A';
 
-  // ── Stage 1: 어획 및 선내 초저온 보관 (0h ~ 228h, 9.5일, 전체의 68%)
-  // 급속동결 램프다운(0~6h)만 촘촘히, 이후엔 24시간(1일) 간격으로 안정구간 표집
-  const harvested = [
+  // 각 배열에 SeedPoint[] 타입 명시
+  const harvested: SeedPoint[] = [
     { h: 0, t: -10.0, note: '어획 완료' },
     { h: 3, t: -35.0 },
     { h: 6, t: -57.5, note: '선내 급속동결 완료' },
@@ -50,41 +79,50 @@ async function seedMongo() {
     { h: 216, t: -57.9 },
   ];
 
-  // ── Stage 2: 초저온 가공 (228h ~ 252h, 1일, 전체의 7%)
-  // 2시간 간격, "가공 중 노출" 이벤트 포함
-  const processing = [
-    { h: 228, t: -57.0 },
-    { h: 230, t: -52.0 },
-    { h: 232, t: -48.5 },
-    { h: 234, t: -46.0, note: '가공 중 노출 (Processing Exposure)' },
-    { h: 236, t: -47.5 },
-    { h: 238, t: -50.0 },
-    { h: 240, t: -52.5 },
-    { h: 242, t: -54.5 },
-    { h: 244, t: -55.5 },
-    { h: 246, t: -56.0 },
-    { h: 248, t: -56.5 },
-    { h: 250, t: -57.0 },
-    { h: 252, t: -57.2 },
+  const processing: SeedPoint[] = [
+    { h: 228, t: -56.0 },
+    { h: 230, t: -40.0 },
+    { h: 232, t: -28.0 },
+    { h: 234, t: -25.5, note: '가공 작업 진행 (Processing Handling)' },
+    { h: 236, t: -24.0 },
+    { h: 238, t: -23.5 },
+    { h: 240, t: -24.8 },
+    { h: 242, t: -25.2 },
+    { h: 244, t: -24.5 },
+    { h: 246, t: -23.8 },
+    { h: 248, t: -24.6 },
+    { h: 250, t: -25.0 },
+    { h: 252, t: -25.0 },
   ];
 
-  // ── Stage 3: 초저온 운송 (252h ~ 324h, 3일, 전체의 21%)
-  // 3시간 간격 (가장 촘촘), "도어 개폐" 이벤트 포함
-  const transit = [
-    { h: 255, t: -55.2 }, { h: 258, t: -54.8 }, { h: 261, t: -55.3 },
-    { h: 264, t: -54.9 }, { h: 267, t: -55.4 }, { h: 270, t: -54.7 },
-    { h: 273, t: -55.5 }, { h: 276, t: -54.6 }, { h: 279, t: -55.2 },
-    { h: 282, t: -54.8 }, { h: 285, t: -55.1 }, { h: 288, t: -52.0 },
-    { h: 291, t: -46.0, note: '도어 개폐 (Door Open Event)' },
-    { h: 294, t: -49.5 }, { h: 297, t: -52.5 }, { h: 300, t: -54.0 },
-    { h: 303, t: -54.8 }, { h: 306, t: -55.0 }, { h: 309, t: -54.7 },
-    { h: 312, t: -55.2 }, { h: 315, t: -54.9 }, { h: 318, t: -55.3 },
-    { h: 321, t: -54.8 }, { h: 324, t: -55.0 },
+  const transit: SeedPoint[] = [
+    { h: 255, t: -53.0, note: '컨테이너 상차 (Loading)' },
+    { h: 258, t: -56.8 },
+    { h: 261, t: -52.5 },
+    { h: 264, t: -57.2 },
+    { h: 267, t: -53.8 },
+    { h: 270, t: -55.9 },
+    { h: 273, t: -46.5, note: '도어 개폐 (Door Open Event)' },
+    { h: 276, t: -50.2 },
+    { h: 279, t: -56.5 },
+    { h: 282, t: -53.0 },
+    { h: 285, t: -57.5 },
+    { h: 288, t: -52.8 },
+    { h: 291, t: -56.0 },
+    { h: 294, t: -53.5 },
+    { h: 297, t: -47.0 },
+    { h: 300, t: -57.0 },
+    { h: 303, t: -53.2 },
+    { h: 306, t: -56.3 },
+    { h: 309, t: -52.6, note: '컨테이너 하차 대비 (Unloading Prep)' },
+    { h: 312, t: -57.4 },
+    { h: 315, t: -53.9 },
+    { h: 318, t: -55.8 },
+    { h: 321, t: -54.2 },
+    { h: 324, t: -55.0 },
   ];
 
-  // ── Stage 4: 입고 및 검수 (326h ~ 336h, 0.5일, 전체의 4%)
-  // 2시간 간격, "입고 검수 완료" 이벤트 포함
-  const delivered = [
+  const delivered: SeedPoint[] = [
     { h: 326, t: -57.0 },
     { h: 328, t: -58.0 },
     { h: 330, t: -58.5 },
@@ -93,28 +131,41 @@ async function seedMongo() {
     { h: 336, t: -59.2 },
   ];
 
-  const allPoints = [...harvested, ...processing, ...transit, ...delivered];
+  // stage 필드에 Stage 타입 명시 → STAGE_CONFIG[stage] 인덱싱 시 에러 사라짐
+  const stageGroups: { stage: Stage; points: SeedPoint[] }[] = [
+    { stage: 'HARVESTED', points: harvested },
+    { stage: 'PROCESSING', points: processing },
+    { stage: 'IN_TRANSIT', points: transit },
+    { stage: 'DELIVERED', points: delivered },
+  ];
 
-  const mockLogs = allPoints.map(({ h, t, note }) => ({
-    poNumber,
-    temperature: t,
-    ...coord(h),
-    timestamp: new Date(baseTime + h * HOUR),
-    ...(note ? { eventNote: note } : {}),
-  }));
+  const mockLogs = stageGroups.flatMap(({ stage, points }) =>
+    points.map(({ h, t, note }) => ({
+      poNumber,
+      temperature: t,
+      ...coord(h),
+      timestamp: new Date(baseTime + h * HOUR),
+      stage,
+      targetTemp: STAGE_CONFIG[stage].targetTemp,
+      warningTemp: STAGE_CONFIG[stage].warningTemp,
+      ...(note ? { eventNote: note } : {}),
+    }))
+  );
 
-  // 기타 레거시 PO 샘플 (기존과 동일)
   mockLogs.push({
     poNumber: 'PO-20260916-6842',
     temperature: -56.4,
     latitude: 35.9892,
     longitude: 129.5541,
     timestamp: new Date(),
+    stage: 'IN_TRANSIT',
+    targetTemp: STAGE_CONFIG.IN_TRANSIT.targetTemp,
+    warningTemp: STAGE_CONFIG.IN_TRANSIT.warningTemp,
   });
 
   await SensorRawLog.deleteMany({});
   const inserted = await SensorRawLog.insertMany(mockLogs);
-  console.log(`[Mongo Seed] Successfully inserted ${inserted.length} 14-day(336h) telemetry sensor logs!`);
+  console.log(`[Mongo Seed] Successfully inserted ${inserted.length} 14-day(336h) telemetry sensor logs (no-anomaly scenario)!`);
 
   await mongoose.disconnect();
   process.exit(0);

@@ -10,6 +10,7 @@ import {
   Tooltip,
   ReferenceLine,
   ReferenceDot,
+  ReferenceArea,
   CartesianGrid
 } from 'recharts';
 import {
@@ -201,57 +202,109 @@ const Dashboard: React.FC = () => {
       if (validItems.length === 0) return [];
 
       const targetItems = isLive ? validItems.slice(-10) : validItems;
-      const minTime = targetItems[0]?.timestamp ? new Date(targetItems[0].timestamp).getTime() : 0;
+      const minTime = targetItems[0]?.timestamp ? new Date(targetItems[0].timestamp).getTime() : Date.now();
+      const maxTime = targetItems[targetItems.length - 1]?.timestamp ? new Date(targetItems[targetItems.length - 1].timestamp).getTime() : minTime + 336 * 3600 * 1000;
+      const totalSpan = maxTime - minTime || 1;
 
       const mapped = targetItems.map((item: any, index: number) => {
         const rawTemp = item?.chamberTemp ?? item?.temperature;
         const tempVal = typeof rawTemp === 'number' && !isNaN(rawTemp) ? rawTemp : currentChamberTemp;
-        let timeStr = item?.time;
-        if (!timeStr) {
-          if (isLive) {
-            const d = item?.timestamp ? new Date(item.timestamp) : new Date();
-            timeStr = d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-          } else if (item?.timestamp) {
-            const elapsedHours = Math.round((new Date(item.timestamp).getTime() - minTime) / (3600 * 1000));
-            const elapsedDays = Math.floor(elapsedHours / 24) + 1;
-            timeStr = `Day ${elapsedDays}`;
-          } else {
-            timeStr = `Day ${Math.floor(index / 24) + 1}`;
-          }
+        let timeLabel = '';
+        if (isLive) {
+          const d = item?.timestamp ? new Date(item.timestamp) : new Date();
+          timeLabel = d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        } else {
+          const itemTime = item?.timestamp ? new Date(item.timestamp).getTime() : minTime + (index / targetItems.length) * totalSpan;
+          const elapsedDays = Math.floor((itemTime - minTime) / (24 * 3600 * 1000)) + 1;
+          timeLabel = String(elapsedDays);
         }
         return {
-          time: timeStr,
+          time: timeLabel,      // human-readable label (for tooltip)
+          rawIndex: index,       // numeric x-axis key
           chamberTemp: Number(tempVal.toFixed(1)),
           isPin: index === targetItems.length - 1,
+          timestamp: item?.timestamp || null,
+          stage: item?.stage || 'HARVESTED',
+          targetTemp: typeof item?.targetTemp === 'number' ? item.targetTemp : -55,
+          warningTemp: typeof item?.warningTemp === 'number' ? item.warningTemp : -45,
         };
       });
 
-      return [...mapped, { time: '', chamberTemp: null }];
+      return mapped;
     }
 
     return [];
   }, [selectedTimeRange, currentChamberTemp, selectedPo, telemetryHistory, isDisconnected]);
 
+  // 4개 공정 단계별 동적 X축 배경 영역(ReferenceArea) 계산 로직 (방식 B)
+  // rawIndex(숫자) 기반으로 x1/x2를 설정 → ReferenceArea가 XAxis와 정확히 매핑됨
+  const stageRanges = useMemo(() => {
+    if (!chartData || chartData.length === 0) return [];
+
+    const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream';
+    if (isLive) return [];
+
+    const validPoints = chartData.filter(
+      (d): d is typeof chartData[0] & { chamberTemp: number } =>
+        typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp)
+    );
+    if (validPoints.length === 0) return [];
+
+    const STAGE_LABELS: Record<string, { name: string; fill: string; textFill: string }> = {
+      HARVESTED: { name: '1. Harvested', fill: '#5495f1ff', textFill: '#f1f5f9' },  // slate-400
+      PROCESSING: { name: '2. Processing', fill: '#5495f1ff', textFill: '#f1f5f9' },
+      IN_TRANSIT: { name: '3. In Transit', fill: '#5495f1ff', textFill: '#f1f5f9' },
+      DELIVERED: { name: '4. Delivered', fill: '#5495f1ff', textFill: '#f1f5f9' },
+    };
+
+    const DEFAULT_CONFIG = STAGE_LABELS.HARVESTED;
+
+    const ranges: { stage: string; name: string; x1: number; x2: number; fill: string; textFill: string }[] = [];
+    let currentStage = validPoints[0]?.stage || 'HARVESTED';
+    let x1 = validPoints[0]?.rawIndex ?? 0;
+
+    for (let i = 1; i < validPoints.length; i++) {
+      const st = validPoints[i]?.stage || 'HARVESTED';
+      if (st !== currentStage) {
+        const cfg = STAGE_LABELS[currentStage] || DEFAULT_CONFIG;
+        ranges.push({ stage: currentStage, name: cfg.name, x1, x2: validPoints[i - 1]?.rawIndex ?? i - 1, fill: cfg.fill, textFill: cfg.textFill });
+        currentStage = st;
+        x1 = validPoints[i]?.rawIndex ?? i;
+      }
+    }
+    const finalCfg = STAGE_LABELS[currentStage] || DEFAULT_CONFIG;
+    ranges.push({
+      stage: currentStage,
+      name: finalCfg.name,
+      x1,
+      x2: validPoints[validPoints.length - 1]?.rawIndex ?? validPoints.length - 1,
+      fill: finalCfg.fill,
+      textFill: finalCfg.textFill,
+    });
+
+    return ranges;
+  }, [chartData, selectedTimeRange]);
+
   const tempStats = useMemo(() => {
     if (!chartData || chartData.length === 0) {
       return { anomalyCount: 0, complianceRate: 100, isStable: true };
     }
-    const validPoints = chartData.filter((d): d is { time: string; chamberTemp: number; isPin: boolean } => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
+    const validPoints = chartData.filter((d): d is typeof chartData[0] & { chamberTemp: number } => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
     if (validPoints.length === 0) {
       return { anomalyCount: 0, complianceRate: 100, isStable: true };
     }
-    const anomalies = validPoints.filter(d => d.chamberTemp > -55.0);
+    const anomalies = validPoints.filter(d => d.chamberTemp > (typeof d.warningTemp === 'number' ? d.warningTemp : -45));
     const count = anomalies.length;
     const complianceRate = Number((((validPoints.length - count) / validPoints.length) * 100).toFixed(1));
     return {
       anomalyCount: count,
       complianceRate,
-      isStable: count === 0 && (simTemperature === undefined || simTemperature <= -55.0),
+      isStable: count === 0 && (simTemperature === undefined || simTemperature <= -45.0),
     };
   }, [chartData, simTemperature]);
 
   const activePinItem = useMemo(() => {
-    const validPoints = chartData.filter((d): d is { time: string; chamberTemp: number; isPin: boolean } => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
+    const validPoints = chartData.filter((d): d is typeof chartData[0] & { chamberTemp: number } => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
     if (validPoints.length === 0) return null;
     const pinned = validPoints.find(d => d.isPin);
     return pinned || validPoints[validPoints.length - 1];
@@ -321,8 +374,8 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Top Summary Stat Capsule */}
-        <div className="flex flex-wrap items-center gap-1">
-          <div className="glass-pill px-4 py-2.5 mt-3 rounded-2xl flex items-center gap-3 shadow-lg w-[220px] shrink-0">
+        <div className="flex flex-wrap items-center gap-1 mt-4">
+          <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg w-[220px] shrink-0">
             <div className="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0">
               <Boxes className="w-4 h-4" />
             </div>
@@ -339,7 +392,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="glass-pill px-4 py-2.5 mt-3 rounded-2xl flex items-center gap-3 shadow-lg w-[220px] shrink-0">
+          <div className="glass-pill px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg w-[220px] shrink-0">
             <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center shrink-0">
               <Thermometer className="w-4 h-4" />
             </div>
@@ -351,7 +404,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div >
 
       {/* ========================================================================= */}
       {/* 2. MAIN TWO-COLUMN DASHBOARD GRID */}
@@ -544,38 +597,85 @@ const Dashboard: React.FC = () => {
                       </linearGradient>
                     </defs>
 
+                    {/* Dynamic Stage Background Areas (방식 B) - rawIndex 숫자 기반 매핑 */}
+                    {stageRanges.map((rng, idx) => (
+                      <ReferenceArea
+                        key={`stage-bg-${idx}-${rng.stage}`}
+                        yAxisId="left"
+                        x1={rng.x1}
+                        x2={rng.x2}
+                        y1={-65}
+                        y2={-15}
+                        fill={rng.fill}
+                        fillOpacity={0.15}
+                        stroke={rng.fill}
+                        strokeOpacity={0.4}
+                        strokeDasharray="3 3"
+                        label={{
+                          value: rng.name,
+                          position: 'insideTop',
+                          fill: rng.textFill,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          dy: 6,
+                        }}
+                      />
+                    ))}
+
                     {/* Horizontal Auxiliary Grid Lines (보조선) */}
                     <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" opacity={0.12} vertical={false} />
 
                     <XAxis
-                      dataKey="time"
+                      dataKey="rawIndex"
+                      type="number"
+                      domain={[0, chartData.length - 1]}
                       stroke="#64748b"
                       fontSize={11}
                       tickLine={false}
                       axisLine={{ stroke: '#ffffff', opacity: 0.12 }}
                       dy={5}
+                      tickFormatter={(val: number) => {
+                        // rawIndex → 해당 포인트의 day 레이블 반환 (중복 제거)
+                        const pt = chartData[val];
+                        return pt?.time ?? '';
+                      }}
+                      ticks={(() => {
+                        // 고유 day 레이블이 바뀌는 첫 번째 rawIndex만 tick으로 표시
+                        const seen = new Set<string>();
+                        const result: number[] = [];
+                        chartData.forEach((pt) => {
+                          if (pt.time && !seen.has(pt.time)) {
+                            seen.add(pt.time);
+                            result.push(pt.rawIndex);
+                          }
+                        });
+                        return result;
+                      })()}
                     />
 
                     <YAxis
                       yAxisId="left"
-                      hide={true}
-                      domain={[-60, -40]}
+                      hide={false}
+                      domain={[-65, -15]}
+                      ticks={[-60, -55, -50, -45, -35, -25, -20]}
+                      stroke="#64748b"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={{ stroke: '#ffffff', opacity: 0.12 }}
+                      unit="°C"
+                      dx={-4}
                     />
 
                     <Tooltip content={<RechartsCustomTooltip />} />
 
-                    {/* Auxiliary Guide Reference Lines (추가 보조선) */}
-                    <ReferenceLine yAxisId="left" y={-50} stroke="#ffffff" strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.12} />
-                    <ReferenceLine yAxisId="left" y={-58} stroke="#ffffff" strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.08} />
-
-                    {/* Safety Threshold Line (-55°C Limit) */}
+                    {/* Safety Threshold Line (-55°C) */}
                     <ReferenceLine
                       yAxisId="left"
                       y={-55}
                       stroke="#f43f5e"
                       strokeDasharray="4 4"
                       strokeWidth={1.2}
-                      strokeOpacity={0.7}
+                      strokeOpacity={0.85}
                       label={{
                         value: '-55°C',
                         position: 'insideBottomLeft',
@@ -583,18 +683,18 @@ const Dashboard: React.FC = () => {
                         fontSize: 10,
                         fontWeight: 600,
                         dy: 12,
-                        dx: 10
+                        dx: 0
                       }}
                     />
 
-                    {/* Warning Threshold Line (-45°C Limit) */}
+                    {/* Warning Threshold Line (-45°C) */}
                     <ReferenceLine
                       yAxisId="left"
                       y={-45}
                       stroke="#f59e0b"
                       strokeDasharray="4 4"
                       strokeWidth={1.2}
-                      strokeOpacity={0.8}
+                      strokeOpacity={0.85}
                       label={{
                         value: '-45°C',
                         position: 'insideTopLeft',
@@ -602,7 +702,45 @@ const Dashboard: React.FC = () => {
                         fontSize: 10,
                         fontWeight: 600,
                         dy: -12,
-                        dx: 10
+                        dx: 0
+                      }}
+                    />
+
+                    {/* Processing Target Line (-25°C) */}
+                    <ReferenceLine
+                      yAxisId="left"
+                      y={-25}
+                      stroke="#f43f5e"
+                      strokeDasharray="4 4"
+                      strokeWidth={1.2}
+                      strokeOpacity={0.85}
+                      label={{
+                        value: '-25°C',
+                        position: 'insideBottomLeft',
+                        fill: '#f43f5e',
+                        fontSize: 10,
+                        fontWeight: 600,
+                        dy: 12,
+                        dx: 0
+                      }}
+                    />
+
+                    {/* Processing Warning Line (-22°C) */}
+                    <ReferenceLine
+                      yAxisId="left"
+                      y={-22}
+                      stroke="#fb923c"
+                      strokeDasharray="4 4"
+                      strokeWidth={1.2}
+                      strokeOpacity={0.8}
+                      label={{
+                        value: '-22°C',
+                        position: 'insideTopLeft',
+                        fill: '#fb923c',
+                        fontSize: 10,
+                        fontWeight: 600,
+                        dy: -12,
+                        dx: 0
                       }}
                     />
 
@@ -621,9 +759,9 @@ const Dashboard: React.FC = () => {
                     {/* Active Telemetry Pin Badge Dot */}
                     {activePinItem && activePinItem.chamberTemp !== null && (
                       <ReferenceDot
-                        key={`pin-${activePinItem.time}-${activePinItem.chamberTemp}`}
+                        key={`pin-${activePinItem.rawIndex}-${activePinItem.chamberTemp}`}
                         yAxisId="left"
-                        x={activePinItem.time}
+                        x={activePinItem.rawIndex}
                         y={activePinItem.chamberTemp}
                         r={0}
                         shape={(props: any) => {
@@ -831,14 +969,7 @@ const Dashboard: React.FC = () => {
 
                 <div className="z-10 flex items-center gap-3">
                   {/* Realistic Credit Card IC Chip (Rounded Rectangular) */}
-                  <div className="w-10 h-7 rounded-md bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 border border-amber-200/80 shadow-inner relative overflow-hidden flex flex-col justify-between p-0.5 shrink-0">
-                    <div className="w-full h-[1px] bg-amber-700/40" />
-                    <div className="flex justify-between items-center h-full px-1">
-                      <div className="w-3.5 h-3 rounded-[3px] border border-amber-700/50 bg-amber-200/50" />
-                      <div className="w-[1px] h-full bg-amber-700/40" />
-                      <div className="w-3.5 h-3 rounded-[3px] border border-amber-700/50 bg-amber-200/50" />
-                    </div>
-                    <div className="w-full h-[1px] bg-amber-700/40" />
+                  <div className="w-10 h-7 rounded-[7px] bg-gradient-to-br from-amber-300 via-amber-400 to-amber-500 border border-amber-200/80 shadow-inner relative overflow-hidden flex flex-col justify-between p-0.5 shrink-0">
                   </div>
                   <span className="font-mono text-xs tracking-wider text-slate-200">
                     {selectedPo.poNumber}
@@ -950,7 +1081,7 @@ const Dashboard: React.FC = () => {
           setSelectedPo(newOrder);
         }}
       />
-    </div>
+    </div >
   );
 };
 export default Dashboard;

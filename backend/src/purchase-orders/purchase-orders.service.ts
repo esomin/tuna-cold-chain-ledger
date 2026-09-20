@@ -169,7 +169,7 @@ export class PurchaseOrdersService {
         try {
             const po = await this.findOne(idOrPoNumber);
             if (po) poNumber = po.poNumber;
-        } catch (e) {}
+        } catch (e) { }
 
         if (this.sensorLogModel) {
             try {
@@ -181,6 +181,9 @@ export class PurchaseOrdersService {
                         latitude: log.latitude,
                         longitude: log.longitude,
                         timestamp: log.timestamp,
+                        stage: log.stage || 'HARVESTED',
+                        targetTemp: typeof log.targetTemp === 'number' ? log.targetTemp : -55,
+                        warningTemp: typeof log.warningTemp === 'number' ? log.warningTemp : -45,
                     };
                 }
             } catch (err) {
@@ -190,13 +193,13 @@ export class PurchaseOrdersService {
         return null;
     }
 
-    // 시계열 센서 텔레메트리 히스토리 조회 함수 (최근 20건, 과거 -> 현재 순 정렬)
+    // 시계열 센서 텔레메트리 히스토리 조회 함수 (최근 200건, 과거 -> 현재 순 정렬)
     async getTelemetryHistory(idOrPoNumber: string) {
         let poNumber = idOrPoNumber;
         try {
             const po = await this.findOne(idOrPoNumber);
             if (po) poNumber = po.poNumber;
-        } catch (e) {}
+        } catch (e) { }
 
         if (this.sensorLogModel) {
             try {
@@ -212,15 +215,19 @@ export class PurchaseOrdersService {
                     const HOUR = 3600 * 1000;
                     const baseTime = now - 72 * HOUR;
                     const initialSeeds = [
-                        { poNumber, temperature: -10.0, latitude: 35.0784, longitude: 129.0069, timestamp: new Date(baseTime + 0 * HOUR), eventNote: '어획 완료' },
-                        { poNumber, temperature: -57.5, latitude: 35.0800, longitude: 129.0100, timestamp: new Date(baseTime + 6 * HOUR) },
-                        { poNumber, temperature: -57.0, latitude: 35.0838, longitude: 129.0175, timestamp: new Date(baseTime + 24 * HOUR) },
-                        { poNumber, temperature: -49.5, latitude: 35.0855, longitude: 129.0198, timestamp: new Date(baseTime + 29 * HOUR), eventNote: '가공 중 노출 (Processing Exposure)' },
-                        { poNumber, temperature: -56.2, latitude: 35.0875, longitude: 129.0225, timestamp: new Date(baseTime + 33 * HOUR) },
-                        { poNumber, temperature: -48.0, latitude: 35.0905, longitude: 129.0265, timestamp: new Date(baseTime + 50 * HOUR), eventNote: '도어 개폐 (Door Open Event)' },
-                        { poNumber, temperature: -52.2, latitude: 35.0935, longitude: 129.0310, timestamp: new Date(baseTime + 63 * HOUR) },
-                        { poNumber, temperature: -51.5, latitude: 35.0945, longitude: 129.0325, timestamp: new Date(baseTime + 68 * HOUR), eventNote: '입고 검수 완료 (Inspection Passed)' },
-                        { poNumber, temperature: -52.0, latitude: 35.0955, longitude: 129.0340, timestamp: new Date(baseTime + 72 * HOUR) },
+                        // 어획 단계 (0h ~ 29h)
+                        { poNumber, temperature: -10.0, latitude: 35.0784, longitude: 129.0069, timestamp: new Date(baseTime + 0 * HOUR), eventNote: '어획 완료', stage: 'HARVESTED', targetTemp: -55, warningTemp: -45 },
+                        { poNumber, temperature: -57.5, latitude: 35.0800, longitude: 129.0100, timestamp: new Date(baseTime + 6 * HOUR), stage: 'HARVESTED', targetTemp: -55, warningTemp: -45 },
+                        { poNumber, temperature: -57.0, latitude: 35.0838, longitude: 129.0175, timestamp: new Date(baseTime + 24 * HOUR), stage: 'HARVESTED', targetTemp: -55, warningTemp: -45 },
+                        // 가공 단계 (29h ~ 50h)
+                        { poNumber, temperature: -49.5, latitude: 35.0855, longitude: 129.0198, timestamp: new Date(baseTime + 29 * HOUR), eventNote: '가공 중 노출 (Processing Exposure)', stage: 'PROCESSING', targetTemp: -25, warningTemp: -22 },
+                        { poNumber, temperature: -56.2, latitude: 35.0875, longitude: 129.0225, timestamp: new Date(baseTime + 33 * HOUR), stage: 'PROCESSING', targetTemp: -25, warningTemp: -22 },
+                        // 운송 단계 (50h ~ 68h)
+                        { poNumber, temperature: -48.0, latitude: 35.0905, longitude: 129.0265, timestamp: new Date(baseTime + 50 * HOUR), eventNote: '도어 개폐 (Door Open Event)', stage: 'IN_TRANSIT', targetTemp: -55, warningTemp: -45 },
+                        { poNumber, temperature: -52.2, latitude: 35.0935, longitude: 129.0310, timestamp: new Date(baseTime + 63 * HOUR), stage: 'IN_TRANSIT', targetTemp: -55, warningTemp: -45 },
+                        // 입고 단계 (68h ~ 72h)
+                        { poNumber, temperature: -51.5, latitude: 35.0945, longitude: 129.0325, timestamp: new Date(baseTime + 68 * HOUR), eventNote: '입고 검수 완료 (Inspection Passed)', stage: 'DELIVERED', targetTemp: -55, warningTemp: -50 },
+                        { poNumber, temperature: -52.0, latitude: 35.0955, longitude: 129.0340, timestamp: new Date(baseTime + 72 * HOUR), stage: 'DELIVERED', targetTemp: -55, warningTemp: -50 },
                     ];
                     await this.sensorLogModel.insertMany(initialSeeds);
                     logs = await this.sensorLogModel
@@ -239,9 +246,8 @@ export class PurchaseOrdersService {
                     return sortedLogs.map((l: any, index, array) => {
                         const logTime = new Date(l.timestamp).getTime();
                         let formattedTime = '';
-                        
+
                         if (timeSpanHours > 6) {
-                            // 6시간 초과 시 경과 시간(0h, 6h 등) 형식 적용
                             const elapsedHours = Math.round((logTime - minTime) / (3600 * 1000));
                             formattedTime = `${elapsedHours}h`;
                         } else {
@@ -255,6 +261,9 @@ export class PurchaseOrdersService {
                             longitude: l.longitude,
                             timestamp: l.timestamp,
                             eventNote: l.eventNote || null,
+                            stage: l.stage || 'HARVESTED',
+                            targetTemp: typeof l.targetTemp === 'number' ? l.targetTemp : -55,
+                            warningTemp: typeof l.warningTemp === 'number' ? l.warningTemp : -45,
                             time: formattedTime,
                             chamberTemp: l.temperature,
                             ambientTemp: Number((22.0 + (Math.random() * 0.4 - 0.2)).toFixed(1)),
@@ -267,7 +276,6 @@ export class PurchaseOrdersService {
             }
         }
         return [];
-
     }
 
 
@@ -299,7 +307,7 @@ export class PurchaseOrdersService {
             if (this.auditLogsService) {
                 try {
                     allAuditLogs = await this.auditLogsService.findAll();
-                } catch (err) {}
+                } catch (err) { }
             }
 
             const stages = [

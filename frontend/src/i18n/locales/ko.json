@@ -1,7 +1,7 @@
 {
   "nav": {
     "dashboard": "대시보드",
-    "dashboardTooltip": "통합 관제 대시보드",
+    "dashboardTooltip": "통합 콜드체인 관제",
     "ledger": "원장 탐색기",
     "ledgerTooltip": "온체인 감사 원장 탐색기",
     "logout": "로그아웃"
@@ -73,8 +73,8 @@
       "liveFeed": "실시간 스트림",
       "72hTrend": "전체 추이",
       "realtimeDetected": "실시간 감지:",
-      "safetyThreshold": "안전 임계치 (-55°C)",
-      "warningThreshold": "경고 임계치 (-45°C)",
+      "safetyThreshold": "안전 임계치",
+      "warningThreshold": "경고 임계치",
       "stable": "✓ 초저온 상태 안정",
       "anomaliesCount": "온도 이탈 {{count}}건",
       "anomalyZero": "온도 이탈 0건",
@@ -131,7 +131,7 @@
   },
   "timeline": {
     "harvestedLabel": "어획 완료",
-    "harvestedDesc": "원산지(남태평양 어장) 정보 확정 및 최초 온체인 무결성 해시 등록",
+    "harvestedDesc": "원산지 정보 확정 및 최초 온체인 무결성 해시 등록",
     "processingLabel": "초저온 가공",
     "processingDesc": "초저온(-55°C) 급랭 동결고 입고 및 포장 규격 해시 블록체인 기록",
     "inTransitLabel": "초저온 운송중",
