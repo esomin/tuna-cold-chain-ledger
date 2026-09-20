@@ -16,14 +16,9 @@ import { ConfigModule } from '@nestjs/config';
         database: process.env.DB_DATABASE || 'inventory_db',
         autoLoadEntities: true,
         synchronize: false,
-
-
       }),
     }),
-    MongooseModule.forRoot(
-      process.env.MONGO_URI || 'mongodb://127.0.0.1:27018/coldchain',
-    ),
+    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://127.0.0.1:27018/coldchain'),
   ],
 })
 export class DatabaseModule {}
-

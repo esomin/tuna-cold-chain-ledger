@@ -3,7 +3,7 @@ import { BlockchainService } from './blockchain.service';
 
 @Global()
 @Module({
-    providers: [BlockchainService],
-    exports: [BlockchainService],
+  providers: [BlockchainService],
+  exports: [BlockchainService],
 })
-export class BlockchainModule { }
+export class BlockchainModule {}

@@ -22,5 +22,4 @@ import configuration from './config/configuration';
     FleetsModule,
   ],
 })
-
-export class AppModule { }
+export class AppModule {}

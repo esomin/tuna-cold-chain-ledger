@@ -4,45 +4,45 @@ import { CreatePurchaseOrderDto, UpdatePurchaseOrderDto } from './dto/create-pur
 
 @Controller('purchase-orders')
 export class PurchaseOrdersController {
-    constructor(private readonly poService: PurchaseOrdersService) { }
+  constructor(private readonly poService: PurchaseOrdersService) {}
 
-    @Post()
-    create(@Body() createDto: CreatePurchaseOrderDto) {
-        return this.poService.create(createDto);
-    }
+  @Post()
+  create(@Body() createDto: CreatePurchaseOrderDto) {
+    return this.poService.create(createDto);
+  }
 
-    @Get()
-    findAll() {
-        return this.poService.findAll();
-    }
+  @Get()
+  findAll() {
+    return this.poService.findAll();
+  }
 
-    @Get(':id/verify')
-    verify(@Param('id') id: string) {
-        return this.poService.verifyPo(id);
-    }
+  @Get(':id/verify')
+  verify(@Param('id') id: string) {
+    return this.poService.verifyPo(id);
+  }
 
-    @Get(':id/telemetry/latest')
-    getLatestTelemetry(@Param('id') id: string) {
-        return this.poService.getLatestTelemetry(id);
-    }
+  @Get(':id/telemetry/latest')
+  getLatestTelemetry(@Param('id') id: string) {
+    return this.poService.getLatestTelemetry(id);
+  }
 
-    @Get(':id/telemetry/history')
-    getTelemetryHistory(@Param('id') id: string) {
-        return this.poService.getTelemetryHistory(id);
-    }
+  @Get(':id/telemetry/history')
+  getTelemetryHistory(@Param('id') id: string) {
+    return this.poService.getTelemetryHistory(id);
+  }
 
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.poService.findOne(id);
-    }
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.poService.findOne(id);
+  }
 
-    @Patch(':id')
-    update(@Param('id') id: string, @Body() updateDto: UpdatePurchaseOrderDto) {
-        return this.poService.update(id, updateDto);
-    }
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateDto: UpdatePurchaseOrderDto) {
+    return this.poService.update(id, updateDto);
+  }
 
-    @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.poService.remove(id);
-    }
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.poService.remove(id);
+  }
 }

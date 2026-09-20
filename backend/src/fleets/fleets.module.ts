@@ -5,9 +5,9 @@ import { FleetsService } from './fleets.service';
 import { FleetsController } from './fleets.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Fleet])],
-    controllers: [FleetsController],
-    providers: [FleetsService],
-    exports: [FleetsService],
+  imports: [TypeOrmModule.forFeature([Fleet])],
+  controllers: [FleetsController],
+  providers: [FleetsService],
+  exports: [FleetsService],
 })
 export class FleetsModule {}
