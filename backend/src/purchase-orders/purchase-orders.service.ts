@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PurchaseOrder } from '../entities/PurchaseOrder';
@@ -34,7 +34,7 @@ export const STAGE_THRESHOLDS: Record<string, { targetTemp: number; warningTemp:
 };
 
 @Injectable()
-export class PurchaseOrdersService {
+export class PurchaseOrdersService implements OnModuleInit {
   constructor(
     @InjectRepository(PurchaseOrder)
     private poRepository: Repository<PurchaseOrder>,
@@ -45,6 +45,40 @@ export class PurchaseOrdersService {
     private auditLogsService: AuditLogsService,
     private blockchainService: BlockchainService,
   ) {}
+
+  async onModuleInit() {
+    await this.seedDefaultScenarios();
+  }
+
+  private async seedDefaultScenarios() {
+    try {
+      const existingB = await this.poRepository.findOne({ where: { poNumber: 'PO-2026-SCENARIO-B' } });
+      if (!existingB) {
+        let product = await this.productRepository.findOne({ where: { sku: 'TUNA-BLUEFIN' } });
+        if (!product) {
+          const newProduct = new Product();
+          newProduct.sku = 'TUNA-BLUEFIN';
+          newProduct.name = '참다랑어 (Bluefin Tuna)';
+          newProduct.category = 'Premium';
+          newProduct.price = 85000;
+          product = await this.productRepository.save(newProduct);
+        }
+        const poB = new PurchaseOrder();
+        poB.poNumber = 'PO-2026-SCENARIO-B';
+        poB.quantity = 80;
+        poB.status = 'DELIVERED';
+        poB.supplierName = '통영 원양 수산';
+        poB.notes = '시나리오 B: 단계별 온도 이탈 4건 발생 건 (H:0 / P:1 / T:2 / D:1)';
+        if (product) {
+          poB.product = product;
+        }
+        await this.poRepository.save(poB);
+        console.log('[PurchaseOrdersService] Synchronized PO-2026-SCENARIO-B into PostgreSQL database.');
+      }
+    } catch (err) {
+      console.warn('[PurchaseOrdersService] seedDefaultScenarios warning:', err);
+    }
+  }
 
   private generatePoNumber(): string {
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
