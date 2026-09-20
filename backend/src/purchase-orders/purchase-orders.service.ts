@@ -265,7 +265,7 @@ export class PurchaseOrdersService implements OnModuleInit {
               latitude: 35.0784,
               longitude: 129.0069,
               timestamp: new Date(baseTime + 0 * HOUR),
-              eventNote: '어획 완료 (선내 급속동결 시작)',
+              eventNote: 'Blast Freezing Pulldown Initiated (Target: -55°C)',
               stage: 'HARVESTED',
               targetTemp: -55,
               warningTemp: -45,
@@ -298,7 +298,7 @@ export class PurchaseOrdersService implements OnModuleInit {
               latitude: 35.0855,
               longitude: 129.0198,
               timestamp: new Date(baseTime + 29 * HOUR),
-              eventNote: '가공 중 노출 (Processing Exposure)',
+              eventNote: 'Processing Line Ingress (Normal Operation)',
               stage: 'PROCESSING',
               targetTemp: -25,
               warningTemp: -22,
@@ -320,7 +320,7 @@ export class PurchaseOrdersService implements OnModuleInit {
               latitude: 35.0905,
               longitude: 129.0265,
               timestamp: new Date(baseTime + 50 * HOUR),
-              eventNote: '도어 개폐 (Door Open Event)',
+              eventNote: 'Door Open Event Detected',
               stage: 'IN_TRANSIT',
               targetTemp: -55,
               warningTemp: -45,
@@ -342,7 +342,7 @@ export class PurchaseOrdersService implements OnModuleInit {
               latitude: 35.0945,
               longitude: 129.0325,
               timestamp: new Date(baseTime + 68 * HOUR),
-              eventNote: '입고 검수 완료 (Inspection Passed)',
+              eventNote: 'Warehouse Intake Inspection Passed (HACCP Compliant)',
               stage: 'DELIVERED',
               targetTemp: -55,
               warningTemp: -45,
@@ -358,28 +358,35 @@ export class PurchaseOrdersService implements OnModuleInit {
               warningTemp: -45,
             },
           ];
+
           await this.sensorLogModel.insertMany(initialSeeds);
-          logs = await this.sensorLogModel.find({ poNumber }).sort({ timestamp: 1 }).limit(200).exec();
         }
 
-        if (logs && logs.length > 0) {
-          const sortedLogs = logs;
-          const minTime = new Date(sortedLogs[0].timestamp).getTime();
-          const maxTime = new Date(sortedLogs[sortedLogs.length - 1].timestamp).getTime();
-          const timeSpanHours = (maxTime - minTime) / (3600 * 1000);
+        const logs = await this.sensorLogModel
+          .find({ poNumber })
+          .sort({ timestamp: 1 })
+          .exec();
 
-          // 어획(HARVESTED) 단계의 초기 급속냉동(Pulldown) 구간 동적 감지 (최초 -55°C 도달 전)
+        if (logs && logs.length > 0) {
+          const originTime = logs[0].timestamp ? new Date(logs[0].timestamp).getTime() : 0;
           let hasReachedHarvestTarget = false;
 
-          return sortedLogs.map((l: any, index, array) => {
-            const logTime = new Date(l.timestamp).getTime();
-            let formattedTime = '';
+          return logs.map((l: any, index, array) => {
+            const currentLogTime = l.timestamp ? new Date(l.timestamp).getTime() : 0;
+            const diffHours = originTime > 0 ? Math.round((currentLogTime - originTime) / (1000 * 60 * 60)) : index;
 
-            if (timeSpanHours > 6) {
-              const elapsedHours = Math.round((logTime - minTime) / (3600 * 1000));
-              formattedTime = `${elapsedHours}h`;
-            } else {
-              formattedTime = new Date(l.timestamp).toLocaleTimeString('ko-KR', {
+            let formattedTime = `${diffHours}h`;
+            if (diffHours >= 24) {
+              const day = Math.floor(diffHours / 24) + 1;
+              const remHours = diffHours % 24;
+              formattedTime = remHours === 0 ? `${day}d` : `${day}d ${remHours}h`;
+            }
+
+            if (l.timestamp) {
+              const d = new Date(l.timestamp);
+              formattedTime = d.toLocaleDateString('ko-KR', {
+                month: 'numeric',
+                day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false,
@@ -395,7 +402,12 @@ export class PurchaseOrdersService implements OnModuleInit {
             const isInitialHarvestPulldown =
               stage === 'HARVESTED' &&
               !hasReachedHarvestTarget &&
-              (l.temperature > targetTemp || l.eventNote?.includes('어획') || l.eventNote?.includes('급속동결'));
+              (l.temperature > targetTemp ||
+                Boolean(l.isFreezing) ||
+                l.eventNote?.includes('어획') ||
+                l.eventNote?.includes('급속동결') ||
+                l.eventNote?.toLowerCase().includes('freezing') ||
+                l.eventNote?.toLowerCase().includes('pulldown'));
 
             if (stage === 'HARVESTED' && l.temperature <= targetTemp) {
               hasReachedHarvestTarget = true;
@@ -410,7 +422,7 @@ export class PurchaseOrdersService implements OnModuleInit {
               latitude: l.latitude,
               longitude: l.longitude,
               timestamp: l.timestamp,
-              eventNote: l.eventNote || (isFreezing ? '급속동결 진행 중 (Freezing Pulldown)' : null),
+              eventNote: l.eventNote || (isFreezing ? 'Blast Freezing Pulldown in Progress' : null),
               stage,
               targetTemp,
               warningTemp,
@@ -454,7 +466,14 @@ export class PurchaseOrdersService implements OnModuleInit {
             const stage = l.stage || po.status || 'HARVESTED';
             const target = typeof l.targetTemp === 'number' ? l.targetTemp : -55;
             if (stage === 'HARVESTED' && !hasReachedTarget) {
-              if (l.temperature > target || l.isFreezing || l.eventNote?.includes('어획')) {
+              if (
+                l.temperature > target ||
+                l.isFreezing ||
+                l.eventNote?.includes('어획') ||
+                l.eventNote?.includes('급속동결') ||
+                l.eventNote?.toLowerCase().includes('freezing') ||
+                l.eventNote?.toLowerCase().includes('pulldown')
+              ) {
                 freezingMap.set(l, true);
               }
               if (l.temperature <= target) {

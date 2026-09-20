@@ -83,6 +83,7 @@ const RechartsCustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const chamber = payload.find((p: any) => p.dataKey === 'chamberTemp');
     const ambient = payload.find((p: any) => p.dataKey === 'ambientTemp');
+    const ptData = chamber?.payload;
     return (
       <div className="bg-slate-900/95 border border-cyan-500/40 backdrop-blur-md px-3.5 py-2.5 rounded-xl shadow-2xl text-xs font-sans">
         <p className="font-bold text-slate-200 mb-1.5 border-b border-white/10 pb-1">
@@ -94,6 +95,18 @@ const RechartsCustomTooltip = ({ active, payload, label }: any) => {
             <strong className="text-cyan-300 font-bold">
               {typeof chamber.value === 'number' ? `${chamber.value.toFixed(1)}°C` : `${chamber.value}°C`}
             </strong>
+          </p>
+        )}
+        {ptData && typeof ptData.targetTemp === 'number' && (
+          <p className="text-sky-300 font-mono flex items-center justify-between gap-4 py-0.5 text-[11px]">
+            <span className="text-slate-400 font-sans">목표 기준선:</span>
+            <strong className="text-sky-300 font-medium">{ptData.targetTemp}°C</strong>
+          </p>
+        )}
+        {ptData && typeof ptData.warningTemp === 'number' && (
+          <p className="text-amber-300 font-mono flex items-center justify-between gap-4 py-0.5 text-[11px]">
+            <span className="text-slate-400 font-sans">주의 임계치:</span>
+            <strong className="text-amber-300 font-medium">{ptData.warningTemp}°C</strong>
           </p>
         )}
         {ambient && ambient.value !== undefined && ambient.value !== null && (
@@ -281,7 +294,7 @@ const Dashboard: React.FC = () => {
           isPin: index === targetItems.length - 1,
           timestamp: item?.timestamp || null,
           stage,
-          targetTemp: typeof item?.targetTemp === 'number' ? item.targetTemp : -55,
+          targetTemp: typeof item?.targetTemp === 'number' ? item.targetTemp : (stage === 'PROCESSING' || stage === 'PROCESSED' ? -25 : -55),
           warningTemp,
           isFreezing,
           isAnomaly,
@@ -344,11 +357,56 @@ const Dashboard: React.FC = () => {
     return ranges;
   }, [chartData, selectedTimeRange]);
 
+  const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream';
+
   const activeStageWarningTemp = useMemo(() => {
     const stage = selectedPo?.status || 'HARVESTED';
     if (stage === 'PROCESSING' || stage === 'PROCESSED') return -22;
     return -45;
   }, [selectedPo?.status]);
+
+  const activeStageTargetTemp = useMemo(() => {
+    const stage = selectedPo?.status || 'HARVESTED';
+    if (stage === 'PROCESSING' || stage === 'PROCESSED') return -25;
+    return -55;
+  }, [selectedPo?.status]);
+
+  // 공정 단계별 임계선 세그먼트 (가공 단계는 -25°C / -22°C, 나머지 단계는 -55°C / -45°C)
+  const thresholdSegments = useMemo(() => {
+    if (!chartData || chartData.length === 0 || isLive) return [];
+
+    const segments: Array<{
+      targetTemp: number;
+      warningTemp: number;
+      x1: number;
+      x2: number;
+      labelTarget?: string;
+      labelWarning?: string;
+    }> = [];
+
+    stageRanges.forEach((rng) => {
+      const isProcessing = rng.stage === 'PROCESSING' || rng.stage === 'PROCESSED';
+      const targetTemp = isProcessing ? -25 : -55;
+      const warningTemp = isProcessing ? -22 : -45;
+
+      const prev = segments[segments.length - 1];
+      if (prev && prev.targetTemp === targetTemp && prev.warningTemp === warningTemp) {
+        // 인접한 동일 임계치 구간 병합 (예: 3단계 운송 + 4단계 입고)
+        prev.x2 = rng.x2;
+      } else {
+        segments.push({
+          targetTemp,
+          warningTemp,
+          x1: rng.x1,
+          x2: rng.x2,
+          labelTarget: `${targetTemp}°C`,
+          labelWarning: `${warningTemp}°C`,
+        });
+      }
+    });
+
+    return segments;
+  }, [chartData, stageRanges, isLive]);
 
   const tempStats = useMemo(() => {
     const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream';
@@ -683,11 +741,11 @@ const Dashboard: React.FC = () => {
                   <span>{t('dashboard.labels.realtimeDetected')} <strong className="text-white font-mono">{isDisconnected || !selectedPo || simTemperature === undefined ? '--' : `${simTemperature.toFixed(1)}°C`}</strong></span>
                 </span>
                 <span className="flex items-center gap-1.5 text-slate-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                  <span>{t('dashboard.labels.safetyThreshold')}</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-sky-400 shadow-[0_0_6px_#38bdf8]" />
+                  <span>{t('dashboard.labels.targetStandard')}</span>
                 </span>
                 <span className="flex items-center gap-1.5 text-slate-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_6px_#f59e0b]" />
                   <span>{t('dashboard.labels.warningThreshold')}</span>
                 </span>
               </div>
@@ -810,81 +868,94 @@ const Dashboard: React.FC = () => {
 
                     <Tooltip content={<RechartsCustomTooltip />} />
 
-                    {/* Safety Threshold Line (-55°C) */}
-                    <ReferenceLine
-                      yAxisId="left"
-                      y={-55}
-                      stroke="#f43f5e"
-                      strokeDasharray="4 4"
-                      strokeWidth={1.2}
-                      strokeOpacity={0.85}
-                      label={{
-                        value: '-55°C',
-                        position: 'insideBottomLeft',
-                        fill: '#f43f5e',
-                        fontSize: 10,
-                        fontWeight: 600,
-                        dy: 12,
-                        dx: 0
-                      }}
-                    />
-
-                    {/* Warning Threshold Line (-45°C) */}
-                    <ReferenceLine
-                      yAxisId="left"
-                      y={-45}
-                      stroke="#f59e0b"
-                      strokeDasharray="4 4"
-                      strokeWidth={1.2}
-                      strokeOpacity={0.85}
-                      label={{
-                        value: '-45°C',
-                        position: 'insideTopLeft',
-                        fill: '#f59e0b',
-                        fontSize: 10,
-                        fontWeight: 600,
-                        dy: -12,
-                        dx: 0
-                      }}
-                    />
-
-                    {/* Processing Target Line (-25°C) */}
-                    <ReferenceLine
-                      yAxisId="left"
-                      y={-25}
-                      stroke="#f43f5e"
-                      strokeDasharray="4 4"
-                      strokeWidth={1.2}
-                      strokeOpacity={0.85}
-                      label={{
-                        value: '-25°C',
-                        position: 'insideBottomLeft',
-                        fill: '#f43f5e',
-                        fontSize: 10,
-                        fontWeight: 600,
-                        dy: 12,
-                        dx: 0
-                      }}
-                    />
-
-                    {/* Processing Warning Line (-22°C) */}
-                    <ReferenceLine
-                      yAxisId="left"
-                      y={-22}
-                      stroke="#fb923c"
-                      strokeDasharray="4 4"
-                      strokeWidth={1.2}
-                      strokeOpacity={0.8}
-                      label={{
-                        value: '-22°C',
-                        position: 'insideTopLeft',
-                        fill: '#fb923c',
-                        fontSize: 10,
-                        fontWeight: 600,
-                        dy: -12,
-                        dx: 0
-                      }}
-                    />
+                    {/* Stage-dependent Target Standard & Warning Threshold Reference Lines */}
+                    {isLive ? (
+                      <>
+                        <ReferenceLine
+                          yAxisId="left"
+                          y={activeStageTargetTemp}
+                          stroke="#38bdf8"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.2}
+                          strokeOpacity={0.85}
+                          label={{
+                            value: `${activeStageTargetTemp}°C`,
+                            position: 'insideBottomLeft',
+                            fill: '#38bdf8',
+                            fontSize: 10,
+                            fontWeight: 600,
+                            dy: 12,
+                            dx: 4
+                          }}
+                        />
+                        <ReferenceLine
+                          yAxisId="left"
+                          y={activeStageWarningTemp}
+                          stroke="#f59e0b"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.2}
+                          strokeOpacity={0.85}
+                          label={{
+                            value: `${activeStageWarningTemp}°C`,
+                            position: 'insideTopLeft',
+                            fill: '#f59e0b',
+                            fontSize: 10,
+                            fontWeight: 600,
+                            dy: -12,
+                            dx: 4
+                          }}
+                        />
+                      </>
+                    ) : (
+                      thresholdSegments.map((seg, idx) => {
+                        const x1 = seg.x1;
+                        const x2 = seg.x1 === seg.x2 ? seg.x2 + 0.5 : seg.x2;
+                        return (
+                          <React.Fragment key={`thresh-seg-${idx}-${seg.targetTemp}`}>
+                            <ReferenceLine
+                              yAxisId="left"
+                              segment={[
+                                { x: x1, y: seg.targetTemp },
+                                { x: x2, y: seg.targetTemp },
+                              ]}
+                              stroke="#38bdf8"
+                              strokeDasharray="4 4"
+                              strokeWidth={1.2}
+                              strokeOpacity={0.85}
+                              label={seg.labelTarget ? {
+                                value: seg.labelTarget,
+                                position: 'insideBottomLeft',
+                                fill: '#38bdf8',
+                                fontSize: 10,
+                                fontWeight: 600,
+                                dy: 12,
+                                dx: 2,
+                              } : undefined}
+                            />
+                            <ReferenceLine
+                              yAxisId="left"
+                              segment={[
+                                { x: x1, y: seg.warningTemp },
+                                { x: x2, y: seg.warningTemp },
+                              ]}
+                              stroke="#f59e0b"
+                              strokeDasharray="4 4"
+                              strokeWidth={1.2}
+                              strokeOpacity={0.85}
+                              label={seg.labelWarning ? {
+                                value: seg.labelWarning,
+                                position: 'insideTopLeft',
+                                fill: '#f59e0b',
+                                fontSize: 10,
+                                fontWeight: 600,
+                                dy: -12,
+                                dx: 2,
+                              } : undefined}
+                            />
+                          </React.Fragment>
+                        );
+                      })
+                    )}
 
                     {/* Primary Neon Cyan Smooth Curve (Chamber Internal Temp) */}
                     <Line
@@ -1003,8 +1074,8 @@ const Dashboard: React.FC = () => {
                       {isDisconnected
                         ? 'Connection Required'
                         : tempStats.incidentCount > 0
-                        ? `${tempStats.incidentCount} Alerts (${tempStats.anomalyCount} Excursions)`
-                        : '0 Temp Anomalies'}
+                          ? `${tempStats.incidentCount} Alerts (${tempStats.anomalyCount} Excursions)`
+                          : '0 Temp Anomalies'}
                     </p>
                   </div>
                   <div className="w-12 h-12 rounded-full border-4 border-sky-500/20 border-t-sky-400 flex items-center justify-center font-bold text-xs text-sky-300">
@@ -1034,11 +1105,10 @@ const Dashboard: React.FC = () => {
                 <button
                   onClick={() => setIsAlertPopoverOpen((prev) => !prev)}
                   title="Cold Chain Alert Incidents"
-                  className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all relative ${
-                    isAlertPopoverOpen
-                      ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-md shadow-sky-500/30'
-                      : 'bg-white/5 border-white/10 hover:bg-white/10 text-slate-300 hover:text-white'
-                  }`}
+                  className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all relative ${isAlertPopoverOpen
+                    ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-md shadow-sky-500/30'
+                    : 'bg-white/5 border-white/10 hover:bg-white/10 text-slate-300 hover:text-white'
+                    }`}
                 >
                   <Bell className="w-3.5 h-3.5" />
                   {tempStats.incidentCount > 0 && (

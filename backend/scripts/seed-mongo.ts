@@ -89,9 +89,9 @@ async function seedMongo() {
   const poNumberA = 'PO-2026-SCENARIO-A';
 
   const harvestedA: SeedPoint[] = [
-    { h: 0, t: -10.0, note: '어획 완료 (선내 급속동결 시작)', isFreezing: true },
-    { h: 3, t: -35.0, note: '급속동결 진행 중 (Freezing Pulldown)', isFreezing: true },
-    { h: 6, t: -57.5, note: '선내 급속동결 완료 (-57.5°C)' },
+    { h: 0, t: -10.0, note: 'Blast Freezing Pulldown Initiated (Target: -55°C)', isFreezing: true },
+    { h: 3, t: -35.0, note: 'Blast Freezing Pulldown in Progress', isFreezing: true },
+    { h: 6, t: -57.5, note: 'Deep-Freeze Target Achieved (-57.5°C)' },
     { h: 24, t: -58.2 },
     { h: 48, t: -57.8 },
     { h: 72, t: -58.0 },
@@ -107,7 +107,7 @@ async function seedMongo() {
     { h: 228, t: -56.0 },
     { h: 230, t: -40.0 },
     { h: 232, t: -28.0 },
-    { h: 234, t: -25.5, note: '가공 작업 진행 (Processing Handling)' },
+    { h: 234, t: -25.5, note: 'Processing Line Ingress (Normal Operation)' },
     { h: 236, t: -24.0 },
     { h: 238, t: -23.5 },
     { h: 240, t: -24.8 },
@@ -120,13 +120,13 @@ async function seedMongo() {
   ];
 
   const transitA: SeedPoint[] = [
-    { h: 255, t: -53.0, note: '컨테이너 상차 (Loading)' },
+    { h: 255, t: -53.0, note: 'Reefer Container Loading Confirmed' },
     { h: 258, t: -56.8 },
     { h: 261, t: -52.5 },
     { h: 264, t: -57.2 },
     { h: 267, t: -53.8 },
     { h: 270, t: -55.9 },
-    { h: 273, t: -46.5, note: '도어 개폐 (Door Open Event)' },
+    { h: 273, t: -46.5, note: 'Door Open Event Detected (Normal Threshold)' },
     { h: 276, t: -50.2 },
     { h: 279, t: -56.5 },
     { h: 282, t: -53.0 },
@@ -138,7 +138,7 @@ async function seedMongo() {
     { h: 300, t: -57.0 },
     { h: 303, t: -53.2 },
     { h: 306, t: -56.3 },
-    { h: 309, t: -52.6, note: '컨테이너 하차 대비 (Unloading Prep)' },
+    { h: 309, t: -52.6, note: 'Reefer Container Discharge Initiated' },
     { h: 312, t: -57.4 },
     { h: 315, t: -53.9 },
     { h: 318, t: -55.8 },
@@ -150,7 +150,7 @@ async function seedMongo() {
     { h: 326, t: -57.0 },
     { h: 328, t: -58.0 },
     { h: 330, t: -58.5 },
-    { h: 332, t: -59.0, note: '입고 검수 완료 (Inspection Passed)' },
+    { h: 332, t: -59.0, note: 'Warehouse Intake Inspection Passed (HACCP Compliant)' },
     { h: 334, t: -59.1 },
     { h: 336, t: -59.2 },
   ];
@@ -169,9 +169,9 @@ async function seedMongo() {
 
   // HARVESTED: 0건 — A와 동일하게 안정 구간 유지
   const harvestedB: SeedPoint[] = [
-    { h: 0, t: -9.5, note: '어획 완료 (선내 급속동결 시작)', isFreezing: true },
-    { h: 3, t: -36.0, note: '급속동결 진행 중 (Freezing Pulldown)', isFreezing: true },
-    { h: 6, t: -57.8, note: '선내 급속동결 완료 (-57.8°C)' },
+    { h: 0, t: -9.5, note: 'Blast Freezing Pulldown Initiated (Target: -55°C)', isFreezing: true },
+    { h: 3, t: -36.0, note: 'Blast Freezing Pulldown in Progress', isFreezing: true },
+    { h: 6, t: -57.8, note: 'Deep-Freeze Target Achieved (-57.8°C)' },
     { h: 24, t: -58.0 },
     { h: 48, t: -57.6 },
     { h: 72, t: -58.2 },
@@ -188,7 +188,7 @@ async function seedMongo() {
     { h: 228, t: -56.5 },
     { h: 230, t: -41.0 },
     { h: 232, t: -27.5 },
-    { h: 234, t: -18.0, note: 'Processing Temp Excursion (Safety Threshold Exceeded)' }, // Incident 1
+    { h: 234, t: -18.0, note: 'Processing Temp Excursion (Threshold Exceeded)' }, // Incident 1
     { h: 236, t: -23.2 },
     { h: 238, t: -24.5 },
     { h: 240, t: -25.0 },
@@ -202,13 +202,13 @@ async function seedMongo() {
 
   // IN_TRANSIT: 2건 — ① 도어 개폐(단발성) ② 냉동유닛 이상(지속형, 3포인트 연속 초과)
   const transitB: SeedPoint[] = [
-    { h: 255, t: -53.5, note: 'Container Loading' },
+    { h: 255, t: -53.5, note: 'Reefer Container Loading Confirmed' },
     { h: 258, t: -56.2 },
     { h: 261, t: -54.0 },
     { h: 264, t: -57.0 },
     { h: 267, t: -53.2 },
     { h: 270, t: -55.6 },
-    { h: 273, t: -42.0, note: 'Door Open Event (Threshold Exceeded)' }, // Incident 2
+    { h: 273, t: -42.0, note: 'Door Open Event Detected' }, // Incident 2
     { h: 276, t: -54.8 },
     { h: 279, t: -56.0 },
     { h: 282, t: -53.6 },
@@ -216,11 +216,11 @@ async function seedMongo() {
     { h: 288, t: -54.3 },
     { h: 291, t: -55.7 },
     { h: 294, t: -53.9 },
-    { h: 297, t: -40.0, note: 'Cooling Unit Malfunction (Excursion Started)' }, // Incident 3 start
-    { h: 300, t: -38.5, note: 'Cooling Unit Malfunction (Peak Excursion)' }, // Incident 3 ongoing
-    { h: 303, t: -41.5, note: 'Cooling Unit Malfunction Recovering' }, // Incident 3 recovery
+    { h: 297, t: -40.0, note: 'Cooling Unit Malfunction Detected (Excursion Started)' }, // Incident 3 start
+    { h: 300, t: -38.5, note: 'Cooling Unit Malfunction Ongoing (Peak Excursion: -38.5°C)' }, // Incident 3 peak
+    { h: 303, t: -41.5, note: 'Cooling Unit Malfunction (Recovery in Progress)' }, // Incident 3 recovery
     { h: 306, t: -50.0 },
-    { h: 309, t: -54.5, note: 'Unloading Preparation' },
+    { h: 309, t: -54.5, note: 'Reefer Container Discharge Initiated' },
     { h: 312, t: -57.3 },
     { h: 315, t: -53.8 },
     { h: 318, t: -55.9 },
@@ -233,7 +233,7 @@ async function seedMongo() {
     { h: 326, t: -56.5 },
     { h: 328, t: -57.5 },
     { h: 330, t: -42.5, note: 'Delivery Handling Excursion (Threshold Exceeded)' }, // Incident 4
-    { h: 332, t: -58.0, note: 'Delivery Inspection Passed' },
+    { h: 332, t: -58.0, note: 'Warehouse Intake Inspection Passed (HACCP Compliant)' },
     { h: 334, t: -59.0 },
     { h: 336, t: -59.2 },
   ];
