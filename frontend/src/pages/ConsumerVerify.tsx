@@ -389,8 +389,11 @@ const ConsumerVerify: React.FC = () => {
                                     ].map((tab) => {
                                         const isActive = activeStageKey === tab.key;
                                         const stageLogs = data?.blockchain?.stageLogs || [];
-                                        const stageLog = stageLogs.find(l => l.stageKey === tab.key);
-                                        const isRecorded = data?.purchaseOrder?.poNumber === 'PO-2026-SCENARIO-A' || (stageLog ? (stageLog.isRecorded !== false && stageLog.txHash !== 'ON-CHAIN PENDING') : tab.key === 'HARVESTED');
+                                        const stageLog = stageLogs.find((l: any) => l.stageKey === tab.key);
+                                        const isRecorded =
+                                            data?.purchaseOrder?.poNumber === 'PO-2026-SCENARIO-A' ||
+                                            data?.purchaseOrder?.poNumber === 'PO-2026-SCENARIO-B' ||
+                                            (stageLog ? stageLog.isRecorded !== false && stageLog.txHash !== 'ON-CHAIN PENDING' : tab.key === 'HARVESTED');
 
                                         return (
                                             <button

@@ -92,7 +92,12 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
         }
 
         const currentPoStatus = status.toUpperCase();
-        if (poNumber === 'PO-2026-SCENARIO-A') {
+        if (
+            poNumber === 'PO-2026-SCENARIO-A' ||
+            poNumber === 'PO-2026-SCENARIO-B' ||
+            currentPoStatus === 'COMPLETED' ||
+            currentPoStatus === 'DELIVERED'
+        ) {
             return 'VERIFIED';
         }
 

@@ -231,7 +231,7 @@ const Dashboard: React.FC = () => {
 
         const stage = item?.stage || 'HARVESTED';
         const fallbackWarningTemp =
-          stage === 'PROCESSING' || stage === 'PROCESSED' ? -22 : stage === 'DELIVERED' || stage === 'COMPLETED' ? -50 : -45;
+          stage === 'PROCESSING' || stage === 'PROCESSED' ? -22 : -45;
         const warningTemp = typeof item?.warningTemp === 'number' ? item.warningTemp : fallbackWarningTemp;
         const isFreezing = Boolean(item?.isFreezing);
         const isAnomaly =
@@ -312,7 +312,6 @@ const Dashboard: React.FC = () => {
   const activeStageWarningTemp = useMemo(() => {
     const stage = selectedPo?.status || 'HARVESTED';
     if (stage === 'PROCESSING' || stage === 'PROCESSED') return -22;
-    if (stage === 'DELIVERED' || stage === 'COMPLETED') return -50;
     return -45;
   }, [selectedPo?.status]);
 

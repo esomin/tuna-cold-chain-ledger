@@ -14,7 +14,7 @@ const STAGE_CONFIG: Record<Stage, StageThreshold> = {
   HARVESTED: { targetTemp: -55, warningTemp: -45 },
   PROCESSING: { targetTemp: -25, warningTemp: -22 },
   IN_TRANSIT: { targetTemp: -55, warningTemp: -45 },
-  DELIVERED: { targetTemp: -55, warningTemp: -50 },
+  DELIVERED: { targetTemp: -55, warningTemp: -45 },
 };
 
 interface SeedPoint {
@@ -216,9 +216,9 @@ async function seedMongo() {
     { h: 288, t: -54.3 },
     { h: 291, t: -55.7 },
     { h: 294, t: -53.9 },
-    { h: 297, t: -40.0, note: '냉동유닛 이상 감지 (Cooling Unit Malfunction — 지속형 이탈 시작)' }, // 이탈 2건 중 2건 (시작)
-    { h: 300, t: -38.5, note: '냉동유닛 이상 지속 (온도 계속 상승)' }, // 지속
-    { h: 303, t: -41.5, note: '냉동유닛 이상 회복 중' }, // 지속 (회복 시작)
+    { h: 297, t: -46.5, note: '냉동유닛 이상 감지 (Cooling Unit Malfunction Warning)' },
+    { h: 300, t: -38.5, note: '냉동유닛 이상 지속 — 안전임계치 초과 피크' }, // 이탈 2건 중 2건 (피크 1건)
+    { h: 303, t: -47.0, note: '냉동유닛 이상 회복 중 (안전선 이내 진입)' },
     { h: 306, t: -50.0 }, // 안전선 이내로 복귀
     { h: 309, t: -54.5, note: '컨테이너 하차 대비 (Unloading Prep)' },
     { h: 312, t: -57.3 },
@@ -228,11 +228,11 @@ async function seedMongo() {
     { h: 324, t: -55.0 },
   ];
 
-  // DELIVERED: 1건 — 하역 과정 중 경계선 근처 짧은 이탈
+  // DELIVERED: 1건 — 하역 과정 중 안전임계치(-45°C) 초과 이탈
   const deliveredB: SeedPoint[] = [
     { h: 326, t: -56.5 },
     { h: 328, t: -57.5 },
-    { h: 330, t: -47.0, note: '입고 하역 중 온도 이탈 (Delivery Handling Excursion — 안전임계치 근접 초과)' }, // 이탈 1건
+    { h: 330, t: -42.5, note: '입고 하역 중 온도 이탈 (Delivery Handling Excursion — 안전임계치(-45°C) 초과)' }, // 이탈 1건
     { h: 332, t: -58.0, note: '입고 검수 완료 (Inspection Passed)' }, // 즉시 회복
     { h: 334, t: -59.0 },
     { h: 336, t: -59.2 },

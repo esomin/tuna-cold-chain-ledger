@@ -29,8 +29,8 @@ export const STAGE_THRESHOLDS: Record<string, { targetTemp: number; warningTemp:
   PROCESSED: { targetTemp: -25, warningTemp: -22 },
   IN_TRANSIT: { targetTemp: -55, warningTemp: -45 },
   PENDING: { targetTemp: -55, warningTemp: -45 },
-  DELIVERED: { targetTemp: -55, warningTemp: -50 },
-  COMPLETED: { targetTemp: -55, warningTemp: -50 },
+  DELIVERED: { targetTemp: -55, warningTemp: -45 },
+  COMPLETED: { targetTemp: -55, warningTemp: -45 },
 };
 
 @Injectable()
@@ -74,6 +74,10 @@ export class PurchaseOrdersService implements OnModuleInit {
         }
         await this.poRepository.save(poB);
         console.log('[PurchaseOrdersService] Synchronized PO-2026-SCENARIO-B into PostgreSQL database.');
+      } else if (existingB.status !== 'DELIVERED') {
+        existingB.status = 'DELIVERED';
+        await this.poRepository.save(existingB);
+        console.log('[PurchaseOrdersService] Updated PO-2026-SCENARIO-B status to DELIVERED.');
       }
     } catch (err) {
       console.warn('[PurchaseOrdersService] seedDefaultScenarios warning:', err);
@@ -341,7 +345,7 @@ export class PurchaseOrdersService implements OnModuleInit {
               eventNote: '입고 검수 완료 (Inspection Passed)',
               stage: 'DELIVERED',
               targetTemp: -55,
-              warningTemp: -50,
+              warningTemp: -45,
             },
             {
               poNumber,
@@ -351,7 +355,7 @@ export class PurchaseOrdersService implements OnModuleInit {
               timestamp: new Date(baseTime + 72 * HOUR),
               stage: 'DELIVERED',
               targetTemp: -55,
-              warningTemp: -50,
+              warningTemp: -45,
             },
           ];
           await this.sensorLogModel.insertMany(initialSeeds);
@@ -436,16 +440,14 @@ export class PurchaseOrdersService implements OnModuleInit {
       let anomalyCount = 0;
       if (this.sensorLogModel) {
         try {
-          const recentLogs = await this.sensorLogModel
+          const allLogs = await this.sensorLogModel
             .find({ poNumber: po.poNumber })
-            .sort({ timestamp: -1 })
-            .limit(20);
+            .sort({ timestamp: 1 });
+          const recentLogs = [...allLogs].reverse().slice(0, 20);
           tempReadings = recentLogs ? recentLogs.map((l) => l.temperature) : [];
 
           // 시간 순으로 정렬하여 초기 동결 구간인지 판별
-          const chronologicalLogs = [...recentLogs].sort(
-            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-          );
+          const chronologicalLogs = allLogs;
           let hasReachedTarget = false;
           const freezingMap = new Map<any, boolean>();
           for (const l of chronologicalLogs) {
