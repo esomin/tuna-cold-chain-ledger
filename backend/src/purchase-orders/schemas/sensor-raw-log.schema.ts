@@ -35,6 +35,9 @@ export class SensorRawLog extends Document {
 
   @Prop({ required: false, type: Number })
   warningTemp?: number;
+
+  @Prop({ required: false, type: Boolean, default: false })
+  isFreezing?: boolean;
 }
 
 export const SensorRawLogSchema = SchemaFactory.createForClass(SensorRawLog);

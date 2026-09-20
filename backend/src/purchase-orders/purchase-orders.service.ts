@@ -22,6 +22,17 @@ const STAGE_ORDER: Record<string, number> = {
   COMPLETED: 3,
 };
 
+export const STAGE_THRESHOLDS: Record<string, { targetTemp: number; warningTemp: number }> = {
+  HARVESTED: { targetTemp: -55, warningTemp: -45 },
+  DRAFT: { targetTemp: -55, warningTemp: -45 },
+  PROCESSING: { targetTemp: -25, warningTemp: -22 },
+  PROCESSED: { targetTemp: -25, warningTemp: -22 },
+  IN_TRANSIT: { targetTemp: -55, warningTemp: -45 },
+  PENDING: { targetTemp: -55, warningTemp: -45 },
+  DELIVERED: { targetTemp: -55, warningTemp: -50 },
+  COMPLETED: { targetTemp: -55, warningTemp: -50 },
+};
+
 @Injectable()
 export class PurchaseOrdersService {
   constructor(
@@ -165,15 +176,23 @@ export class PurchaseOrdersService {
       try {
         const log = await this.sensorLogModel.findOne({ poNumber }).sort({ timestamp: -1 }).exec();
         if (log) {
+          const stage = log.stage || 'HARVESTED';
+          const threshold = STAGE_THRESHOLDS[stage] || STAGE_THRESHOLDS.HARVESTED;
+          const targetTemp = typeof log.targetTemp === 'number' ? log.targetTemp : threshold.targetTemp;
+          const warningTemp = typeof log.warningTemp === 'number' ? log.warningTemp : threshold.warningTemp;
+          const isFreezing = Boolean(log.isFreezing);
+          const isAnomaly = !isFreezing && log.temperature > warningTemp;
           return {
             poNumber: log.poNumber,
             temperature: log.temperature,
             latitude: log.latitude,
             longitude: log.longitude,
             timestamp: log.timestamp,
-            stage: log.stage || 'HARVESTED',
-            targetTemp: typeof log.targetTemp === 'number' ? log.targetTemp : -55,
-            warningTemp: typeof log.warningTemp === 'number' ? log.warningTemp : -45,
+            stage,
+            targetTemp,
+            warningTemp,
+            isFreezing,
+            isAnomaly,
           };
         }
       } catch (err) {
@@ -208,10 +227,11 @@ export class PurchaseOrdersService {
               latitude: 35.0784,
               longitude: 129.0069,
               timestamp: new Date(baseTime + 0 * HOUR),
-              eventNote: '어획 완료',
+              eventNote: '어획 완료 (선내 급속동결 시작)',
               stage: 'HARVESTED',
               targetTemp: -55,
               warningTemp: -45,
+              isFreezing: true,
             },
             {
               poNumber,
@@ -310,6 +330,9 @@ export class PurchaseOrdersService {
           const maxTime = new Date(sortedLogs[sortedLogs.length - 1].timestamp).getTime();
           const timeSpanHours = (maxTime - minTime) / (3600 * 1000);
 
+          // 어획(HARVESTED) 단계의 초기 급속냉동(Pulldown) 구간 동적 감지 (최초 -55°C 도달 전)
+          let hasReachedHarvestTarget = false;
+
           return sortedLogs.map((l: any, index, array) => {
             const logTime = new Date(l.timestamp).getTime();
             let formattedTime = '';
@@ -325,16 +348,36 @@ export class PurchaseOrdersService {
               });
             }
 
+            const stage = l.stage || 'HARVESTED';
+            const threshold = STAGE_THRESHOLDS[stage] || STAGE_THRESHOLDS.HARVESTED;
+            const targetTemp = typeof l.targetTemp === 'number' ? l.targetTemp : threshold.targetTemp;
+            const warningTemp = typeof l.warningTemp === 'number' ? l.warningTemp : threshold.warningTemp;
+
+            // 어획 단계에서 최초로 targetTemp(-55°C)에 도달하기 전의 냉각 과정은 급속동결 구간
+            const isInitialHarvestPulldown =
+              stage === 'HARVESTED' &&
+              !hasReachedHarvestTarget &&
+              (l.temperature > targetTemp || l.eventNote?.includes('어획') || l.eventNote?.includes('급속동결'));
+
+            if (stage === 'HARVESTED' && l.temperature <= targetTemp) {
+              hasReachedHarvestTarget = true;
+            }
+
+            const isFreezing = Boolean(l.isFreezing) || isInitialHarvestPulldown;
+            const isAnomaly = !isFreezing && l.temperature > warningTemp;
+
             return {
               poNumber: l.poNumber,
               temperature: l.temperature,
               latitude: l.latitude,
               longitude: l.longitude,
               timestamp: l.timestamp,
-              eventNote: l.eventNote || null,
-              stage: l.stage || 'HARVESTED',
-              targetTemp: typeof l.targetTemp === 'number' ? l.targetTemp : -55,
-              warningTemp: typeof l.warningTemp === 'number' ? l.warningTemp : -45,
+              eventNote: l.eventNote || (isFreezing ? '급속동결 진행 중 (Freezing Pulldown)' : null),
+              stage,
+              targetTemp,
+              warningTemp,
+              isFreezing,
+              isAnomaly,
               time: formattedTime,
               chamberTemp: l.temperature,
               ambientTemp: Number((22.0 + (Math.random() * 0.4 - 0.2)).toFixed(1)),
@@ -354,7 +397,7 @@ export class PurchaseOrdersService {
     try {
       const po = await this.findOne(id);
 
-      // 1. 시계열 온도 로그 최신 10건 조회 및 이상 여부 판단 (sensorLogModel 존재 여부 안전 검사)
+      // 1. 시계열 온도 로그 최신 20건 조회 및 이상 여부 판단 (sensorLogModel 존재 여부 안전 검사)
       let tempReadings: number[] = [];
       let anomalyCount = 0;
       if (this.sensorLogModel) {
@@ -364,7 +407,36 @@ export class PurchaseOrdersService {
             .sort({ timestamp: -1 })
             .limit(20);
           tempReadings = recentLogs ? recentLogs.map((l) => l.temperature) : [];
-          anomalyCount = tempReadings.filter((t) => t > -55.0).length;
+
+          // 시간 순으로 정렬하여 초기 동결 구간인지 판별
+          const chronologicalLogs = [...recentLogs].sort(
+            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+          );
+          let hasReachedTarget = false;
+          const freezingMap = new Map<any, boolean>();
+          for (const l of chronologicalLogs) {
+            const stage = l.stage || po.status || 'HARVESTED';
+            const target = typeof l.targetTemp === 'number' ? l.targetTemp : -55;
+            if (stage === 'HARVESTED' && !hasReachedTarget) {
+              if (l.temperature > target || l.isFreezing || l.eventNote?.includes('어획')) {
+                freezingMap.set(l, true);
+              }
+              if (l.temperature <= target) {
+                hasReachedTarget = true;
+              }
+            }
+          }
+
+          anomalyCount = chronologicalLogs.filter((l) => {
+            const isFreezing = Boolean(l.isFreezing) || Boolean(freezingMap.get(l));
+            if (isFreezing) return false;
+            const stageKey = l.stage || po.status || 'HARVESTED';
+            const limit =
+              typeof l.warningTemp === 'number'
+                ? l.warningTemp
+                : (STAGE_THRESHOLDS[stageKey]?.warningTemp ?? -45.0);
+            return l.temperature > limit;
+          }).length;
         } catch (mongoErr) {
           console.warn('[verifyPo] Mongoose query skipped or failed:', mongoErr);
         }

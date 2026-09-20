@@ -76,6 +76,16 @@ const RechartsCustomTooltip = ({ active, payload, label }: any) => {
             </strong>
           </p>
         )}
+        {chamber?.payload?.isFreezing && (
+          <div className="mt-1 pt-1 border-t border-cyan-500/20 text-cyan-300 text-[10px] flex items-center gap-1">
+            <span>❄️ 선내 급속동결 구간 (정상 냉각)</span>
+          </div>
+        )}
+        {chamber?.payload?.eventNote && (
+          <div className="mt-1 pt-1 border-t border-white/10 text-amber-300 text-[10px] flex items-center gap-1">
+            <span>📌 {chamber.payload.eventNote}</span>
+          </div>
+        )}
       </div>
     );
   }
@@ -218,15 +228,29 @@ const Dashboard: React.FC = () => {
           const elapsedDays = Math.floor((itemTime - minTime) / (24 * 3600 * 1000)) + 1;
           timeLabel = String(elapsedDays);
         }
+
+        const stage = item?.stage || 'HARVESTED';
+        const fallbackWarningTemp =
+          stage === 'PROCESSING' || stage === 'PROCESSED' ? -22 : stage === 'DELIVERED' || stage === 'COMPLETED' ? -50 : -45;
+        const warningTemp = typeof item?.warningTemp === 'number' ? item.warningTemp : fallbackWarningTemp;
+        const isFreezing = Boolean(item?.isFreezing);
+        const isAnomaly =
+          typeof item?.isAnomaly === 'boolean'
+            ? item.isAnomaly
+            : !isFreezing && Number(tempVal.toFixed(1)) > warningTemp;
+
         return {
-          time: timeLabel,      // human-readable label (for tooltip)
-          rawIndex: index,       // numeric x-axis key
+          time: timeLabel, // human-readable label (for tooltip)
+          rawIndex: index, // numeric x-axis key
           chamberTemp: Number(tempVal.toFixed(1)),
           isPin: index === targetItems.length - 1,
           timestamp: item?.timestamp || null,
-          stage: item?.stage || 'HARVESTED',
+          stage,
           targetTemp: typeof item?.targetTemp === 'number' ? item.targetTemp : -55,
-          warningTemp: typeof item?.warningTemp === 'number' ? item.warningTemp : -45,
+          warningTemp,
+          isFreezing,
+          isAnomaly,
+          eventNote: item?.eventNote || null,
         };
       });
 
@@ -285,23 +309,38 @@ const Dashboard: React.FC = () => {
     return ranges;
   }, [chartData, selectedTimeRange]);
 
+  const activeStageWarningTemp = useMemo(() => {
+    const stage = selectedPo?.status || 'HARVESTED';
+    if (stage === 'PROCESSING' || stage === 'PROCESSED') return -22;
+    if (stage === 'DELIVERED' || stage === 'COMPLETED') return -50;
+    return -45;
+  }, [selectedPo?.status]);
+
   const tempStats = useMemo(() => {
     if (!chartData || chartData.length === 0) {
       return { anomalyCount: 0, complianceRate: 100, isStable: true };
     }
-    const validPoints = chartData.filter((d): d is typeof chartData[0] & { chamberTemp: number } => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
+    const validPoints = chartData.filter(
+      (d): d is (typeof chartData)[0] & { chamberTemp: number } =>
+        typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp),
+    );
     if (validPoints.length === 0) {
       return { anomalyCount: 0, complianceRate: 100, isStable: true };
     }
-    const anomalies = validPoints.filter(d => d.chamberTemp > (typeof d.warningTemp === 'number' ? d.warningTemp : -45));
+    const anomalies = validPoints.filter((d) => {
+      if ((d as any).isFreezing) return false;
+      return typeof (d as any).isAnomaly === 'boolean'
+        ? (d as any).isAnomaly
+        : d.chamberTemp > (typeof d.warningTemp === 'number' ? d.warningTemp : activeStageWarningTemp);
+    });
     const count = anomalies.length;
     const complianceRate = Number((((validPoints.length - count) / validPoints.length) * 100).toFixed(1));
     return {
       anomalyCount: count,
       complianceRate,
-      isStable: count === 0 && (simTemperature === undefined || simTemperature <= -45.0),
+      isStable: count === 0 && (simTemperature === undefined || simTemperature <= activeStageWarningTemp),
     };
-  }, [chartData, simTemperature]);
+  }, [chartData, simTemperature, activeStageWarningTemp]);
 
   const activePinItem = useMemo(() => {
     const validPoints = chartData.filter((d): d is typeof chartData[0] & { chamberTemp: number } => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
@@ -581,7 +620,7 @@ const Dashboard: React.FC = () => {
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData} margin={{ top: 25, right: 0, left: 0, bottom: 0 }}>
+                  <ComposedChart data={chartData} margin={{ top: 25, right: 0, left: -15, bottom: 0 }}>
                     <defs>
                       {/* Cyan Glow Gradient */}
                       <linearGradient id="cyanLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">

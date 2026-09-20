@@ -22,6 +22,7 @@ interface SeedPoint {
   h: number;
   t: number;
   note?: string;
+  isFreezing?: boolean;
 }
 
 const SensorRawLogSchema = new mongoose.Schema(
@@ -40,6 +41,7 @@ const SensorRawLogSchema = new mongoose.Schema(
     },
     targetTemp: { type: Number, required: true },
     warningTemp: { type: Number, required: true },
+    isFreezing: { type: Boolean, default: false },
   },
   { collection: 'sensor_raw_logs', timestamps: true }
 );
@@ -65,9 +67,9 @@ async function seedMongo() {
 
   // 각 배열에 SeedPoint[] 타입 명시
   const harvested: SeedPoint[] = [
-    { h: 0, t: -10.0, note: '어획 완료' },
-    { h: 3, t: -35.0 },
-    { h: 6, t: -57.5, note: '선내 급속동결 완료' },
+    { h: 0, t: -10.0, note: '어획 완료 (선내 급속동결 시작)', isFreezing: true },
+    { h: 3, t: -35.0, note: '급속동결 진행 중 (Freezing Pulldown)', isFreezing: true },
+    { h: 6, t: -57.5, note: '선내 급속동결 완료 (-57.5°C)' },
     { h: 24, t: -58.2 },
     { h: 48, t: -57.8 },
     { h: 72, t: -58.0 },
@@ -140,7 +142,7 @@ async function seedMongo() {
   ];
 
   const mockLogs = stageGroups.flatMap(({ stage, points }) =>
-    points.map(({ h, t, note }) => ({
+    points.map(({ h, t, note, isFreezing }) => ({
       poNumber,
       temperature: t,
       ...coord(h),
@@ -148,20 +150,10 @@ async function seedMongo() {
       stage,
       targetTemp: STAGE_CONFIG[stage].targetTemp,
       warningTemp: STAGE_CONFIG[stage].warningTemp,
+      isFreezing: isFreezing ?? false,
       ...(note ? { eventNote: note } : {}),
     }))
   );
-
-  mockLogs.push({
-    poNumber: 'PO-20260916-6842',
-    temperature: -56.4,
-    latitude: 35.9892,
-    longitude: 129.5541,
-    timestamp: new Date(),
-    stage: 'IN_TRANSIT',
-    targetTemp: STAGE_CONFIG.IN_TRANSIT.targetTemp,
-    warningTemp: STAGE_CONFIG.IN_TRANSIT.warningTemp,
-  });
 
   await SensorRawLog.deleteMany({});
   const inserted = await SensorRawLog.insertMany(mockLogs);
