@@ -25,7 +25,8 @@ import {
   BookOpenCheck,
   Compass,
   Bell,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import { OrderListPanel } from '../components/OrderListPanel';
 import { DistributionTimeline } from '../components/Timeline/DistributionTimeline';
@@ -49,6 +50,33 @@ interface PurchaseOrder {
     name: string;
   };
 }
+
+export interface AlertIncident {
+  id: string;
+  stage: string;
+  stageName: string;
+  startDay: string;
+  endDay: string;
+  startHour: string;
+  endHour: string;
+  startTimestamp: string | null;
+  endTimestamp: string | null;
+  peakTemp: number;
+  warningTemp: number;
+  dataPointCount: number;
+  notes: string[];
+  primaryNote: string;
+  points: Array<{ time: string; temp: number; note?: string | null }>;
+}
+
+const getStageBadgeInfo = (stageKey: string) => {
+  const upper = (stageKey || '').toUpperCase();
+  if (upper === 'HARVESTED') return { name: 'Stage 1: Harvested' };
+  if (upper === 'PROCESSING' || upper === 'PROCESSED') return { name: 'Stage 2: Processing' };
+  if (upper === 'IN_TRANSIT' || upper === 'PENDING') return { name: 'Stage 3: Transit' };
+  if (upper === 'DELIVERED' || upper === 'COMPLETED') return { name: 'Stage 4: Delivered' };
+  return { name: stageKey };
+};
 
 // Custom Tooltip for Recharts Telemetry Chart
 const RechartsCustomTooltip = ({ active, payload, label }: any) => {
@@ -100,6 +128,7 @@ const Dashboard: React.FC = () => {
   const [fleets, setFleets] = useState<Fleet[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [backendError, setBackendError] = useState<string | null>(null);
+  const [isAlertPopoverOpen, setIsAlertPopoverOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -220,13 +249,18 @@ const Dashboard: React.FC = () => {
         const rawTemp = item?.chamberTemp ?? item?.temperature;
         const tempVal = typeof rawTemp === 'number' && !isNaN(rawTemp) ? rawTemp : currentChamberTemp;
         let timeLabel = '';
+        let hourLabel = typeof item?.time === 'string' && item.time.includes('h') ? item.time : '';
         if (isLive) {
           const d = item?.timestamp ? new Date(item.timestamp) : new Date();
           timeLabel = d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+          if (!hourLabel) hourLabel = timeLabel;
         } else {
           const itemTime = item?.timestamp ? new Date(item.timestamp).getTime() : minTime + (index / targetItems.length) * totalSpan;
           const elapsedDays = Math.floor((itemTime - minTime) / (24 * 3600 * 1000)) + 1;
           timeLabel = String(elapsedDays);
+          if (!hourLabel) {
+            hourLabel = `${Math.round((itemTime - minTime) / (3600 * 1000))}h`;
+          }
         }
 
         const stage = item?.stage || 'HARVESTED';
@@ -240,7 +274,8 @@ const Dashboard: React.FC = () => {
             : !isFreezing && Number(tempVal.toFixed(1)) > warningTemp;
 
         return {
-          time: timeLabel, // human-readable label (for tooltip)
+          time: timeLabel, // numeric day or live time
+          hourLabel, // e.g. "234h"
           rawIndex: index, // numeric x-axis key
           chamberTemp: Number(tempVal.toFixed(1)),
           isPin: index === targetItems.length - 1,
@@ -316,30 +351,97 @@ const Dashboard: React.FC = () => {
   }, [selectedPo?.status]);
 
   const tempStats = useMemo(() => {
+    const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream';
     if (!chartData || chartData.length === 0) {
-      return { anomalyCount: 0, complianceRate: 100, isStable: true };
+      return { anomalyCount: 0, incidentCount: 0, incidents: [] as AlertIncident[], complianceRate: 100, isStable: true };
     }
     const validPoints = chartData.filter(
       (d): d is (typeof chartData)[0] & { chamberTemp: number } =>
         typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp),
     );
     if (validPoints.length === 0) {
-      return { anomalyCount: 0, complianceRate: 100, isStable: true };
+      return { anomalyCount: 0, incidentCount: 0, incidents: [] as AlertIncident[], complianceRate: 100, isStable: true };
     }
-    const anomalies = validPoints.filter((d) => {
-      if ((d as any).isFreezing) return false;
-      return typeof (d as any).isAnomaly === 'boolean'
-        ? (d as any).isAnomaly
-        : d.chamberTemp > (typeof d.warningTemp === 'number' ? d.warningTemp : activeStageWarningTemp);
-    });
-    const count = anomalies.length;
-    const complianceRate = Number((((validPoints.length - count) / validPoints.length) * 100).toFixed(1));
+
+    const incidents: AlertIncident[] = [];
+    let currentIncident: AlertIncident | null = null;
+    let rawAnomalyCount = 0;
+
+    for (let i = 0; i < validPoints.length; i++) {
+      const pt = validPoints[i];
+      const isFreezing = Boolean((pt as any).isFreezing);
+      const isAnomaly = !isFreezing && (
+        typeof (pt as any).isAnomaly === 'boolean'
+          ? (pt as any).isAnomaly
+          : pt.chamberTemp > (typeof pt.warningTemp === 'number' ? pt.warningTemp : activeStageWarningTemp)
+      );
+
+      if (isAnomaly) {
+        rawAnomalyCount += 1;
+        const stage = pt.stage || 'HARVESTED';
+        const warning = typeof pt.warningTemp === 'number' ? pt.warningTemp : activeStageWarningTemp;
+        const hourStr = (pt as any).hourLabel || `${pt.rawIndex}h`;
+        const dayStr = isLive ? pt.time : `Day ${pt.time}`;
+        const stageInfo = getStageBadgeInfo(stage);
+
+        if (currentIncident && currentIncident.stage === stage) {
+          // 동일 단계 내 연속 이탈 데이터: 기존 사건(Incident)에 누적
+          currentIncident.dataPointCount += 1;
+          currentIncident.endHour = hourStr;
+          currentIncident.endDay = dayStr;
+          currentIncident.endTimestamp = pt.timestamp || null;
+          if (pt.chamberTemp > currentIncident.peakTemp) {
+            currentIncident.peakTemp = pt.chamberTemp;
+          }
+          if (pt.eventNote && !currentIncident.notes.includes(pt.eventNote)) {
+            currentIncident.notes.push(pt.eventNote);
+          }
+          currentIncident.points.push({ time: hourStr, temp: pt.chamberTemp, note: pt.eventNote });
+        } else {
+          // 이전 사건이 있으면 목록에 추가
+          if (currentIncident) {
+            incidents.push(currentIncident);
+          }
+          // 새로운 사건 시작
+          currentIncident = {
+            id: `INC-${String(incidents.length + 1).padStart(2, '0')}`,
+            stage,
+            stageName: stageInfo.name,
+            startDay: dayStr,
+            endDay: dayStr,
+            startHour: hourStr,
+            endHour: hourStr,
+            startTimestamp: pt.timestamp || null,
+            endTimestamp: pt.timestamp || null,
+            peakTemp: pt.chamberTemp,
+            warningTemp: warning,
+            dataPointCount: 1,
+            notes: pt.eventNote ? [pt.eventNote] : [],
+            primaryNote: pt.eventNote || 'Temp Threshold Exceeded',
+            points: [{ time: hourStr, temp: pt.chamberTemp, note: pt.eventNote }],
+          };
+        }
+      } else {
+        if (currentIncident) {
+          incidents.push(currentIncident);
+          currentIncident = null;
+        }
+      }
+    }
+
+    if (currentIncident) {
+      incidents.push(currentIncident);
+    }
+
+    const complianceRate = Number((((validPoints.length - rawAnomalyCount) / validPoints.length) * 100).toFixed(1));
     return {
-      anomalyCount: count,
+      anomalyCount: rawAnomalyCount,
+      incidentCount: incidents.length,
+      incidents,
       complianceRate,
-      isStable: count === 0 && (simTemperature === undefined || simTemperature <= activeStageWarningTemp),
+      isStable: incidents.length === 0 && (simTemperature === undefined || simTemperature <= activeStageWarningTemp),
     };
-  }, [chartData, simTemperature, activeStageWarningTemp]);
+  }, [chartData, simTemperature, activeStageWarningTemp, selectedTimeRange]);
 
   const activePinItem = useMemo(() => {
     const validPoints = chartData.filter((d): d is typeof chartData[0] & { chamberTemp: number } => typeof d.chamberTemp === 'number' && !isNaN(d.chamberTemp));
@@ -596,7 +698,9 @@ const Dashboard: React.FC = () => {
                   : 'bg-rose-500/15 text-rose-300 border-rose-500/30'
                   }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${tempStats.isStable ? 'bg-emerald-400 animate-ping' : 'bg-rose-400 animate-pulse'}`} />
-                  {tempStats.isStable ? t('dashboard.labels.stable') : t('dashboard.labels.anomaliesCount', { count: tempStats.anomalyCount })}
+                  {tempStats.isStable
+                    ? '✓ CRYOGENIC STABLE'
+                    : `${tempStats.incidentCount} Alerts (${tempStats.anomalyCount} Excursions)`}
                 </span>
               </div>
             </div>
@@ -896,7 +1000,11 @@ const Dashboard: React.FC = () => {
                     <p className="text-[11px] font-semibold text-slate-400">{t('dashboard.metrics.complianceRate')}</p>
                     <p className="text-2xl font-black text-white font-mono mt-1">{isDisconnected ? '--' : '< -55°C'}</p>
                     <p className="text-[10px] text-sky-400 mt-0.5">
-                      {isDisconnected ? t('dashboard.labels.needConnection') : tempStats.anomalyCount > 0 ? t('dashboard.labels.anomalyCount', { count: tempStats.anomalyCount }) : t('dashboard.labels.anomalyZero')}
+                      {isDisconnected
+                        ? 'Connection Required'
+                        : tempStats.incidentCount > 0
+                        ? `${tempStats.incidentCount} Alerts (${tempStats.anomalyCount} Excursions)`
+                        : '0 Temp Anomalies'}
                     </p>
                   </div>
                   <div className="w-12 h-12 rounded-full border-4 border-sky-500/20 border-t-sky-400 flex items-center justify-center font-bold text-xs text-sky-300">
@@ -922,17 +1030,119 @@ const Dashboard: React.FC = () => {
                 <Compass className="w-4 h-4 text-sky-400" />
                 <h3 className="text-sm font-bold text-white tracking-wider">{t('dashboard.fleetInfo.title')}</h3>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 relative">
                 <button
-                  onClick={clearAlerts}
-                  title="알림 통지"
-                  className="w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center text-slate-300 hover:text-white transition-colors relative"
+                  onClick={() => setIsAlertPopoverOpen((prev) => !prev)}
+                  title="Cold Chain Alert Incidents"
+                  className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all relative ${
+                    isAlertPopoverOpen
+                      ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-md shadow-sky-500/30'
+                      : 'bg-white/5 border-white/10 hover:bg-white/10 text-slate-300 hover:text-white'
+                  }`}
                 >
                   <Bell className="w-3.5 h-3.5" />
-                  {alerts.length > 0 && (
+                  {tempStats.incidentCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black font-mono flex items-center justify-center shadow-lg shadow-rose-500/60 ring-2 ring-slate-950 animate-pulse">
+                      {tempStats.incidentCount}
+                    </span>
+                  )}
+                  {tempStats.incidentCount === 0 && alerts.length > 0 && (
                     <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
                   )}
                 </button>
+
+                {/* Popover / Dropdown Modal for Alert Incidents */}
+                {isAlertPopoverOpen && (
+                  <div className="absolute right-0 top-11 w-80 sm:w-96 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-4 z-50 flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-slate-400 shrink-0" />
+                        <div>
+                          <h4 className="text-xs font-bold text-white tracking-wide">
+                            Cold Chain Alert Incidents
+                          </h4>
+                          <p className="text-[10px] text-slate-400">
+                            Total <strong className="text-rose-400 font-mono font-bold">{tempStats.incidentCount} alert incidents</strong> detected ({tempStats.anomalyCount} temp excursions)
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setIsAlertPopoverOpen(false)}
+                        className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white text-xs transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Incident List */}
+                    <div className="max-h-72 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                      {tempStats.incidents.length === 0 ? (
+                        <div className="py-6 text-center text-xs text-slate-400 flex flex-col items-center gap-1.5">
+                          <span className="text-slate-400 text-base">✓</span>
+                          <span>No temperature anomaly incidents detected.</span>
+                        </div>
+                      ) : (
+                        tempStats.incidents.map((inc) => {
+                          const badge = getStageBadgeInfo(inc.stage);
+                          const isMultiple = inc.dataPointCount > 1;
+                          const diff = (inc.peakTemp - inc.warningTemp).toFixed(1);
+                          const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream';
+                          const dayPart = inc.startDay === inc.endDay ? inc.startDay : `${inc.startDay} ~ ${inc.endDay}`;
+                          const hourPart = inc.startHour === inc.endHour ? inc.startHour : `${inc.startHour} ~ ${inc.endHour}`;
+                          const timeRangeText = isLive ? hourPart : `${dayPart} · ${hourPart}`;
+
+                          return (
+                            <div
+                              key={inc.id}
+                              className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col gap-2"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                                    {badge.name}
+                                  </span>
+                                  <span className="text-[10px] font-mono text-slate-400 font-semibold">{inc.id}</span>
+                                </div>
+                                <span className="text-[10px] font-mono text-slate-400">
+                                  {timeRangeText}
+                                </span>
+                              </div>
+
+                              <div className="text-xs text-slate-200 font-normal leading-relaxed">
+                                {inc.primaryNote}
+                              </div>
+
+                              <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-800">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-slate-400 text-[10px]">Peak:</span>
+                                  <span className="text-rose-400 font-mono font-bold">{inc.peakTemp.toFixed(1)}°C</span>
+                                  <span className="text-slate-400 text-[10px] font-mono">
+                                    (Limit {inc.warningTemp}°C, +{diff}°C over)
+                                  </span>
+                                </div>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                                  {isMultiple ? `${inc.dataPointCount} Consecutive Excursions` : 'Single Excursion'}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
+                      <span>Consecutive readings are grouped into 1 incident</span>
+                      {alerts.length > 0 && (
+                        <button
+                          onClick={clearAlerts}
+                          className="text-slate-400 hover:text-slate-200 underline cursor-pointer"
+                        >
+                          Clear Live Alerts
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

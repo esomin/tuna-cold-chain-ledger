@@ -183,13 +183,13 @@ async function seedMongo() {
     { h: 216, t: -58.0 },
   ];
 
-  // PROCESSING: 1건 — 단발성 이탈 (등급판정 중 문 개방으로 안전선(-22℃) 순간 초과)
+  // PROCESSING: 1건 — 단발성 이탈
   const processingB: SeedPoint[] = [
     { h: 228, t: -56.5 },
     { h: 230, t: -41.0 },
     { h: 232, t: -27.5 },
-    { h: 234, t: -18.0, note: '가공 중 온도 이탈 (Processing Excursion — 안전임계치 초과)' }, // 이탈 1건
-    { h: 236, t: -23.2 }, // 즉시 회복
+    { h: 234, t: -18.0, note: 'Processing Temp Excursion (Safety Threshold Exceeded)' }, // Incident 1
+    { h: 236, t: -23.2 },
     { h: 238, t: -24.5 },
     { h: 240, t: -25.0 },
     { h: 242, t: -24.6 },
@@ -202,25 +202,25 @@ async function seedMongo() {
 
   // IN_TRANSIT: 2건 — ① 도어 개폐(단발성) ② 냉동유닛 이상(지속형, 3포인트 연속 초과)
   const transitB: SeedPoint[] = [
-    { h: 255, t: -53.5, note: '컨테이너 상차 (Loading)' },
+    { h: 255, t: -53.5, note: 'Container Loading' },
     { h: 258, t: -56.2 },
     { h: 261, t: -54.0 },
     { h: 264, t: -57.0 },
     { h: 267, t: -53.2 },
     { h: 270, t: -55.6 },
-    { h: 273, t: -42.0, note: '도어 개폐 (Door Open Event — 안전임계치 초과, 단발성)' }, // 이탈 2건 중 1건
-    { h: 276, t: -54.8 }, // 즉시 회복
+    { h: 273, t: -42.0, note: 'Door Open Event (Threshold Exceeded)' }, // Incident 2
+    { h: 276, t: -54.8 },
     { h: 279, t: -56.0 },
     { h: 282, t: -53.6 },
     { h: 285, t: -57.1 },
     { h: 288, t: -54.3 },
     { h: 291, t: -55.7 },
     { h: 294, t: -53.9 },
-    { h: 297, t: -46.5, note: '냉동유닛 이상 감지 (Cooling Unit Malfunction Warning)' },
-    { h: 300, t: -38.5, note: '냉동유닛 이상 지속 — 안전임계치 초과 피크' }, // 이탈 2건 중 2건 (피크 1건)
-    { h: 303, t: -47.0, note: '냉동유닛 이상 회복 중 (안전선 이내 진입)' },
-    { h: 306, t: -50.0 }, // 안전선 이내로 복귀
-    { h: 309, t: -54.5, note: '컨테이너 하차 대비 (Unloading Prep)' },
+    { h: 297, t: -40.0, note: 'Cooling Unit Malfunction (Excursion Started)' }, // Incident 3 start
+    { h: 300, t: -38.5, note: 'Cooling Unit Malfunction (Peak Excursion)' }, // Incident 3 ongoing
+    { h: 303, t: -41.5, note: 'Cooling Unit Malfunction Recovering' }, // Incident 3 recovery
+    { h: 306, t: -50.0 },
+    { h: 309, t: -54.5, note: 'Unloading Preparation' },
     { h: 312, t: -57.3 },
     { h: 315, t: -53.8 },
     { h: 318, t: -55.9 },
@@ -232,8 +232,8 @@ async function seedMongo() {
   const deliveredB: SeedPoint[] = [
     { h: 326, t: -56.5 },
     { h: 328, t: -57.5 },
-    { h: 330, t: -42.5, note: '입고 하역 중 온도 이탈 (Delivery Handling Excursion — 안전임계치(-45°C) 초과)' }, // 이탈 1건
-    { h: 332, t: -58.0, note: '입고 검수 완료 (Inspection Passed)' }, // 즉시 회복
+    { h: 330, t: -42.5, note: 'Delivery Handling Excursion (Threshold Exceeded)' }, // Incident 4
+    { h: 332, t: -58.0, note: 'Delivery Inspection Passed' },
     { h: 334, t: -59.0 },
     { h: 336, t: -59.2 },
   ];
