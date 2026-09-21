@@ -80,6 +80,10 @@ export const DistributionTimeline: React.FC<DistributionTimelineProps> = ({ poNu
         };
 
         fetchVerification();
+
+        const isFinished = status && ['COMPLETED', 'DELIVERED'].includes(status.toUpperCase());
+        if (isFinished) return;
+
         const interval = setInterval(fetchVerification, 5000);
         return () => clearInterval(interval);
     }, [poNumber, status, isBackendError]);
