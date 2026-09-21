@@ -70,7 +70,6 @@ NODE_ENV=production
 PORT=3000
 
 # PostgreSQL 설정 (RDBMS - 유저, 발주, 재고 데이터)
-DB_TYPE=postgres
 DB_HOST=postgres
 DB_PORT=5432
 DB_USERNAME=postgres
