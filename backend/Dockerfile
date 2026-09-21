@@ -21,8 +21,9 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Copy built dist & contracts/scripts
+# Copy built dist & contracts/scripts/artifacts
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/artifacts ./artifacts
 COPY --from=builder /app/contracts ./contracts
 COPY --from=builder /app/scripts ./scripts
 

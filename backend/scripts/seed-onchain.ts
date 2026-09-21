@@ -1,8 +1,15 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../src/app.module';
-import { BlockchainService } from '../src/blockchain/blockchain.service';
-import { AuditLogsService } from '../src/audit-logs/audit-logs.service';
 import { ethers } from 'ethers';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// Support both local development (src/) and production container (dist/)
+const isDist = !fs.existsSync(path.resolve(__dirname, '../src/app.module.ts'));
+const moduleBase = isDist ? '../dist' : '../src';
+
+const { AppModule } = require(path.resolve(__dirname, `${moduleBase}/app.module`));
+const { BlockchainService } = require(path.resolve(__dirname, `${moduleBase}/blockchain/blockchain.service`));
+const { AuditLogsService } = require(path.resolve(__dirname, `${moduleBase}/audit-logs/audit-logs.service`));
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -52,7 +59,7 @@ async function seedOnChain() {
           : `UPDATE_PO_STATUS_${st.key}:${sc.poNumber}`;
 
       const exists = existingLogs.some(
-        (l) => l.action === action || (l.action.includes(sc.poNumber) && l.action.includes(st.key)),
+        (l: any) => l.action === action || (l.action.includes(sc.poNumber) && l.action.includes(st.key)),
       );
 
       if (exists) {
