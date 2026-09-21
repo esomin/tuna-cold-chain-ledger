@@ -41,6 +41,8 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
+    const isDev = import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
     useEffect(() => {
         if (isOpen) {
             fetchFleets().then((data) => {
@@ -292,8 +294,13 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                         </button>
                         <button
                             type="submit"
-                            disabled={submitting}
-                            className="flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-bold bg-sky-400 text-slate-950 hover:bg-sky-300 disabled:opacity-50 select-none"
+                            disabled={submitting || !isDev}
+                            title={!isDev ? t('orderList.demoRestricted') : ''}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-bold transition-all select-none ${
+                                !isDev
+                                    ? 'bg-slate-800 text-slate-500 border border-slate-700/60 opacity-60 cursor-not-allowed'
+                                    : 'bg-sky-400 text-slate-950 hover:bg-sky-300 disabled:opacity-50'
+                            }`}
                         >
                             {submitting ? (
                                 <>

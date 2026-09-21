@@ -250,30 +250,19 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                     <Truck className="w-4 h-4 text-sky-400 shrink-0" />
                     <h3 className="text-xs sm:text-sm font-bold text-white tracking-wider font-digital truncate">{t('orderList.title')}</h3>
                 </div>
-                {isDev ? (
-                    <button
-                        disabled={isDisconnected}
-                        onClick={() => setIsModalOpen(true)}
-                        title={isDisconnected ? t('dashboard.labels.needServerConnection') : ''}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md font-digital shrink-0 whitespace-nowrap select-none ${
-                            isDisconnected
-                                ? 'bg-slate-800 text-slate-500 border border-slate-700/60 opacity-60 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-sky-400 to-cyan-400 hover:from-sky-300 hover:to-cyan-300 text-slate-950 shadow-sky-500/20'
-                        }`}
-                    >
-                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>{t('orderList.newOrder')}</span>
-                    </button>
-                ) : (
-                    <button
-                        disabled
-                        title={t('orderList.demoRestricted')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-500 border border-slate-700/60 opacity-60 cursor-not-allowed font-digital shrink-0 whitespace-nowrap select-none"
-                    >
-                        <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>{t('orderList.newOrder')}</span>
-                    </button>
-                )}
+                <button
+                    disabled={isDisconnected}
+                    onClick={() => setIsModalOpen(true)}
+                    title={isDisconnected ? t('dashboard.labels.needServerConnection') : ''}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md font-digital shrink-0 whitespace-nowrap select-none ${
+                        isDisconnected
+                            ? 'bg-slate-800 text-slate-500 border border-slate-700/60 opacity-60 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-sky-400 to-cyan-400 hover:from-sky-300 hover:to-cyan-300 text-slate-950 shadow-sky-500/20'
+                    }`}
+                >
+                    <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>{t('orderList.newOrder')}</span>
+                </button>
             </div>
 
             <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
