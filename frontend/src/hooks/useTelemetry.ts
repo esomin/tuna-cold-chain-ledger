@@ -75,10 +75,12 @@ export const useTelemetry = (
       : 'http://localhost:3000';
 
     const newSocket = io(socketUrl, {
+      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
-      timeout: 3000,
+      reconnectionDelayMax: 5000,
+      timeout: 10000,
     });
     setSocket(newSocket);
     setConnectionStatus('connecting');
