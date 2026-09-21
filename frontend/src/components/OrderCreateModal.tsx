@@ -34,7 +34,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
     // 데모 편의를 위한 기본값 설정
     const [skuId, setSkuId] = useState<string>('TUNA-BLUEFIN');
     const [quantity, setQuantity] = useState<number | string>(150);
-    const [supplierName, setSupplierName] = useState<string>('남태평양 원양선단 1팀');
+    const [selectedFleetCode, setSelectedFleetCode] = useState<string>('PF12');
     const [notes, setNotes] = useState<string>('어획 직후 초저온(-55°C) 급속 동결 및 온체인 무결성 검증건');
 
     const [fleets, setFleets] = useState<Fleet[]>([]);
@@ -48,17 +48,33 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
             fetchFleets().then((data) => {
                 if (data && data.length > 0) {
                     setFleets(data);
-                    // 기본 선택값이 없거나 리스트에 있는 값 설정
-                    if (!supplierName) {
-                        setSupplierName(data[0].koName);
+                    if (!selectedFleetCode) {
+                        setSelectedFleetCode(data[0].code);
                     }
                 }
             });
         }
     }, [isOpen]);
 
-
     if (!isOpen) return null;
+
+    const selectedFleet = fleets.find((f) => f.code === selectedFleetCode) || {
+        code: 'PF12',
+        name: 'Pacific Ocean Fleet No. 12',
+        koName: '태평양 원양선단 2팀',
+        homePort: '인천항 제3부두',
+    };
+
+    // Fleet별 자동 연동 Logistics 공급사 (PC7: 통영 원양 수산, PF12: 부산 어항 물류)
+    const linkedSupplier = selectedFleet.code === 'PC7'
+        ? {
+            name: 'Tongyeong Deep-Sea Fishery',
+            nameKo: '통영 원양 수산',
+          }
+        : {
+            name: 'Busan Harbor Logistics',
+            nameKo: '부산 어항 물류',
+          };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -66,12 +82,6 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
         setError(null);
 
         try {
-            const matchedFleet = fleets.find(
-                (f) => f.koName === supplierName || f.name === supplierName
-            );
-            const supplierNameKo = matchedFleet ? matchedFleet.koName : supplierName;
-            const supplierNameEn = matchedFleet ? matchedFleet.name : supplierName;
-
             const response = await fetch(
                 `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/purchase-orders`,
                 {
@@ -82,9 +92,9 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                     body: JSON.stringify({
                         skuId,
                         quantity: Number(quantity),
-                        supplierName: supplierNameKo,
-                        supplierNameKo,
-                        supplierNameEn,
+                        supplierName: linkedSupplier.name,
+                        supplierNameKo: linkedSupplier.nameKo,
+                        supplierNameEn: linkedSupplier.name,
                         notes,
                     }),
                 }
@@ -104,13 +114,6 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
         } finally {
             setSubmitting(false);
         }
-    };
-
-    const selectedFleet = fleets.find((f) => f.koName === supplierName) || {
-        code: 'PC7',
-        name: 'Pacific Ocean Fleet No. 7',
-        koName: '남태평양 원양선단 1팀',
-        homePort: '부산항 감천항만',
     };
 
 
@@ -201,51 +204,61 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                             />
                         </div>
 
-                        {/* Supplier */}
+                        {/* Catching Fleet */}
                         <div className="space-y-2 md:col-span-2">
                             <label className="text-xs font-bold text-slate-300 flex items-center gap-2 font-digital">
                                 <Truck className="w-4 h-4 text-sky-400" />
                                 {t('orderModal.fishingFleet')}
                             </label>
                             <select
-                                value={supplierName}
-                                onChange={(e) => setSupplierName(e.target.value)}
+                                value={selectedFleetCode}
+                                onChange={(e) => setSelectedFleetCode(e.target.value)}
                                 disabled={submitting}
                                 className="w-full px-4 py-3 rounded-2xl text-xs font-medium border bg-[#101a24] border-[#263c4e] text-slate-100 focus:outline-none focus:border-sky-400 cursor-pointer"
                             >
                                 {fleets.length > 0 ? (
                                     fleets.map((fleet) => (
-                                        <option key={fleet.id || fleet.code} value={fleet.koName}>
+                                        <option key={fleet.id || fleet.code} value={fleet.code}>
                                             {isEn ? `${fleet.name} (${fleet.koName})` : `${fleet.koName} (${fleet.name})`}
                                         </option>
                                     ))
                                 ) : (
                                     <>
-                                        <option value="남태평양 원양선단 1팀">{isEn ? 'Pacific Ocean Fleet No. 7 (남태평양 원양선단 1팀)' : '남태평양 원양선단 1팀 (Pacific Ocean Fleet No. 7)'}</option>
-                                        <option value="태평양 원양선단 2팀">{isEn ? 'Pacific Ocean Fleet No. 12 (태평양 원양선단 2팀)' : '태평양 원양선단 2팀 (Pacific Ocean Fleet No. 12)'}</option>
-                                        <option value="북서태평양 원양선단 3팀">{isEn ? 'North Pacific Ocean Fleet No. 3 (북서태평양 원양선단 3팀)' : '북서태평양 원양선단 3팀 (North Pacific Ocean Fleet No. 3)'}</option>
+                                        <option value="PF12">{isEn ? 'Pacific Ocean Fleet No. 12 (태평양 원양선단 2팀)' : '태평양 원양선단 2팀 (Pacific Ocean Fleet No. 12)'}</option>
+                                        <option value="PC7">{isEn ? 'Pacific Ocean Fleet No. 7 (남태평양 원양선단 1팀)' : '남태평양 원양선단 1팀 (Pacific Ocean Fleet No. 7)'}</option>
                                     </>
                                 )}
                             </select>
 
-                            {/* Selected Fleet Info Display Card */}
+                            {/* Selected Fleet Info Display Card & Automated Supplier Linkage */}
                             {selectedFleet && (
-                                <div className="mt-2.5 p-3.5 rounded-2xl bg-[#121f2b] border border-[#223647] flex items-center justify-between text-xs shadow-inner">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-cyan-300 p-[2px] shadow-sm shrink-0">
-                                            <div className="w-full h-full rounded-xl bg-slate-950 flex items-center justify-center font-black text-xs text-cyan-300 font-mono">
-                                                {selectedFleet.code.slice(0, 2).toUpperCase()}
+                                <div className="mt-2.5 p-3.5 rounded-2xl bg-[#121f2b] border border-[#223647] flex flex-col gap-2.5 text-xs shadow-inner">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-cyan-300 p-[2px] shadow-sm shrink-0">
+                                                <div className="w-full h-full rounded-xl bg-slate-950 flex items-center justify-center font-black text-xs text-cyan-300 font-mono">
+                                                    {selectedFleet.code.slice(0, 2).toUpperCase()}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <h4 className="font-bold text-white text-xs sm:text-sm">{isEn ? selectedFleet.name : selectedFleet.koName}</h4>
+                                                <p className="text-[11px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-1.5 font-digital">
+                                                    <span>{isEn ? selectedFleet.koName : selectedFleet.name}</span>
+                                                    <span className="text-slate-600">•</span>
+                                                    <span className="text-cyan-300 font-semibold">{t('dashboard.metrics.homePort')}: {selectedFleet.homePort}</span>
+                                                </p>
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <div>
-                                            <h4 className="font-bold text-white text-xs sm:text-sm">{selectedFleet.koName}</h4>
-                                            <p className="text-[11px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-1.5 font-digital">
-                                                <span>{selectedFleet.name}</span>
-                                                <span className="text-slate-600">•</span>
-                                                <span className="text-cyan-300 font-semibold">{t('dashboard.metrics.homePort')}: {selectedFleet.homePort}</span>
-                                            </p>
-                                        </div>
+                                    {/* Auto-linked Supplier / Logistics info banner */}
+                                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-300">
+                                        <span className="text-slate-400">담당 물류/공급사 (Logistics):</span>
+                                        <span className="font-semibold text-sky-300 flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                            {isEn ? linkedSupplier.name : `${linkedSupplier.nameKo} (${linkedSupplier.name})`}
+                                        </span>
                                     </div>
                                 </div>
                             )}

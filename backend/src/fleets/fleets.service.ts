@@ -51,14 +51,6 @@ export class FleetsService implements OnModuleInit {
           latitude: 37.4645,
           longitude: 126.6173,
         },
-        {
-          code: 'NP3',
-          name: 'North Pacific Ocean Fleet No. 3',
-          koName: '북서태평양 원양선단 3팀',
-          homePort: '포항 구룡포항',
-          latitude: 35.9892,
-          longitude: 129.5541,
-        },
       ];
 
       for (const fleetData of defaultFleets) {

@@ -159,56 +159,57 @@ const Dashboard: React.FC = () => {
   }, []);
 
   const displayFleet = useMemo(() => {
-    if (!selectedPo || (!selectedPo.supplierName && !selectedPo.supplierNameKo && !selectedPo.supplierNameEn)) {
-      return null;
-    }
+    if (!selectedPo) return null;
 
     const sName = selectedPo.supplierName || selectedPo.supplierNameKo || '';
     const sNameKo = selectedPo.supplierNameKo || selectedPo.supplier_name_ko || selectedPo.supplierName || '';
-    const sNameEn = selectedPo.supplierNameEn || selectedPo.supplier_name_en || '';
+    const sNameEn = selectedPo.supplierNameEn || selectedPo.supplier_name_en || selectedPo.supplierName || '';
 
-    const matched = fleets.find(
-      (f) =>
-        f.koName === sName ||
-        f.name === sName ||
-        f.code === sName ||
-        (sName && (f.koName.includes(sName) || sName.includes(f.koName))) ||
-        (sNameKo && (f.koName.includes(sNameKo) || sNameKo.includes(f.koName))) ||
-        (sNameEn && (f.name.includes(sNameEn) || sNameEn.includes(f.name))) ||
-        (sName.includes('부산') && f.homePort.includes('부산')) ||
-        (sName.includes('통영') && f.homePort.includes('인천'))
-    );
-
-    if (matched) {
-      return {
-        ...matched,
-        koName: sNameKo || matched.koName,
-        name: sNameEn || matched.name,
-        latitude: matched.latitude ?? 35.0784,
-        longitude: matched.longitude ?? 129.0069,
-      };
+    // PO별 선단 기본 매핑 (Scenario A는 PF12 선단, Scenario B는 PC7 선단)
+    let targetFleet: Fleet | undefined;
+    if (selectedPo.poNumber === 'PO-2026-SCENARIO-A') {
+      targetFleet = fleets.find((f) => f.code === 'PF12');
+    } else if (selectedPo.poNumber === 'PO-2026-SCENARIO-B') {
+      targetFleet = fleets.find((f) => f.code === 'PC7');
     }
 
-    if (fleets.length > 0) {
+    if (!targetFleet) {
+      targetFleet = fleets.find(
+        (f) =>
+          f.koName === sName ||
+          f.name === sName ||
+          f.code === sName ||
+          (sName && (f.koName.includes(sName) || sName.includes(f.koName))) ||
+          (sNameKo && (f.koName.includes(sNameKo) || sNameKo.includes(f.koName))) ||
+          (sNameEn && (f.name.includes(sNameEn) || sNameEn.includes(f.name)))
+      );
+    }
+
+    if (!targetFleet && fleets.length > 0) {
       const key = selectedPo.poNumber || selectedPo.id || sName;
       const charSum = key.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-      const fb = fleets[charSum % fleets.length];
+      targetFleet = fleets[charSum % fleets.length];
+    }
+
+    if (targetFleet) {
       return {
-        ...fb,
-        koName: sNameKo || fb.koName,
-        name: sNameEn || fb.name,
-        latitude: fb.latitude ?? 35.0784,
-        longitude: fb.longitude ?? 129.0069,
+        ...targetFleet,
+        supplierNameKo: sNameKo || '부산 어항 물류',
+        supplierNameEn: sNameEn || 'Busan Harbor Logistics',
+        latitude: targetFleet.latitude ?? 35.0784,
+        longitude: targetFleet.longitude ?? 129.0069,
       };
     }
 
     return {
-      code: 'FL',
-      name: sNameEn || sName,
-      koName: sNameKo || sName,
-      homePort: '미지정 부두',
-      latitude: 35.0784,
-      longitude: 129.0069,
+      code: 'PF',
+      name: 'Pacific Ocean Fleet No. 12',
+      koName: '태평양 원양선단 2팀',
+      supplierNameKo: sNameKo || '부산 어항 물류',
+      supplierNameEn: sNameEn || 'Busan Harbor Logistics',
+      homePort: '인천항 제3부두',
+      latitude: 37.4645,
+      longitude: 126.6173,
     };
   }, [selectedPo, fleets]);
 
@@ -1249,17 +1250,17 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-white">
-                      {i18n.language?.startsWith('ko') ? displayFleet.koName : (displayFleet.name || displayFleet.koName)}
+                    <h3
+                      title={`Logistics: ${i18n.language?.startsWith('ko') ? (displayFleet as any).supplierNameKo || '부산 어항 물류' : (displayFleet as any).supplierNameEn || 'Busan Harbor Logistics'}`}
+                      className="text-base font-bold text-white tracking-wide cursor-help"
+                    >
+                      {i18n.language?.startsWith('ko') ? displayFleet.koName : displayFleet.name}
                     </h3>
+
                     <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs">
-                      <span className="text-slate-400">
-                        {i18n.language?.startsWith('ko') ? displayFleet.name : displayFleet.koName}
-                      </span>
-                      <span className="text-slate-600">|</span>
                       <span className="text-cyan-300/90 font-digital flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                        <span>{t('dashboard.metrics.homePort')}: {getLocalizedPort(displayFleet.homePort, i18n.language)}</span>
+                        <span>Home Port: {getLocalizedPort(displayFleet.homePort, i18n.language)}</span>
                       </span>
                     </div>
                   </div>
