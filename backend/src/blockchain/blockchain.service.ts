@@ -63,8 +63,9 @@ export class BlockchainService implements OnModuleInit {
 
     try {
       this.logger.log(`Registering checkpoint on-chain: ${checkpointId} for step: ${stepName}`);
+      const nonce = await this.provider.getTransactionCount(this.wallet.address, 'pending');
       // 스마트 계약 트랜잭션 호출
-      const tx = await this.contract.registerCheckpoint(checkpointId, dataHash, stepName);
+      const tx = await this.contract.registerCheckpoint(checkpointId, dataHash, stepName, { nonce });
       // 블록 마이닝 대기
       const receipt = await tx.wait();
       this.logger.log(`Checkpoint successfully registered in block ${receipt.blockNumber}`);
