@@ -30,7 +30,13 @@ export class BlockchainService implements OnModuleInit {
       // 2. Signer 지갑 생성 및 프로바이더 연결
       this.wallet = new ethers.Wallet(privateKey, this.provider);
 
-      // 3. ABI 로드
+      // 3. ABI 로드 (기본 ABI 내장 + 파일 존재 시 파일 우선)
+      let contractAbi: any = [
+        'event LogRegistered(string checkpointId, bytes32 dataHash, uint256 timestamp, string stepName)',
+        'function registerCheckpoint(string checkpointId, bytes32 dataHash, string stepName) external',
+        'function verifyCheckpoint(string checkpointId) external view returns (bytes32 dataHash, uint256 timestamp, string memory stepName)',
+      ];
+
       let artifactPath = path.join(process.cwd(), 'artifacts/contracts/ColdChainTracker.sol/ColdChainTracker.json');
       if (!fs.existsSync(artifactPath)) {
         artifactPath = path.resolve(
@@ -38,14 +44,15 @@ export class BlockchainService implements OnModuleInit {
           '../../../artifacts/contracts/ColdChainTracker.sol/ColdChainTracker.json',
         );
       }
-      if (!fs.existsSync(artifactPath)) {
-        this.logger.error(`Hardhat artifact not found at ${artifactPath}. Please compile the contract first.`);
-        return;
+      if (fs.existsSync(artifactPath)) {
+        try {
+          const artifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
+          if (artifact.abi) contractAbi = artifact.abi;
+        } catch (e) {}
       }
-      const artifact = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
 
       // 4. Contract 인스턴스화
-      this.contract = new ethers.Contract(contractAddress, artifact.abi, this.wallet);
+      this.contract = new ethers.Contract(contractAddress, contractAbi, this.wallet);
       this.logger.log(`Successfully connected to smart contract at ${contractAddress}`);
     } catch (error) {
       this.logger.error('Failed to initialize Ethers contract instance', error);
