@@ -1,0 +1,244 @@
+const mongoose = require('mongoose');
+
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27018/coldchain';
+
+const STAGE_CONFIG = {
+  HARVESTED: { targetTemp: -55, warningTemp: -45 },
+  PROCESSING: { targetTemp: -25, warningTemp: -22 },
+  IN_TRANSIT: { targetTemp: -55, warningTemp: -45 },
+  DELIVERED: { targetTemp: -55, warningTemp: -45 },
+};
+
+const SensorRawLogSchema = new mongoose.Schema(
+  {
+    poNumber: { type: String, required: true, index: true },
+    temperature: { type: Number, required: true },
+    latitude: { type: Number, required: true },
+    longitude: { type: Number, required: true },
+    timestamp: { type: Date, default: Date.now },
+    eventNote: { type: String, required: false },
+    stage: {
+      type: String,
+      required: true,
+      enum: ['HARVESTED', 'PROCESSING', 'IN_TRANSIT', 'DELIVERED'],
+      index: true,
+    },
+    targetTemp: { type: Number, required: true },
+    warningTemp: { type: Number, required: true },
+    isFreezing: { type: Boolean, default: false },
+  },
+  { collection: 'sensor_raw_logs', timestamps: true }
+);
+
+const SensorRawLog = mongoose.model('SensorRawLog', SensorRawLogSchema);
+
+const HOUR = 3600 * 1000;
+const TOTAL_HOURS = 336;
+
+const coord = (h) => ({
+  latitude: Number((35.0784 + h * 0.00007).toFixed(4)),
+  longitude: Number((129.0069 + h * 0.0001).toFixed(4)),
+});
+
+// 공통 변환 헬퍼: 시나리오별 stageGroups를 받아 DB insert용 로그 배열로 변환
+function buildLogsForScenario(poNumber, baseTime, stageGroups) {
+  return stageGroups.flatMap(({ stage, points }) =>
+    points.map(({ h, t, note, isFreezing }) => ({
+      poNumber,
+      temperature: t,
+      ...coord(h),
+      timestamp: new Date(baseTime + h * HOUR),
+      stage,
+      targetTemp: STAGE_CONFIG[stage].targetTemp,
+      warningTemp: STAGE_CONFIG[stage].warningTemp,
+      isFreezing: isFreezing ?? false,
+      ...(note ? { eventNote: note } : {}),
+    }))
+  );
+}
+
+async function seedMongo() {
+  console.log(`[Mongo Seed] Connecting to ${MONGO_URI}...`);
+  await mongoose.connect(MONGO_URI);
+
+  const now = Date.now();
+  const baseTime = now - TOTAL_HOURS * HOUR;
+
+  // ═══════════════════════════════════════════════
+  // 시나리오 A: 이탈 0건 (정상 운영 기준선)
+  // ═══════════════════════════════════════════════
+  const poNumberA = 'PO-2026-SCENARIO-A';
+
+  const harvestedA = [
+    { h: 0, t: -10.0, note: 'Blast Freezing Pulldown Initiated (Target: -55°C)', isFreezing: true },
+    { h: 3, t: -35.0, note: 'Blast Freezing Pulldown in Progress', isFreezing: true },
+    { h: 6, t: -57.5, note: 'Deep-Freeze Target Achieved (-57.5°C)' },
+    { h: 24, t: -58.2 },
+    { h: 48, t: -57.8 },
+    { h: 72, t: -58.0 },
+    { h: 96, t: -57.5 },
+    { h: 120, t: -58.3 },
+    { h: 144, t: -57.9 },
+    { h: 168, t: -58.1 },
+    { h: 192, t: -57.6 },
+    { h: 216, t: -57.9 },
+  ];
+
+  const processingA = [
+    { h: 228, t: -56.0 },
+    { h: 230, t: -40.0 },
+    { h: 232, t: -28.0 },
+    { h: 234, t: -25.5, note: 'Processing Line Ingress (Normal Operation)' },
+    { h: 236, t: -24.0 },
+    { h: 238, t: -23.5 },
+    { h: 240, t: -24.8 },
+    { h: 242, t: -25.2 },
+    { h: 244, t: -24.5 },
+    { h: 246, t: -23.8 },
+    { h: 248, t: -24.6 },
+    { h: 250, t: -25.0 },
+    { h: 252, t: -25.0 },
+  ];
+
+  const transitA = [
+    { h: 255, t: -53.0, note: 'Reefer Container Loading Confirmed' },
+    { h: 258, t: -56.8 },
+    { h: 261, t: -52.5 },
+    { h: 264, t: -57.2 },
+    { h: 267, t: -53.8 },
+    { h: 270, t: -55.9 },
+    { h: 273, t: -46.5, note: 'Door Open Event Detected (Normal Threshold)' },
+    { h: 276, t: -50.2 },
+    { h: 279, t: -56.5 },
+    { h: 282, t: -53.0 },
+    { h: 285, t: -57.5 },
+    { h: 288, t: -52.8 },
+    { h: 291, t: -56.0 },
+    { h: 294, t: -53.5 },
+    { h: 297, t: -47.0 },
+    { h: 300, t: -57.0 },
+    { h: 303, t: -53.2 },
+    { h: 306, t: -56.3 },
+    { h: 309, t: -52.6, note: 'Reefer Container Discharge Initiated' },
+    { h: 312, t: -57.4 },
+    { h: 315, t: -53.9 },
+    { h: 318, t: -55.8 },
+    { h: 321, t: -54.2 },
+    { h: 324, t: -55.0 },
+  ];
+
+  const deliveredA = [
+    { h: 326, t: -57.0 },
+    { h: 328, t: -58.0 },
+    { h: 330, t: -58.5 },
+    { h: 332, t: -59.0, note: 'Warehouse Intake Inspection Passed (HACCP Compliant)' },
+    { h: 334, t: -59.1 },
+    { h: 336, t: -59.2 },
+  ];
+
+  const stageGroupsA = [
+    { stage: 'HARVESTED', points: harvestedA },
+    { stage: 'PROCESSING', points: processingA },
+    { stage: 'IN_TRANSIT', points: transitA },
+    { stage: 'DELIVERED', points: deliveredA },
+  ];
+
+  // ═══════════════════════════════════════════════
+  // 시나리오 B: 이탈 총 4건 (0 / 1 / 2 / 1 배분)
+  // ═══════════════════════════════════════════════
+  const poNumberB = 'PO-2026-SCENARIO-B';
+
+  const harvestedB = [
+    { h: 0, t: -9.5, note: 'Blast Freezing Pulldown Initiated (Target: -55°C)', isFreezing: true },
+    { h: 3, t: -36.0, note: 'Blast Freezing Pulldown in Progress', isFreezing: true },
+    { h: 6, t: -57.8, note: 'Deep-Freeze Target Achieved (-57.8°C)' },
+    { h: 24, t: -58.0 },
+    { h: 48, t: -57.6 },
+    { h: 72, t: -58.2 },
+    { h: 96, t: -57.9 },
+    { h: 120, t: -58.1 },
+    { h: 144, t: -57.7 },
+    { h: 168, t: -58.3 },
+    { h: 192, t: -57.8 },
+    { h: 216, t: -58.0 },
+  ];
+
+  const processingB = [
+    { h: 228, t: -56.5 },
+    { h: 230, t: -41.0 },
+    { h: 232, t: -27.5 },
+    { h: 234, t: -18.0, note: 'Processing Temp Excursion (Threshold Exceeded)' }, // Incident 1
+    { h: 236, t: -23.2 },
+    { h: 238, t: -24.5 },
+    { h: 240, t: -25.0 },
+    { h: 242, t: -24.6 },
+    { h: 244, t: -23.9 },
+    { h: 246, t: -24.8 },
+    { h: 248, t: -25.1 },
+    { h: 250, t: -24.7 },
+    { h: 252, t: -25.0 },
+  ];
+
+  const transitB = [
+    { h: 255, t: -53.5, note: 'Reefer Container Loading Confirmed' },
+    { h: 258, t: -56.2 },
+    { h: 261, t: -54.0 },
+    { h: 264, t: -57.0 },
+    { h: 267, t: -53.2 },
+    { h: 270, t: -55.6 },
+    { h: 273, t: -42.0, note: 'Door Open Event Detected' }, // Incident 2
+    { h: 276, t: -54.8 },
+    { h: 279, t: -56.0 },
+    { h: 282, t: -53.6 },
+    { h: 285, t: -57.1 },
+    { h: 288, t: -54.3 },
+    { h: 291, t: -55.7 },
+    { h: 294, t: -53.9 },
+    { h: 297, t: -40.0, note: 'Cooling Unit Malfunction Detected (Excursion Started)' }, // Incident 3 start
+    { h: 300, t: -38.5, note: 'Cooling Unit Malfunction Ongoing (Peak Excursion: -38.5°C)' }, // Incident 3 peak
+    { h: 303, t: -41.5, note: 'Cooling Unit Malfunction (Recovery in Progress)' }, // Incident 3 recovery
+    { h: 306, t: -50.0 },
+    { h: 309, t: -54.5, note: 'Reefer Container Discharge Initiated' },
+    { h: 312, t: -57.3 },
+    { h: 315, t: -53.8 },
+    { h: 318, t: -55.9 },
+    { h: 321, t: -54.1 },
+    { h: 324, t: -55.0 },
+  ];
+
+  const deliveredB = [
+    { h: 326, t: -56.5 },
+    { h: 328, t: -57.5 },
+    { h: 330, t: -42.5, note: 'Delivery Handling Excursion (Threshold Exceeded)' }, // Incident 4
+    { h: 332, t: -58.0, note: 'Warehouse Intake Inspection Passed (HACCP Compliant)' },
+    { h: 334, t: -59.0 },
+    { h: 336, t: -59.2 },
+  ];
+
+  const stageGroupsB = [
+    { stage: 'HARVESTED', points: harvestedB },
+    { stage: 'PROCESSING', points: processingB },
+    { stage: 'IN_TRANSIT', points: transitB },
+    { stage: 'DELIVERED', points: deliveredB },
+  ];
+
+  // ── 두 시나리오 로그 합쳐서 일괄 insert
+  const mockLogsA = buildLogsForScenario(poNumberA, baseTime, stageGroupsA);
+  const mockLogsB = buildLogsForScenario(poNumberB, baseTime, stageGroupsB);
+  const mockLogs = [...mockLogsA, ...mockLogsB];
+
+  await SensorRawLog.deleteMany({});
+  const inserted = await SensorRawLog.insertMany(mockLogs);
+  console.log(
+    `[Mongo Seed] Successfully inserted ${inserted.length} logs — ` +
+    `Scenario A (${mockLogsA.length}, 0 excursions) + Scenario B (${mockLogsB.length}, 4 excursions: 0/1/2/1)!`
+  );
+
+  await mongoose.disconnect();
+  process.exit(0);
+}
+
+seedMongo().catch((err) => {
+  console.error('[Mongo Seed Error]', err);
+  process.exit(1);
+});

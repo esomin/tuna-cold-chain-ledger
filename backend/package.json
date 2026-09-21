@@ -27,8 +27,8 @@
     "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
     "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
     "reset:logs": "bash scripts/reset-audit-logs.sh",
-    "seed:mongo": "ts-node scripts/seed-mongo.ts",
-    "seed:onchain": "ts-node scripts/seed-onchain.ts",
+    "seed:mongo": "node scripts/seed-mongo.js",
+    "seed:onchain": "node scripts/seed-onchain.js",
     "simulate": "ts-node scripts/simulate-iot.ts"
   },
   "dependencies": {
