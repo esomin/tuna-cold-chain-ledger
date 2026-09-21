@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PurchaseOrder } from '../entities/PurchaseOrder';
@@ -34,7 +34,7 @@ export const STAGE_THRESHOLDS: Record<string, { targetTemp: number; warningTemp:
 };
 
 @Injectable()
-export class PurchaseOrdersService implements OnModuleInit {
+export class PurchaseOrdersService {
   constructor(
     @InjectRepository(PurchaseOrder)
     private poRepository: Repository<PurchaseOrder>,
@@ -45,44 +45,6 @@ export class PurchaseOrdersService implements OnModuleInit {
     private auditLogsService: AuditLogsService,
     private blockchainService: BlockchainService,
   ) {}
-
-  async onModuleInit() {
-    await this.seedDefaultScenarios();
-  }
-
-  private async seedDefaultScenarios() {
-    try {
-      const existingB = await this.poRepository.findOne({ where: { poNumber: 'PO-2026-SCENARIO-B' } });
-      if (!existingB) {
-        let product = await this.productRepository.findOne({ where: { sku: 'TUNA-BLUEFIN' } });
-        if (!product) {
-          const newProduct = new Product();
-          newProduct.sku = 'TUNA-BLUEFIN';
-          newProduct.name = '참다랑어 (Bluefin Tuna)';
-          newProduct.category = 'Premium';
-          newProduct.price = 85000;
-          product = await this.productRepository.save(newProduct);
-        }
-        const poB = new PurchaseOrder();
-        poB.poNumber = 'PO-2026-SCENARIO-B';
-        poB.quantity = 80;
-        poB.status = 'DELIVERED';
-        poB.supplierName = '통영 원양 수산';
-        poB.notes = '시나리오 B: 단계별 온도 이탈 4건 발생 건 (H:0 / P:1 / T:2 / D:1)';
-        if (product) {
-          poB.product = product;
-        }
-        await this.poRepository.save(poB);
-        console.log('[PurchaseOrdersService] Synchronized PO-2026-SCENARIO-B into PostgreSQL database.');
-      } else if (existingB.status !== 'DELIVERED') {
-        existingB.status = 'DELIVERED';
-        await this.poRepository.save(existingB);
-        console.log('[PurchaseOrdersService] Updated PO-2026-SCENARIO-B status to DELIVERED.');
-      }
-    } catch (err) {
-      console.warn('[PurchaseOrdersService] seedDefaultScenarios warning:', err);
-    }
-  }
 
   private generatePoNumber(): string {
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -250,122 +212,7 @@ export class PurchaseOrdersService implements OnModuleInit {
 
     if (this.sensorLogModel) {
       try {
-        let logs = await this.sensorLogModel.find({ poNumber }).sort({ timestamp: 1 }).limit(200).exec();
-
-        // DB에 기록된 히스토리가 없고 SCENARIO 건일 경우 기본 시드 데이터 자동 수집/생성
-        if ((!logs || logs.length === 0) && poNumber.includes('SCENARIO')) {
-          const now = Date.now();
-          const HOUR = 3600 * 1000;
-          const baseTime = now - 72 * HOUR;
-          const initialSeeds = [
-            // 어획 단계 (0h ~ 29h)
-            {
-              poNumber,
-              temperature: -10.0,
-              latitude: 35.0784,
-              longitude: 129.0069,
-              timestamp: new Date(baseTime + 0 * HOUR),
-              eventNote: 'Blast Freezing Pulldown Initiated (Target: -55°C)',
-              stage: 'HARVESTED',
-              targetTemp: -55,
-              warningTemp: -45,
-              isFreezing: true,
-            },
-            {
-              poNumber,
-              temperature: -57.5,
-              latitude: 35.08,
-              longitude: 129.01,
-              timestamp: new Date(baseTime + 6 * HOUR),
-              stage: 'HARVESTED',
-              targetTemp: -55,
-              warningTemp: -45,
-            },
-            {
-              poNumber,
-              temperature: -57.0,
-              latitude: 35.0838,
-              longitude: 129.0175,
-              timestamp: new Date(baseTime + 24 * HOUR),
-              stage: 'HARVESTED',
-              targetTemp: -55,
-              warningTemp: -45,
-            },
-            // 가공 단계 (29h ~ 50h)
-            {
-              poNumber,
-              temperature: -49.5,
-              latitude: 35.0855,
-              longitude: 129.0198,
-              timestamp: new Date(baseTime + 29 * HOUR),
-              eventNote: 'Processing Line Ingress (Normal Operation)',
-              stage: 'PROCESSING',
-              targetTemp: -25,
-              warningTemp: -22,
-            },
-            {
-              poNumber,
-              temperature: -56.2,
-              latitude: 35.0875,
-              longitude: 129.0225,
-              timestamp: new Date(baseTime + 33 * HOUR),
-              stage: 'PROCESSING',
-              targetTemp: -25,
-              warningTemp: -22,
-            },
-            // 운송 단계 (50h ~ 68h)
-            {
-              poNumber,
-              temperature: -48.0,
-              latitude: 35.0905,
-              longitude: 129.0265,
-              timestamp: new Date(baseTime + 50 * HOUR),
-              eventNote: 'Door Open Event Detected',
-              stage: 'IN_TRANSIT',
-              targetTemp: -55,
-              warningTemp: -45,
-            },
-            {
-              poNumber,
-              temperature: -52.2,
-              latitude: 35.0935,
-              longitude: 129.031,
-              timestamp: new Date(baseTime + 63 * HOUR),
-              stage: 'IN_TRANSIT',
-              targetTemp: -55,
-              warningTemp: -45,
-            },
-            // 입고 단계 (68h ~ 72h)
-            {
-              poNumber,
-              temperature: -51.5,
-              latitude: 35.0945,
-              longitude: 129.0325,
-              timestamp: new Date(baseTime + 68 * HOUR),
-              eventNote: 'Warehouse Intake Inspection Passed (HACCP Compliant)',
-              stage: 'DELIVERED',
-              targetTemp: -55,
-              warningTemp: -45,
-            },
-            {
-              poNumber,
-              temperature: -52.0,
-              latitude: 35.0955,
-              longitude: 129.034,
-              timestamp: new Date(baseTime + 72 * HOUR),
-              stage: 'DELIVERED',
-              targetTemp: -55,
-              warningTemp: -45,
-            },
-          ];
-
-          await this.sensorLogModel.insertMany(initialSeeds);
-        }
-
-        logs = await this.sensorLogModel
-          .find({ poNumber })
-          .sort({ timestamp: 1 })
-          .exec();
+        const logs = await this.sensorLogModel.find({ poNumber }).sort({ timestamp: 1 }).limit(200).exec();
 
         if (logs && logs.length > 0) {
           const originTime = logs[0].timestamp ? new Date(logs[0].timestamp).getTime() : 0;
@@ -452,9 +299,7 @@ export class PurchaseOrdersService implements OnModuleInit {
       let anomalyCount = 0;
       if (this.sensorLogModel) {
         try {
-          const allLogs = await this.sensorLogModel
-            .find({ poNumber: po.poNumber })
-            .sort({ timestamp: 1 });
+          const allLogs = await this.sensorLogModel.find({ poNumber: po.poNumber }).sort({ timestamp: 1 });
           const recentLogs = [...allLogs].reverse().slice(0, 20);
           tempReadings = recentLogs ? recentLogs.map((l) => l.temperature) : [];
 
@@ -487,9 +332,7 @@ export class PurchaseOrdersService implements OnModuleInit {
             if (isFreezing) return false;
             const stageKey = l.stage || po.status || 'HARVESTED';
             const limit =
-              typeof l.warningTemp === 'number'
-                ? l.warningTemp
-                : (STAGE_THRESHOLDS[stageKey]?.warningTemp ?? -45.0);
+              typeof l.warningTemp === 'number' ? l.warningTemp : (STAGE_THRESHOLDS[stageKey]?.warningTemp ?? -45.0);
             return l.temperature > limit;
           }).length;
         } catch (mongoErr) {
