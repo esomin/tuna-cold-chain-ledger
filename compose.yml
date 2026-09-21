@@ -52,10 +52,13 @@ services:
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres_secure_pass}
       DB_DATABASE: ${DB_DATABASE:-coldchain_db}
+      JWT_SECRET: ${JWT_SECRET:-production_jwt_secret_key_change_me}
       MONGO_URI: ${MONGO_URI:-mongodb+srv://user:pass@cluster.mongodb.net/coldchain}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS:-0xc4040d7Cdbc6923500A94427DB9c78156d70849A}
+      CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
+      SEPOLIA_RPC_URL: ${SEPOLIA_RPC_URL}
+      PRIVATE_KEY: ${PRIVATE_KEY}
     ports:
       - "3000:3000"
     depends_on:
@@ -69,6 +72,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+        VITE_CONTRACT_ADDRESS: ${CONTRACT_ADDRESS}
     container_name: coldchain_frontend
     restart: always
     ports:
