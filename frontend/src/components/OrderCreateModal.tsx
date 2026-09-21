@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { X, Loader2, Send, Package, Truck, FileText, AlertTriangle } from 'lucide-react';
 import { fetchFleets } from '../services/fleet.service';
 import type { Fleet } from '../services/fleet.service';
-import { type LocalizedProduct, type LocalizedSupplier } from '../utils/i18nHelper';
+import { type LocalizedProduct, type LocalizedSupplier, getLocalizedPort } from '../utils/i18nHelper';
 
 interface PurchaseOrder extends LocalizedSupplier {
     id: string;
@@ -35,7 +35,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
     const [skuId, setSkuId] = useState<string>('TUNA-BLUEFIN');
     const [quantity, setQuantity] = useState<number | string>(150);
     const [selectedFleetCode, setSelectedFleetCode] = useState<string>('PF12');
-    const [notes, setNotes] = useState<string>('어획 직후 초저온(-55°C) 급속 동결 및 온체인 무결성 검증건');
+    const [notes, setNotes] = useState<string>('');
 
     const [fleets, setFleets] = useState<Fleet[]>([]);
     const [submitting, setSubmitting] = useState<boolean>(false);
@@ -45,6 +45,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
 
     useEffect(() => {
         if (isOpen) {
+            setNotes(t('orderModal.defaultNotes'));
             fetchFleets().then((data) => {
                 if (data && data.length > 0) {
                     setFleets(data);
@@ -54,7 +55,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                 }
             });
         }
-    }, [isOpen]);
+    }, [isOpen, i18n.language]);
 
     if (!isOpen) return null;
 
@@ -219,13 +220,13 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                 {fleets.length > 0 ? (
                                     fleets.map((fleet) => (
                                         <option key={fleet.id || fleet.code} value={fleet.code}>
-                                            {isEn ? `${fleet.name} (${fleet.koName})` : `${fleet.koName} (${fleet.name})`}
+                                            {isEn ? fleet.name : fleet.koName}
                                         </option>
                                     ))
                                 ) : (
                                     <>
-                                        <option value="PF12">{isEn ? 'Pacific Ocean Fleet No. 12 (태평양 원양선단 2팀)' : '태평양 원양선단 2팀 (Pacific Ocean Fleet No. 12)'}</option>
-                                        <option value="PC7">{isEn ? 'Pacific Ocean Fleet No. 7 (남태평양 원양선단 1팀)' : '남태평양 원양선단 1팀 (Pacific Ocean Fleet No. 7)'}</option>
+                                        <option value="PF12">{isEn ? 'Pacific Ocean Fleet No. 12' : '태평양 원양선단 2팀'}</option>
+                                        <option value="PC7">{isEn ? 'Pacific Ocean Fleet No. 7' : '남태평양 원양선단 1팀'}</option>
                                     </>
                                 )}
                             </select>
@@ -246,7 +247,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                                 <p className="text-[11px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-1.5 font-digital">
                                                     <span>{isEn ? selectedFleet.koName : selectedFleet.name}</span>
                                                     <span className="text-slate-600">•</span>
-                                                    <span className="text-cyan-300 font-semibold">{t('dashboard.metrics.homePort')}: {selectedFleet.homePort}</span>
+                                                    <span className="text-cyan-300 font-semibold">{t('dashboard.metrics.homePort')}: {getLocalizedPort(selectedFleet.homePort, i18n.language)}</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -254,7 +255,7 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
 
                                     {/* Auto-linked Supplier / Logistics info banner */}
                                     <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-300">
-                                        <span className="text-slate-400">담당 물류/공급사 (Logistics):</span>
+                                        <span className="text-slate-400">{t('orderModal.logisticsPartner')}</span>
                                         <span className="font-semibold text-sky-300 flex items-center gap-1.5">
                                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                                             {isEn ? linkedSupplier.name : `${linkedSupplier.nameKo} (${linkedSupplier.name})`}
