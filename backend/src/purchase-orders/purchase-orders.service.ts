@@ -362,7 +362,7 @@ export class PurchaseOrdersService implements OnModuleInit {
           await this.sensorLogModel.insertMany(initialSeeds);
         }
 
-        const logs = await this.sensorLogModel
+        logs = await this.sensorLogModel
           .find({ poNumber })
           .sort({ timestamp: 1 })
           .exec();
