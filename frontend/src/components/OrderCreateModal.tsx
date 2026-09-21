@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { X, Loader2, Send, Package, Truck, FileText, AlertTriangle } from 'lucide-react';
 import { fetchFleets } from '../services/fleet.service';
 import type { Fleet } from '../services/fleet.service';
-
+import { type LocalizedProduct } from '../utils/i18nHelper';
 
 interface PurchaseOrder {
     id: string;
@@ -13,10 +13,7 @@ interface PurchaseOrder {
     status: string;
     supplierName: string;
     notes: string;
-    product: {
-        sku: string;
-        name: string;
-    };
+    product: LocalizedProduct;
 }
 
 interface OrderCreateModalProps {
@@ -30,7 +27,8 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
     onClose,
     onOrderCreated,
 }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const isEn = !i18n.language?.startsWith('ko');
     // 데모 편의를 위한 기본값 설정
     const [skuId, setSkuId] = useState<string>('TUNA-BLUEFIN');
     const [quantity, setQuantity] = useState<number | string>(150);
@@ -153,9 +151,15 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                 disabled={submitting}
                                 className="w-full px-4 py-3 rounded-2xl text-xs font-medium border bg-[#101a24] border-[#263c4e] text-slate-100 focus:outline-none focus:border-sky-400"
                             >
-                                <option value="TUNA-BLUEFIN">참다랑어 (Pacific Bluefin Tuna)</option>
-                                <option value="TUNA-BIGEYE">눈다랑어 (Bigeye Tuna)</option>
-                                <option value="TUNA-YELLOWFIN">황다랑어 (Yellowfin Tuna)</option>
+                                <option value="TUNA-BLUEFIN">
+                                    {isEn ? 'Pacific Bluefin Tuna Loin (Frozen)' : '참다랑어 로인 (냉동)'}
+                                </option>
+                                <option value="TUNA-BIGEYE">
+                                    {isEn ? 'Bigeye Tuna Loin (Frozen)' : '눈다랑어 로인 (냉동)'}
+                                </option>
+                                <option value="TUNA-YELLOWFIN">
+                                    {isEn ? 'Yellowfin Tuna Loin (Frozen)' : '황다랑어 로인 (냉동)'}
+                                </option>
                             </select>
                         </div>
 

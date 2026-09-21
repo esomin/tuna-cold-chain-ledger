@@ -1,13 +1,15 @@
 -- Seed scenarios data for Tuna Cold Chain Ledger
-
+--TRUNCATE TABLE purchase_orders, products RESTART IDENTITY CASCADE;
 BEGIN;
 
 -- products 초기 데이터 (참치 SKU)
-INSERT INTO products (id, sku, name, category, price, status) VALUES
-(1, 'TUNA-BLUEFIN', '참다랑어 (Bluefin Tuna)', 'Premium', 85000.00, 'ACTIVE'),
-(2, 'TUNA-BIGEYE', '눈다랑어 (Bigeye Tuna)', 'Standard', 45000.00, 'ACTIVE'),
-(3, 'TUNA-YELLOWFIN', '황다랑어 (Yellowfin Tuna)', 'Standard', 35000.00, 'ACTIVE')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO products (id, sku, name_ko, name_en, category, price, status) VALUES
+(1, 'TUNA-BLUEFIN', '참다랑어 로인 (냉동)', 'Pacific Bluefin Tuna Loin (Frozen)', 'Premium', 85000.00, 'ACTIVE'),
+(2, 'TUNA-BIGEYE', '눈다랑어 로인 (냉동)', 'Bigeye Tuna Loin (Frozen)', 'Standard', 45000.00, 'ACTIVE'),
+(3, 'TUNA-YELLOWFIN', '황다랑어 로인 (냉동)', 'Yellowfin Tuna Loin (Frozen)', 'Standard', 35000.00, 'ACTIVE')
+ON CONFLICT (id) DO UPDATE SET
+  name_ko = EXCLUDED.name_ko,
+  name_en = EXCLUDED.name_en;
 SELECT setval('products_id_seq', 3);
 
 -- purchase_orders 초기 데이터 (시나리오 A, 시나리오 B)

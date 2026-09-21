@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedProductName, type LocalizedProduct } from '../utils/i18nHelper';
 import {
     ShieldCheck,
     CheckCircle2,
@@ -35,9 +36,7 @@ interface VerificationData {
         status: string;
         supplierName: string;
         createdAt: string;
-        product: {
-            sku: string;
-            name: string;
+        product: LocalizedProduct & {
             originLocation: string;
             harvestDate: string;
             storageTemp: number;
@@ -62,7 +61,7 @@ interface VerificationData {
 }
 
 const ConsumerVerify: React.FC = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const [loading, setLoading] = useState<boolean>(true);
     const [data, setData] = useState<VerificationData | null>(null);
@@ -196,7 +195,7 @@ const ConsumerVerify: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <h4 className="text-base font-bold text-white">{data.purchaseOrder.product.name}</h4>
+                                    <h4 className="text-base font-bold text-white">{getLocalizedProductName(data.purchaseOrder.product, i18n.language)}</h4>
 
                                     <div className="grid grid-cols-1 gap-2 pt-1">
                                         <div className="flex items-center gap-2 text-xs">

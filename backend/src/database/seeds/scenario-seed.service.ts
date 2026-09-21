@@ -81,16 +81,41 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
   // 1. PostgreSQL 시나리오 A & B 시딩
   // ─────────────────────────────────────────────────────────────
   private async seedPostgresScenarios() {
+    // 0. Ensure name_ko & name_en columns exist safely in active DB
+    try {
+      await this.productRepository.query(`
+        ALTER TABLE products ADD COLUMN IF NOT EXISTS name_ko VARCHAR(255);
+        ALTER TABLE products ADD COLUMN IF NOT EXISTS name_en VARCHAR(255);
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns 
+                WHERE table_name = 'products' AND column_name = 'name'
+            ) THEN
+                ALTER TABLE products ALTER COLUMN name DROP NOT NULL;
+                UPDATE products SET name_ko = name WHERE (name_ko IS NULL OR name_ko = '');
+            END IF;
+        END $$;
+      `);
+    } catch (e: any) {
+      this.logger.debug(`Schema check note: ${e?.message || e}`);
+    }
+
     // 상품(참다랑어) 존재 확인 및 등록
     let product = await this.productRepository.findOne({ where: { sku: 'TUNA-BLUEFIN' } });
     if (!product) {
       const newProduct = new Product();
       newProduct.sku = 'TUNA-BLUEFIN';
-      newProduct.name = '참다랑어 (Bluefin Tuna)';
+      newProduct.nameKo = '참다랑어 로인 (냉동)';
+      newProduct.nameEn = 'Pacific Bluefin Tuna Loin (Frozen)';
       newProduct.category = 'Premium';
       newProduct.price = 85000;
       product = await this.productRepository.save(newProduct);
       this.logger.log('Seeded Product: TUNA-BLUEFIN');
+    } else if (!product.nameKo || !product.nameEn) {
+      product.nameKo = '참다랑어 로인 (냉동)';
+      product.nameEn = 'Pacific Bluefin Tuna Loin (Frozen)';
+      await this.productRepository.save(product);
     }
 
     // 시나리오 A (골든 대표 시나리오 - 정상 완료)

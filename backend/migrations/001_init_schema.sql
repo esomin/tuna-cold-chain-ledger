@@ -7,7 +7,8 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS products (
     id              BIGSERIAL PRIMARY KEY,
     sku             VARCHAR(64) NOT NULL UNIQUE,
-    name            VARCHAR(255) NOT NULL,
+    name_ko         VARCHAR(255) NOT NULL,
+    name_en         VARCHAR(255),
     category        VARCHAR(128),
     price           NUMERIC(12, 2) NOT NULL,
     status          VARCHAR(32) DEFAULT 'ACTIVE', -- ACTIVE / INACTIVE

@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedProductName, type LocalizedProduct } from '../utils/i18nHelper';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -45,10 +46,7 @@ interface PurchaseOrder {
   status: string;
   supplierName: string;
   notes: string;
-  product: {
-    sku: string;
-    name: string;
-  };
+  product: LocalizedProduct;
 }
 
 export interface AlertIncident {
@@ -134,7 +132,7 @@ const RechartsCustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const Dashboard: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedPo, setSelectedPo] = useState<PurchaseOrder | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState('72h');
@@ -1280,7 +1278,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex justify-between items-start z-10">
                   <div>
                     <p className="text-[10px] font-mono tracking-widest uppercase text-cyan-200">MARITIME INTEGRITY NFT</p>
-                    <p className="text-base font-extrabold tracking-tight mt-0.5">{selectedPo.product?.name || t('dashboard.labels.tunaProduct')}</p>
+                    <p className="text-base font-extrabold tracking-tight mt-0.5">{getLocalizedProductName(selectedPo.product, i18n.language) || t('dashboard.labels.tunaProduct')}</p>
                   </div>
                   <span className="text-sm font-black italic tracking-wider text-cyan-200">TUNA CHAIN</span>
                 </div>

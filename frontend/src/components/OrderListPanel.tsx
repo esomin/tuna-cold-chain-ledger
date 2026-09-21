@@ -5,6 +5,7 @@ import { Plus, Truck, MoreVertical, ChevronRight, RefreshCw, Trash2, Loader2, Al
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { OrderCreateModal } from './OrderCreateModal';
 import { deletePurchaseOrder, updatePurchaseOrder } from '../services/purchaseOrder.service';
+import { getLocalizedProductName, type LocalizedProduct } from '../utils/i18nHelper';
 
 interface PurchaseOrder {
     id: string;
@@ -13,10 +14,7 @@ interface PurchaseOrder {
     status: string;
     supplierName: string;
     notes: string;
-    product: {
-        sku: string;
-        name: string;
-    };
+    product: LocalizedProduct;
 }
 
 interface OrderListPanelProps {
@@ -46,7 +44,7 @@ const STAGE_OPTIONS = [
 ];
 
 export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, onSelectPo, isLoading, onErrorChange, connectionStatus }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [orders, setOrders] = useState<PurchaseOrder[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -384,7 +382,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                                     </div>
                                 </div>
                                 <div className="text-xs space-y-0.5 text-slate-300">
-                                    <p className="font-semibold text-slate-100">{order.product?.name || t('dashboard.labels.tunaProduct')}</p>
+                                    <p className="font-semibold text-slate-100">{getLocalizedProductName(order.product, i18n.language) || t('dashboard.labels.tunaProduct')}</p>
                                     <p className="text-[11px] text-slate-400">{t('orderList.quantity')} <strong className="text-slate-200">{order.quantity}kg</strong> | {order.supplierName}</p>
                                     <p className="text-[10px] text-slate-400/80 italic line-clamp-1">{order.notes}</p>
                                 </div>
