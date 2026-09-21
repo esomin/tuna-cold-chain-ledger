@@ -4,14 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { X, Loader2, Send, Package, Truck, FileText, AlertTriangle } from 'lucide-react';
 import { fetchFleets } from '../services/fleet.service';
 import type { Fleet } from '../services/fleet.service';
-import { type LocalizedProduct } from '../utils/i18nHelper';
+import { type LocalizedProduct, type LocalizedSupplier } from '../utils/i18nHelper';
 
-interface PurchaseOrder {
+interface PurchaseOrder extends LocalizedSupplier {
     id: string;
     poNumber: string;
     quantity: number;
     status: string;
     supplierName: string;
+    supplierNameKo?: string;
+    supplierNameEn?: string;
     notes: string;
     product: LocalizedProduct;
 }
@@ -62,6 +64,12 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
         setError(null);
 
         try {
+            const matchedFleet = fleets.find(
+                (f) => f.koName === supplierName || f.name === supplierName
+            );
+            const supplierNameKo = matchedFleet ? matchedFleet.koName : supplierName;
+            const supplierNameEn = matchedFleet ? matchedFleet.name : supplierName;
+
             const response = await fetch(
                 `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/purchase-orders`,
                 {
@@ -72,7 +80,9 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                     body: JSON.stringify({
                         skuId,
                         quantity: Number(quantity),
-                        supplierName,
+                        supplierName: supplierNameKo,
+                        supplierNameKo,
+                        supplierNameEn,
                         notes,
                     }),
                 }
@@ -204,14 +214,14 @@ export const OrderCreateModal: React.FC<OrderCreateModalProps> = ({
                                 {fleets.length > 0 ? (
                                     fleets.map((fleet) => (
                                         <option key={fleet.id || fleet.code} value={fleet.koName}>
-                                            {fleet.koName} ({fleet.name})
+                                            {isEn ? `${fleet.name} (${fleet.koName})` : `${fleet.koName} (${fleet.name})`}
                                         </option>
                                     ))
                                 ) : (
                                     <>
-                                        <option value="남태평양 원양선단 1팀">남태평양 원양선단 1팀 (Pacific Ocean Fleet No. 7)</option>
-                                        <option value="태평양 원양선단 2팀">태평양 원양선단 2팀 (Pacific Ocean Fleet No. 12)</option>
-                                        <option value="북서태평양 원양선단 3팀">북서태평양 원양선단 3팀 (North Pacific Ocean Fleet No. 3)</option>
+                                        <option value="남태평양 원양선단 1팀">{isEn ? 'Pacific Ocean Fleet No. 7 (남태평양 원양선단 1팀)' : '남태평양 원양선단 1팀 (Pacific Ocean Fleet No. 7)'}</option>
+                                        <option value="태평양 원양선단 2팀">{isEn ? 'Pacific Ocean Fleet No. 12 (태평양 원양선단 2팀)' : '태평양 원양선단 2팀 (Pacific Ocean Fleet No. 12)'}</option>
+                                        <option value="북서태평양 원양선단 3팀">{isEn ? 'North Pacific Ocean Fleet No. 3 (북서태평양 원양선단 3팀)' : '북서태평양 원양선단 3팀 (North Pacific Ocean Fleet No. 3)'}</option>
                                     </>
                                 )}
                             </select>

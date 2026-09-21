@@ -64,7 +64,9 @@ export class PurchaseOrdersService {
     po.poNumber = this.generatePoNumber();
     po.quantity = createDto.quantity;
     po.status = 'HARVESTED';
-    po.supplierName = createDto.supplierName || '';
+    po.supplierNameKo = createDto.supplierNameKo || createDto.supplierName || '';
+    po.supplierNameEn = createDto.supplierNameEn || createDto.supplierName || '';
+    po.supplierName = createDto.supplierName || po.supplierNameKo;
     po.notes = createDto.notes || '';
     po.product = product;
 

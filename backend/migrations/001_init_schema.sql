@@ -7,8 +7,8 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS products (
     id              BIGSERIAL PRIMARY KEY,
     sku             VARCHAR(64) NOT NULL UNIQUE,
+    name            VARCHAR(255) NOT NULL,
     name_ko         VARCHAR(255) NOT NULL,
-    name_en         VARCHAR(255),
     category        VARCHAR(128),
     price           NUMERIC(12, 2) NOT NULL,
     status          VARCHAR(32) DEFAULT 'ACTIVE', -- ACTIVE / INACTIVE
@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
     quantity                INTEGER NOT NULL CHECK (quantity > 0),
     status                  VARCHAR(32) NOT NULL DEFAULT 'DRAFT', -- DRAFT / PENDING / COMPLETED 등
     supplier_name           VARCHAR(255),
+    supplier_name_ko        VARCHAR(255),
     notes                   TEXT,
     created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),

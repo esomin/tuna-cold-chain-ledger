@@ -2,6 +2,8 @@ export class CreatePurchaseOrderDto {
   skuId: string;
   quantity: number;
   supplierName?: string;
+  supplierNameKo?: string;
+  supplierNameEn?: string;
   expectedArrivalDate?: Date;
   notes?: string;
 }

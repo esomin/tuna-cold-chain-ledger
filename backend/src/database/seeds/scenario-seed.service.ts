@@ -81,21 +81,27 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
   // 1. PostgreSQL 시나리오 A & B 시딩
   // ─────────────────────────────────────────────────────────────
   private async seedPostgresScenarios() {
-    // 0. Ensure name_ko & name_en columns exist safely in active DB
+    // 0. Ensure standard naming columns exist safely in active DB
     try {
       await this.productRepository.query(`
+        ALTER TABLE products ADD COLUMN IF NOT EXISTS name VARCHAR(255);
         ALTER TABLE products ADD COLUMN IF NOT EXISTS name_ko VARCHAR(255);
-        ALTER TABLE products ADD COLUMN IF NOT EXISTS name_en VARCHAR(255);
+        ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS supplier_name VARCHAR(255);
+        ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS supplier_name_ko VARCHAR(255);
         DO $$
         BEGIN
-            IF EXISTS (
-                SELECT 1 FROM information_schema.columns 
-                WHERE table_name = 'products' AND column_name = 'name'
-            ) THEN
-                ALTER TABLE products ALTER COLUMN name DROP NOT NULL;
-                UPDATE products SET name_ko = name WHERE (name_ko IS NULL OR name_ko = '');
+            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'name_en') THEN
+                UPDATE products SET name = name_en WHERE (name IS NULL OR name = '') AND name_en IS NOT NULL;
+            END IF;
+            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'purchase_orders' AND column_name = 'supplier_name_en') THEN
+                UPDATE purchase_orders SET supplier_name = supplier_name_en WHERE (supplier_name IS NULL OR supplier_name = '') AND supplier_name_en IS NOT NULL;
             END IF;
         END $$;
+        UPDATE products SET name = 'Pacific Bluefin Tuna Loin (Frozen)', name_ko = '참다랑어 로인 (냉동)' WHERE sku = 'TUNA-BLUEFIN';
+        UPDATE products SET name = 'Bigeye Tuna Loin (Frozen)', name_ko = '눈다랑어 로인 (냉동)' WHERE sku = 'TUNA-BIGEYE';
+        UPDATE products SET name = 'Yellowfin Tuna Loin (Frozen)', name_ko = '황다랑어 로인 (냉동)' WHERE sku = 'TUNA-YELLOWFIN';
+        UPDATE purchase_orders SET supplier_name = 'Busan Harbor Logistics', supplier_name_ko = '부산 어항 물류' WHERE po_number = 'PO-2026-SCENARIO-A' OR supplier_name_ko LIKE '%부산%';
+        UPDATE purchase_orders SET supplier_name = 'Tongyeong Deep-Sea Fishery', supplier_name_ko = '통영 원양 수산' WHERE po_number = 'PO-2026-SCENARIO-B' OR supplier_name_ko LIKE '%통영%';
       `);
     } catch (e: any) {
       this.logger.debug(`Schema check note: ${e?.message || e}`);
@@ -106,15 +112,15 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
     if (!product) {
       const newProduct = new Product();
       newProduct.sku = 'TUNA-BLUEFIN';
+      newProduct.name = 'Pacific Bluefin Tuna Loin (Frozen)';
       newProduct.nameKo = '참다랑어 로인 (냉동)';
-      newProduct.nameEn = 'Pacific Bluefin Tuna Loin (Frozen)';
       newProduct.category = 'Premium';
       newProduct.price = 85000;
       product = await this.productRepository.save(newProduct);
       this.logger.log('Seeded Product: TUNA-BLUEFIN');
-    } else if (!product.nameKo || !product.nameEn) {
+    } else if (!product.name || !product.nameKo) {
+      product.name = 'Pacific Bluefin Tuna Loin (Frozen)';
       product.nameKo = '참다랑어 로인 (냉동)';
-      product.nameEn = 'Pacific Bluefin Tuna Loin (Frozen)';
       await this.productRepository.save(product);
     }
 
@@ -125,14 +131,24 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
       newPoA.poNumber = 'PO-2026-SCENARIO-A';
       newPoA.quantity = 100;
       newPoA.status = 'COMPLETED';
-      newPoA.supplierName = '부산 어항 물류';
+      newPoA.supplierName = 'Busan Harbor Logistics';
+      newPoA.supplierNameKo = '부산 어항 물류';
       newPoA.notes = '시나리오 A: 전 유통 단계 정상 완료 (블록체인 무결성 검증 통과)';
       if (product) newPoA.product = product;
       await this.poRepository.save(newPoA);
       this.logger.log('Synchronized PO-2026-SCENARIO-A into PostgreSQL database.');
-    } else if (poA.status !== 'COMPLETED') {
-      poA.status = 'COMPLETED';
-      await this.poRepository.save(poA);
+    } else {
+      let updated = false;
+      if (poA.status !== 'COMPLETED') {
+        poA.status = 'COMPLETED';
+        updated = true;
+      }
+      if (!poA.supplierName || !poA.supplierNameKo) {
+        poA.supplierName = 'Busan Harbor Logistics';
+        poA.supplierNameKo = '부산 어항 물류';
+        updated = true;
+      }
+      if (updated) await this.poRepository.save(poA);
     }
 
     // 시나리오 B (온도 이탈 4건 발생 시나리오)
@@ -142,14 +158,24 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
       newPoB.poNumber = 'PO-2026-SCENARIO-B';
       newPoB.quantity = 80;
       newPoB.status = 'DELIVERED';
-      newPoB.supplierName = '통영 원양 수산';
+      newPoB.supplierName = 'Tongyeong Deep-Sea Fishery';
+      newPoB.supplierNameKo = '통영 원양 수산';
       newPoB.notes = '시나리오 B: 단계별 온도 이탈 4건 발생 건 (H:0 / P:1 / T:2 / D:1)';
       if (product) newPoB.product = product;
       await this.poRepository.save(newPoB);
       this.logger.log('Synchronized PO-2026-SCENARIO-B into PostgreSQL database.');
-    } else if (poB.status !== 'DELIVERED') {
-      poB.status = 'DELIVERED';
-      await this.poRepository.save(poB);
+    } else {
+      let updated = false;
+      if (poB.status !== 'DELIVERED') {
+        poB.status = 'DELIVERED';
+        updated = true;
+      }
+      if (!poB.supplierName || !poB.supplierNameKo) {
+        poB.supplierName = 'Tongyeong Deep-Sea Fishery';
+        poB.supplierNameKo = '통영 원양 수산';
+        updated = true;
+      }
+      if (updated) await this.poRepository.save(poB);
     }
   }
 

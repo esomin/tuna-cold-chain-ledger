@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getLocalizedProductName, type LocalizedProduct } from '../utils/i18nHelper';
+import { getLocalizedProductName, getLocalizedPort, type LocalizedProduct, type LocalizedSupplier } from '../utils/i18nHelper';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -39,12 +39,14 @@ import type { Fleet } from '../services/fleet.service';
 
 
 
-interface PurchaseOrder {
+interface PurchaseOrder extends LocalizedSupplier {
   id: string;
   poNumber: string;
   quantity: number;
   status: string;
   supplierName: string;
+  supplierNameKo?: string;
+  supplierNameEn?: string;
   notes: string;
   product: LocalizedProduct;
 }
@@ -157,33 +159,44 @@ const Dashboard: React.FC = () => {
   }, []);
 
   const displayFleet = useMemo(() => {
-    if (!selectedPo || !selectedPo.supplierName) {
+    if (!selectedPo || (!selectedPo.supplierName && !selectedPo.supplierNameKo && !selectedPo.supplierNameEn)) {
       return null;
     }
 
+    const sName = selectedPo.supplierName || selectedPo.supplierNameKo || '';
+    const sNameKo = selectedPo.supplierNameKo || selectedPo.supplier_name_ko || selectedPo.supplierName || '';
+    const sNameEn = selectedPo.supplierNameEn || selectedPo.supplier_name_en || '';
+
     const matched = fleets.find(
       (f) =>
-        f.koName === selectedPo.supplierName ||
-        selectedPo.supplierName.includes(f.koName) ||
-        f.koName.includes(selectedPo.supplierName) ||
-        f.code === selectedPo.supplierName
+        f.koName === sName ||
+        f.name === sName ||
+        f.code === sName ||
+        (sName && (f.koName.includes(sName) || sName.includes(f.koName))) ||
+        (sNameKo && (f.koName.includes(sNameKo) || sNameKo.includes(f.koName))) ||
+        (sNameEn && (f.name.includes(sNameEn) || sNameEn.includes(f.name))) ||
+        (sName.includes('부산') && f.homePort.includes('부산')) ||
+        (sName.includes('통영') && f.homePort.includes('인천'))
     );
 
     if (matched) {
       return {
         ...matched,
+        koName: sNameKo || matched.koName,
+        name: sNameEn || matched.name,
         latitude: matched.latitude ?? 35.0784,
         longitude: matched.longitude ?? 129.0069,
       };
     }
 
     if (fleets.length > 0) {
-      const key = selectedPo.poNumber || selectedPo.id || selectedPo.supplierName;
+      const key = selectedPo.poNumber || selectedPo.id || sName;
       const charSum = key.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
       const fb = fleets[charSum % fleets.length];
       return {
         ...fb,
-        koName: selectedPo.supplierName || fb.koName,
+        koName: sNameKo || fb.koName,
+        name: sNameEn || fb.name,
         latitude: fb.latitude ?? 35.0784,
         longitude: fb.longitude ?? 129.0069,
       };
@@ -191,8 +204,8 @@ const Dashboard: React.FC = () => {
 
     return {
       code: 'FL',
-      name: selectedPo.supplierName,
-      koName: selectedPo.supplierName,
+      name: sNameEn || sName,
+      koName: sNameKo || sName,
       homePort: '미지정 부두',
       latitude: 35.0784,
       longitude: 129.0069,
@@ -1236,13 +1249,17 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-white">{displayFleet.koName}</h3>
+                    <h3 className="text-base font-bold text-white">
+                      {i18n.language?.startsWith('ko') ? displayFleet.koName : (displayFleet.name || displayFleet.koName)}
+                    </h3>
                     <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs">
-                      <span className="text-slate-400">{displayFleet.name}</span>
+                      <span className="text-slate-400">
+                        {i18n.language?.startsWith('ko') ? displayFleet.name : displayFleet.koName}
+                      </span>
                       <span className="text-slate-600">|</span>
                       <span className="text-cyan-300/90 font-digital flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                        <span>{t('dashboard.metrics.homePort')}: {displayFleet.homePort}</span>
+                        <span>{t('dashboard.metrics.homePort')}: {getLocalizedPort(displayFleet.homePort, i18n.language)}</span>
                       </span>
                     </div>
                   </div>

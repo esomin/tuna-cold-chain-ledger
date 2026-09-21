@@ -5,14 +5,16 @@ import { Plus, Truck, MoreVertical, ChevronRight, RefreshCw, Trash2, Loader2, Al
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { OrderCreateModal } from './OrderCreateModal';
 import { deletePurchaseOrder, updatePurchaseOrder } from '../services/purchaseOrder.service';
-import { getLocalizedProductName, type LocalizedProduct } from '../utils/i18nHelper';
+import { getLocalizedProductName, getLocalizedSupplierName, type LocalizedProduct, type LocalizedSupplier } from '../utils/i18nHelper';
 
-interface PurchaseOrder {
+interface PurchaseOrder extends LocalizedSupplier {
     id: string;
     poNumber: string;
     quantity: number;
     status: string;
     supplierName: string;
+    supplierNameKo?: string;
+    supplierNameEn?: string;
     notes: string;
     product: LocalizedProduct;
 }
@@ -383,7 +385,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                                 </div>
                                 <div className="text-xs space-y-0.5 text-slate-300">
                                     <p className="font-semibold text-slate-100">{getLocalizedProductName(order.product, i18n.language) || t('dashboard.labels.tunaProduct')}</p>
-                                    <p className="text-[11px] text-slate-400">{t('orderList.quantity')} <strong className="text-slate-200">{order.quantity}kg</strong> | {order.supplierName}</p>
+                                    <p className="text-[11px] text-slate-400">{t('orderList.quantity')} <strong className="text-slate-200">{order.quantity}kg</strong> | {getLocalizedSupplierName(order, i18n.language) || order.supplierName}</p>
                                     <p className="text-[10px] text-slate-400/80 italic line-clamp-1">{order.notes}</p>
                                 </div>
                             </div>
