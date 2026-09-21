@@ -1,6 +1,5 @@
 # Production / Full-Stack Server Deployment Docker Compose
 # Use this on production servers / VM for full containerized deployment.
-version: '3.8'
 
 services:
   # 1. PostgreSQL RDBMS
@@ -16,6 +15,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
       interval: 10s

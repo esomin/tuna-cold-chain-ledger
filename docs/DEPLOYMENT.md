@@ -106,8 +106,8 @@ docker compose up -d --build
 백엔드 컨테이너 내부에서 스키마 마이그레이션과 초기 온체인/오프체인 시드를 주입합니다:
 
 ```bash
-# 1. PostgreSQL 스키마 마이그레이션 (테이블 생성)
-docker compose exec backend npm run migration:run
+# 1. PostgreSQL 스키마 생성 및 초기 데이터 주입
+cat backend/migrations/*.sql | docker compose exec -T postgres psql -U postgres -d coldchain_db
 
 # 2. 이더리움 Sepolia 온체인 체크포인트 등록 (시나리오 A & B)
 docker compose exec backend npm run seed:onchain
