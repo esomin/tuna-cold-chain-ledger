@@ -26,6 +26,6 @@ export class AppConfigService {
   }
 
   get dbName(): string {
-    return this.configService.get<string>('database.name', 'inventory_db');
+    return this.configService.get<string>('database.name', 'coldchain_db');
   }
 }

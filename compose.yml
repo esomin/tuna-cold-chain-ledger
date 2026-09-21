@@ -11,7 +11,7 @@ services:
     environment:
       POSTGRES_USER: ${DB_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres_secure_pass}
-      POSTGRES_DB: ${DB_DATABASE:-inventory_db}
+      POSTGRES_DB: ${DB_DATABASE:-coldchain_db}
     ports:
       - "5432:5432"
     volumes:
@@ -52,7 +52,7 @@ services:
       DB_PORT: 5432
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres_secure_pass}
-      DB_DATABASE: ${DB_DATABASE:-inventory_db}
+      DB_DATABASE: ${DB_DATABASE:-coldchain_db}
       MONGO_URI: ${MONGO_URI:-mongodb+srv://user:pass@cluster.mongodb.net/coldchain}
       REDIS_HOST: redis
       REDIS_PORT: 6379

@@ -88,7 +88,7 @@ gcloud sql instances create coldchain-db-instance \
   --root-password="YOUR_DB_STRONG_PASSWORD"
 
 # DB 및 사용자 생성
-gcloud sql databases create inventory_db --instance=coldchain-db-instance
+gcloud sql databases create coldchain_db --instance=coldchain-db-instance
 gcloud sql users create postgres --instance=coldchain-db-instance --password="YOUR_DB_STRONG_PASSWORD"
 ```
 

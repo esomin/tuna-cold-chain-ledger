@@ -514,7 +514,7 @@ users (1) ──< (N) audit_logs
 
 ```bash
 # PostgreSQL에 연결하여 실행
-psql -U postgres -d inventory_db -f backend/migrations/001_init_schema.sql
+psql -U postgres -d coldchain_db -f backend/migrations/001_init_schema.sql
 
 # 또는 NestJS TypeORM 사용
 cd backend

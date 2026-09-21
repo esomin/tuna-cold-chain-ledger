@@ -13,7 +13,7 @@ import { ConfigModule } from '@nestjs/config';
         port: parseInt(process.env.DB_PORT || '5432', 10),
         username: process.env.DB_USERNAME || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
-        database: process.env.DB_DATABASE || 'inventory_db',
+        database: process.env.DB_DATABASE || 'coldchain_db',
         autoLoadEntities: true,
         synchronize: false,
       }),

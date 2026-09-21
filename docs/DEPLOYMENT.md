@@ -75,7 +75,7 @@ DB_HOST=postgres
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres_secure_pass
-DB_DATABASE=inventory_db
+DB_DATABASE=coldchain_db
 
 # MongoDB Atlas 설정 (NoSQL Cloud DB - IoT 센서 Raw 텔레메트리 로그)
 # Atlas 대시보드의 Connection String(사용자명, 비밀번호, 클러스터 주소) 입력
