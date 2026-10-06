@@ -45,10 +45,13 @@ const STAGE_OPTIONS = [
     { key: 'DELIVERED', step: 4, labelKey: 'orderList.stages.delivered' },
 ];
 
+// Module-level in-memory cache for Purchase Orders list (SWR)
+let cachedOrders: PurchaseOrder[] = [];
+
 export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, onSelectPo, isLoading, onErrorChange, connectionStatus }) => {
     const { t, i18n } = useTranslation();
-    const [orders, setOrders] = useState<PurchaseOrder[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [orders, setOrders] = useState<PurchaseOrder[]>(() => cachedOrders);
+    const [loading, setLoading] = useState<boolean>(() => cachedOrders.length === 0);
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [updatingStatusInfo, setUpdatingStatusInfo] = useState<{ poNumber: string; newStatus: string } | null>(null);
@@ -64,6 +67,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
             await deletePurchaseOrder(poId);
             setOrders((prev) => {
                 const updated = prev.filter((o) => o.id !== poId);
+                cachedOrders = updated;
                 if (selectedPoId === poId && updated.length > 0) {
                     onSelectPo(updated[0]);
                 }
@@ -114,14 +118,17 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
         }
     };
 
-    const fetchOrders = async () => {
-        setLoading(true);
+    const fetchOrders = async (silent = false) => {
+        if (!silent && cachedOrders.length === 0) {
+            setLoading(true);
+        }
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/purchase-orders`);
             if (!response.ok) {
                 throw new Error('Failed to fetch purchase orders');
             }
             const data: PurchaseOrder[] = await response.json();
+            cachedOrders = data;
             setOrders(data);
             setError(null);
             if (onErrorChange) onErrorChange(null);
@@ -144,7 +151,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
     };
 
     useEffect(() => {
-        fetchOrders();
+        fetchOrders(cachedOrders.length > 0);
     }, []);
 
     useEffect(() => {
@@ -232,7 +239,7 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
                     <AlertTriangle className="w-10 h-10 text-rose-400 mb-1" />
                     <p className="text-xs font-bold mb-0.5">{t('orderList.serverConnectionError')}</p>
                     <button
-                        onClick={fetchOrders}
+                        onClick={() => fetchOrders(false)}
                         className="mt-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 hover:border-sky-400/40 text-slate-300 hover:text-white border border-white/10 text-xs font-bold transition-all cursor-pointer"
                     >
                         <RefreshCw className="w-3.5 h-3.5 text-sky-400" />

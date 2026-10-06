@@ -10,10 +10,22 @@ export const useTelemetry = (
   baseCoords?: { latitude?: number; longitude?: number },
   isCompleted?: boolean
 ) => {
-  const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
-  const [telemetryHistory, setTelemetryHistory] = useState<TelemetryData[]>([]);
+  const [telemetry, setTelemetry] = useState<TelemetryData | null>(() => {
+    return selectedPoNumber ? TelemetryService.getCachedLatest(selectedPoNumber) : null;
+  });
+  const [telemetryHistory, setTelemetryHistory] = useState<TelemetryData[]>(() => {
+    return selectedPoNumber ? TelemetryService.getCachedHistory(selectedPoNumber) : [];
+  });
   const [alerts, setAlerts] = useState<AlertData[]>([]);
-  const [simTemperature, setSimTemperature] = useState<number>(-58);
+  const [simTemperature, setSimTemperature] = useState<number>(() => {
+    if (selectedPoNumber) {
+      const cached = TelemetryService.getCachedLatest(selectedPoNumber);
+      if (cached) return cached.temperature;
+      const preset = getPresetByPoNumber(selectedPoNumber);
+      return preset.defaultTemperature;
+    }
+    return -58;
+  });
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -22,7 +34,7 @@ export const useTelemetry = (
   const refetchTelemetry = async (): Promise<TelemetryData | null> => {
     if (!selectedPoNumber) return null;
     
-    // 시계열 전체 히스토리 가져오기
+    // 시계열 전체 히스토리 가져오기 (비동기 백그라운드 갱신)
     const history = await TelemetryService.getTelemetryHistory(selectedPoNumber);
     setTelemetryHistory(history);
 
@@ -43,8 +55,8 @@ export const useTelemetry = (
         longitude: lng,
         timestamp: new Date().toISOString(),
       };
-      setTelemetry(fallback);
-      setSimTemperature(preset.defaultTemperature);
+      setTelemetry((prev) => prev || fallback);
+      setSimTemperature((prev) => (prev !== undefined ? prev : preset.defaultTemperature));
       setLastUpdated(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }));
       return fallback;
     }
@@ -53,7 +65,17 @@ export const useTelemetry = (
   useEffect(() => {
     if (!selectedPoNumber) return;
 
-    setTelemetryHistory([]);
+    // SWR: 캐시된 데이터가 있으면 즉시 UI에 반영
+    const cachedLatest = TelemetryService.getCachedLatest(selectedPoNumber);
+    const cachedHist = TelemetryService.getCachedHistory(selectedPoNumber);
+    if (cachedLatest) {
+      setTelemetry(cachedLatest);
+      setSimTemperature(cachedLatest.temperature);
+    }
+    if (cachedHist.length > 0) {
+      setTelemetryHistory(cachedHist);
+    }
+
     let isMounted = true;
     refetchTelemetry().then(() => {
       if (!isMounted) return;
