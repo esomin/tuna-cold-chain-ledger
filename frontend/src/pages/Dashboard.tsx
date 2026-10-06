@@ -752,7 +752,7 @@ const Dashboard: React.FC = () => {
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData} margin={{ top: 25, right: 0, left: -15, bottom: 0 }}>
+                  <ComposedChart data={chartData} margin={{ top: 25, right: 28, left: -15, bottom: 0 }}>
                     <defs>
                       {/* Cyan Glow Gradient */}
                       <linearGradient id="cyanLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -955,9 +955,9 @@ const Dashboard: React.FC = () => {
                             <g transform={`translate(${cx}, ${cy})`}>
                               <circle r="7" fill="#00f0ff" opacity="0.4" className="animate-ping" />
                               <circle r="4.5" fill="#030e1a" stroke="#00f0ff" strokeWidth="2.5" />
-                              <g transform="translate(0, -23)">
-                                <rect x="-35" y="-12" width="70" height="20" rx="5" fill="#020914" stroke="#00f0ff" strokeWidth="1.2" />
-                                <text x="0" y="1" textAnchor="middle" fill="#00f0ff" fontSize="10" fontWeight="bold" fontFamily="Pretendard, sans-serif">
+                              <g transform="translate(-10, -23)">
+                                <rect x="-26" y="-11" width="54" height="20" rx="5" fill="#020914" stroke="#00f0ff" strokeWidth="1.2" />
+                                <text x="1" y="3" textAnchor="middle" fill="#00f0ff" fontSize="10.5" fontWeight="bold" fontFamily="monospace">
                                   {`${(activePinItem.chamberTemp as number).toFixed(1)}°C`}
                                 </text>
                               </g>
@@ -1224,36 +1224,36 @@ const Dashboard: React.FC = () => {
             )}
 
             {/* 3 CONTEXT ACTION SQUIRCLE BUTTONS */}
-            <div className="grid grid-cols-3 gap-3 pt-2 border-t border-white/10">
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10">
               <button
                 onClick={handleSensorSync}
                 disabled={isDisconnected || !selectedPo}
                 title={isDisconnected ? t('dashboard.labels.needServerConnection') : !selectedPo ? t('dashboard.labels.needOrderSelected') : ''}
-                className={`flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl border transition-all group ${isDisconnected || !selectedPo
+                className={`flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all group text-center overflow-hidden ${isDisconnected || !selectedPo
                   ? 'bg-slate-800/40 border-slate-700/40 text-slate-500 opacity-60 cursor-not-allowed'
                   : 'bg-white/5 border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)]'
                   }`}
               >
-                <Radio className={`w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform ${isSyncing ? 'animate-spin text-sky-200' : ''}`} />
-                <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{isSyncing ? t('dashboard.labels.syncing') : t('dashboard.labels.sensorSync')}</span>
+                <Radio className={`w-5 h-5 text-sky-400 group-hover:scale-110 transition-transform ${isSyncing ? 'animate-spin text-sky-200' : ''}`} />
+                <span className="w-full text-[10.5px] sm:text-xs font-semibold text-slate-200 group-hover:text-white font-digital text-center whitespace-nowrap tracking-tighter truncate">{isSyncing ? t('dashboard.labels.syncing') : t('dashboard.labels.sensorSync')}</span>
               </button>
 
               {isDisconnected || !selectedPo ? (
                 <button
                   disabled
                   title={isDisconnected ? t('dashboard.labels.needServerConnection') : t('dashboard.labels.needOrderSelected')}
-                  className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-slate-800/40 border border-slate-700/40 text-slate-500 opacity-60 cursor-not-allowed select-none"
+                  className="flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl bg-slate-800/40 border border-slate-700/40 text-slate-500 opacity-60 cursor-not-allowed select-none text-center overflow-hidden"
                 >
-                  <BookOpenCheck className="w-6 h-6 text-slate-500" />
-                  <span className="text-xs font-semibold font-digital">{t('dashboard.labels.blockchainVerify')}</span>
+                  <BookOpenCheck className="w-5 h-5 text-slate-500" />
+                  <span className="w-full text-[10.5px] sm:text-xs font-semibold font-digital text-center whitespace-nowrap tracking-tighter truncate">{t('dashboard.labels.blockchainVerify')}</span>
                 </button>
               ) : (
                 <Link
                   to={`/blockchain-ledger?search=${selectedPo.poNumber}`}
-                  className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
+                  className="flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group text-center overflow-hidden"
                 >
-                  <BookOpenCheck className="w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{t('dashboard.labels.blockchainVerify')}</span>
+                  <BookOpenCheck className="w-5 h-5 text-sky-400 group-hover:scale-110 transition-transform" />
+                  <span className="w-full text-[10.5px] sm:text-xs font-semibold text-slate-200 group-hover:text-white font-digital text-center whitespace-nowrap tracking-tighter truncate">{t('dashboard.labels.blockchainVerify')}</span>
                 </Link>
               )}
 
@@ -1261,20 +1261,20 @@ const Dashboard: React.FC = () => {
                 <button
                   disabled
                   title={isDisconnected ? t('dashboard.labels.needServerConnection') : t('dashboard.labels.needOrderSelected')}
-                  className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-slate-800/40 border border-slate-700/40 text-slate-500 opacity-60 cursor-not-allowed select-none"
+                  className="flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl bg-slate-800/40 border border-slate-700/40 text-slate-500 opacity-60 cursor-not-allowed select-none text-center overflow-hidden"
                 >
-                  <QrCode className="w-6 h-6 text-slate-500" />
-                  <span className="text-xs font-semibold font-digital">{t('dashboard.labels.qrVerify')}</span>
+                  <QrCode className="w-5 h-5 text-slate-500" />
+                  <span className="w-full text-[10.5px] sm:text-xs font-semibold font-digital text-center whitespace-nowrap tracking-tighter truncate">{t('dashboard.labels.qrVerify')}</span>
                 </button>
               ) : (
                 <a
                   href={`/verify/${selectedPo.poNumber}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center gap-2.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group"
+                  className="flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-400/50 hover:bg-sky-500/15 hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] transition-all group text-center overflow-hidden"
                 >
-                  <QrCode className="w-6 h-6 text-sky-400 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-semibold text-slate-200 group-hover:text-white font-digital">{t('dashboard.labels.qrVerify')}</span>
+                  <QrCode className="w-5 h-5 text-sky-400 group-hover:scale-110 transition-transform" />
+                  <span className="w-full text-[10.5px] sm:text-xs font-semibold text-slate-200 group-hover:text-white font-digital text-center whitespace-nowrap tracking-tighter truncate">{t('dashboard.labels.qrVerify')}</span>
                 </a>
               )}
             </div>
