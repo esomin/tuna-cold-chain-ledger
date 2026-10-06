@@ -237,43 +237,74 @@ const ConsumerVerify: React.FC = () => {
                             </section>
 
                             {/* Cold Chain Integrity Stats */}
-                            <section className="rounded-2xl p-4 space-y-3 glass-card">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-slate-400">
-                                        <Thermometer className="w-4 h-4 text-sky-400" />
-                                        {isKo ? '콜드체인 초저온 보관 상태' : 'Cold Chain Storage Status'}
-                                    </h3>
-                                    <span 
-                                        className="text-xs font-bold px-2 py-0.5 rounded-full border" 
-                                        style={{ 
-                                            backgroundColor: data.temperatureStats.hasAnomaly ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)', 
-                                            color: data.temperatureStats.hasAnomaly ? '#f87171' : '#10B981',
-                                            borderColor: data.temperatureStats.hasAnomaly ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'
-                                        }}
-                                    >
-                                        {data.temperatureStats.hasAnomaly 
-                                            ? (isKo ? '운송 중 주의 필요 (-55°C 규격)' : 'Warning: Temp Excursion Detected') 
-                                            : (isKo ? '최적 유지 중 (-55°C 규격)' : 'Optimal (-55°C Compliance)')}
-                                    </span>
-                                </div>
+                            {(() => {
+                                const currentTemp = data.temperatureStats.latestTemp;
+                                const anomalyCount = data.temperatureStats.anomalyCount ?? (data.temperatureStats.hasAnomaly ? 1 : 0);
+                                const hasPastAnomaly = anomalyCount > 0;
+                                const isCurrentSafe = currentTemp <= -45.0; // -45°C safety threshold
 
-                                <div className="p-3.5 rounded-xl flex items-center justify-between glass-card-inner border border-white/5">
-                                    <div>
-                                        <p className="text-[11px] text-slate-400">{isKo ? '최근 실시간 감지 온도' : 'Latest Detected Temp'}</p>
-                                        <p className="text-2xl font-black font-mono mt-0.5" style={{ color: data.temperatureStats.latestTemp > -45 ? '#f87171' : '#38bdf8' }}>
-                                            {data.temperatureStats.latestTemp}°C
-                                        </p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[11px] text-slate-400">{isKo ? '온도 이탈 건수' : 'Anomaly Excursions'}</p>
-                                        <p className="text-sm font-semibold mt-1" style={{ color: data.temperatureStats.hasAnomaly ? '#f87171' : '#10B981' }}>
-                                            {data.temperatureStats.hasAnomaly 
-                                                ? (isKo ? `${data.temperatureStats.anomalyCount || 1}건 (임계치 초과)` : `${data.temperatureStats.anomalyCount || 1} incident(s)`) 
-                                                : (isKo ? '0건 (안전 규격 준수)' : '0 incidents (Compliant)')}
-                                        </p>
-                                    </div>
-                                </div>
-                            </section>
+                                let badgeText = isKo ? '전 구간 최적 유지 (-55°C 규격)' : '100% Compliant (-55°C)';
+                                let badgeBg = 'rgba(16, 185, 129, 0.15)';
+                                let badgeColor = '#10B981';
+                                let badgeBorder = 'rgba(16, 185, 129, 0.3)';
+
+                                if (!isCurrentSafe) {
+                                    badgeText = isKo ? '현재 초저온 규격 초과 (주의 필요)' : 'Warning: Temp Excursion in Progress';
+                                    badgeBg = 'rgba(239, 68, 68, 0.15)';
+                                    badgeColor = '#f87171';
+                                    badgeBorder = 'rgba(239, 68, 68, 0.3)';
+                                } else if (hasPastAnomaly) {
+                                    badgeText = isKo 
+                                        ? `현재 적정 유지 중 (과거 이탈 ${anomalyCount}건)` 
+                                        : `Currently Stable (${anomalyCount} past excursions)`;
+                                    badgeBg = 'rgba(245, 158, 11, 0.15)';
+                                    badgeColor = '#fbbf24';
+                                    badgeBorder = 'rgba(245, 158, 11, 0.35)';
+                                }
+
+                                return (
+                                    <section className="rounded-2xl p-4 space-y-3 glass-card">
+                                        <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+                                            <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-slate-400 shrink-0">
+                                                <Thermometer className="w-4 h-4 text-sky-400" />
+                                                {isKo ? '콜드체인 초저온 보관 상태' : 'Cold Chain Storage Status'}
+                                            </h3>
+                                            <span 
+                                                className="text-[11px] font-bold px-2.5 py-0.5 rounded-full border transition-all text-right" 
+                                                style={{ 
+                                                    backgroundColor: badgeBg, 
+                                                    color: badgeColor,
+                                                    borderColor: badgeBorder
+                                                }}
+                                            >
+                                                {badgeText}
+                                            </span>
+                                        </div>
+
+                                        <div className="p-3.5 rounded-xl flex items-center justify-between glass-card-inner border border-white/5">
+                                            <div>
+                                                <p className="text-[11px] text-slate-400">{isKo ? '최근 실시간 감지 온도' : 'Latest Detected Temp'}</p>
+                                                <div className="flex items-baseline gap-2 mt-0.5">
+                                                    <p className="text-2xl font-black font-mono" style={{ color: isCurrentSafe ? '#38bdf8' : '#f87171' }}>
+                                                        {currentTemp}°C
+                                                    </p>
+                                                    <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-0.5">
+                                                        {isCurrentSafe ? (isKo ? '● 규격 충족' : '● In Range') : (isKo ? '▲ 규격 초과' : '▲ Exceeded')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[11px] text-slate-400">{isKo ? '전체 이탈 이력' : 'Total Excursion History'}</p>
+                                                <p className="text-sm font-semibold mt-1" style={{ color: hasPastAnomaly ? '#fbbf24' : '#10B981' }}>
+                                                    {hasPastAnomaly 
+                                                        ? (isKo ? `누적 ${anomalyCount}건 (과거 감지)` : `${anomalyCount} past incident(s)`) 
+                                                        : (isKo ? '0건 (전 구간 정상)' : '0 incidents (100% Safe)')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </section>
+                                );
+                            })()}
 
                             {/* Supply Chain Timeline Progress */}
                             <section className="rounded-2xl p-4 space-y-4 glass-card">
