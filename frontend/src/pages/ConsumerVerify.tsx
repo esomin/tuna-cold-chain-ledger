@@ -132,21 +132,18 @@ const ConsumerVerify: React.FC = () => {
             >
                 {/* Header */}
                 <header 
-                    className="p-4.5 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-slate-950/40 rounded-t-3xl"
+                    className="px-5 py-4 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-slate-950/40 rounded-t-3xl"
                 >
                     <Link 
                         to="/" 
-                        className="flex items-center text-xs font-semibold gap-1.5 transition-colors text-slate-300 hover:text-white"
+                        className="flex items-center text-xs font-semibold gap-1.5 transition-colors text-slate-300 hover:text-white pl-1"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         {t('nav.dashboard')}
                     </Link>
-                    <div 
-                        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-400/30"
-                    >
-                        <Sparkles className="w-3.5 h-3.5 animate-pulse text-cyan-300" />
-                        <span>Smart Provenance</span>
-                    </div>
+                    <span className="text-xs font-medium tracking-wide text-sky-400/90 font-mono">
+                        Smart Provenance
+                    </span>
                 </header>
 
                 {/* Main Content */}
