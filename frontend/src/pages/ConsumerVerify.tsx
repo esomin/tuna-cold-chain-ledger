@@ -132,7 +132,7 @@ const ConsumerVerify: React.FC = () => {
             >
                 {/* Header */}
                 <header 
-                    className="p-4.5 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-slate-950/40"
+                    className="p-4.5 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-slate-950/40 rounded-t-3xl"
                 >
                     <Link 
                         to="/" 
