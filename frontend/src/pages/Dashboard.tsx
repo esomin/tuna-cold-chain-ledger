@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import * as Popover from '@radix-ui/react-popover';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getLocalizedProductName, getLocalizedPort, type LocalizedProduct, type LocalizedSupplier } from '../utils/i18nHelper';
@@ -1050,118 +1051,133 @@ const Dashboard: React.FC = () => {
                 <Compass className="w-4 h-4 text-sky-400" />
                 <h3 className="text-sm font-bold text-white tracking-wider">{t('dashboard.fleetInfo.title')}</h3>
               </div>
-              <div className="flex items-center gap-2 relative">
-                <button
-                  onClick={() => setIsAlertPopoverOpen((prev) => !prev)}
-                  title="Cold Chain Alert Incidents"
-                  className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all relative ${isAlertPopoverOpen
-                    ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-md shadow-sky-500/30'
-                    : 'bg-white/5 border-white/10 hover:bg-white/10 text-slate-300 hover:text-white'
-                    }`}
-                >
-                  <Bell className="w-3.5 h-3.5" />
-                  {tempStats.incidentCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black font-mono flex items-center justify-center shadow-lg shadow-rose-500/60 ring-2 ring-slate-950 animate-pulse">
-                      {tempStats.incidentCount}
-                    </span>
-                  )}
-                  {tempStats.incidentCount === 0 && alerts.length > 0 && (
-                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                  )}
-                </button>
+              <div className="flex items-center gap-2">
+                <Popover.Root open={isAlertPopoverOpen} onOpenChange={setIsAlertPopoverOpen}>
+                  <Popover.Trigger asChild>
+                    <button
+                      title="Cold Chain Alert Incidents"
+                      className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all relative cursor-pointer ${isAlertPopoverOpen
+                        ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-md shadow-sky-500/30'
+                        : 'bg-white/5 border-white/10 hover:bg-white/10 text-slate-300 hover:text-white'
+                        }`}
+                    >
+                      <Bell className="w-3.5 h-3.5" />
+                      {tempStats.incidentCount > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black font-mono flex items-center justify-center shadow-lg shadow-rose-500/60 ring-2 ring-slate-950 animate-pulse">
+                          {tempStats.incidentCount}
+                        </span>
+                      )}
+                      {tempStats.incidentCount === 0 && alerts.length > 0 && (
+                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                      )}
+                    </button>
+                  </Popover.Trigger>
 
-                {/* Popover / Dropdown Modal for Alert Incidents */}
-                {isAlertPopoverOpen && (
-                  <div className="absolute right-0 top-11 w-80 sm:w-96 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-4 z-50 flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 text-slate-400 shrink-0" />
-                        <div>
-                          <h4 className="text-xs font-bold text-white tracking-wide">
-                            Cold Chain Alert Incidents
-                          </h4>
-                          <p className="text-[10px] text-slate-400">
-                            Total <strong className="text-rose-400 font-mono font-bold">{tempStats.incidentCount} alert incidents</strong> detected ({tempStats.anomalyCount} temp excursions)
-                          </p>
+                  <Popover.Portal>
+                    <Popover.Content
+                      align="end"
+                      sideOffset={8}
+                      className="w-[92vw] sm:w-[460px] max-h-[calc(100vh-140px)] rounded-3xl bg-[#070e1b] border border-sky-500/30 shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_35px_rgba(56,189,248,0.15)] ring-1 ring-white/10 p-5 z-[9999] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150 focus:outline-none"
+                    >
+                      <div className="flex items-center justify-between pb-3.5 border-b border-white/10 shrink-0">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0">
+                            <AlertTriangle className="w-4.5 h-4.5 text-rose-400" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-white tracking-wide font-digital">
+                              {t('dashboard.labels.alertListTitle', 'Cold Chain Alert Incidents')}
+                            </h4>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              {t('dashboard.labels.alertSummary', {
+                                defaultValue: `Total ${tempStats.incidentCount} alert incidents detected (${tempStats.anomalyCount} temp excursions)`,
+                                incidentCount: tempStats.incidentCount,
+                                anomalyCount: tempStats.anomalyCount,
+                              })}
+                            </p>
+                          </div>
                         </div>
+                        <Popover.Close asChild>
+                          <button
+                            className="w-7 h-7 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white text-xs transition-colors cursor-pointer"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </Popover.Close>
                       </div>
-                      <button
-                        onClick={() => setIsAlertPopoverOpen(false)}
-                        className="w-6 h-6 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white text-xs transition-colors"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
 
-                    {/* Incident List */}
-                    <div className="max-h-72 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                      {tempStats.incidents.length === 0 ? (
-                        <div className="py-6 text-center text-xs text-slate-400 flex flex-col items-center gap-1.5">
-                          <span className="text-slate-400 text-base">✓</span>
-                          <span>No temperature anomaly incidents detected.</span>
-                        </div>
-                      ) : (
-                        tempStats.incidents.map((inc) => {
-                          const badge = getStageBadgeInfo(inc.stage);
-                          const isMultiple = inc.dataPointCount > 1;
-                          const diff = (inc.peakTemp - inc.warningTemp).toFixed(1);
-                          const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream';
-                          const dayPart = inc.startDay === inc.endDay ? inc.startDay : `${inc.startDay} ~ ${inc.endDay}`;
-                          const hourPart = inc.startHour === inc.endHour ? inc.startHour : `${inc.startHour} ~ ${inc.endHour}`;
-                          const timeRangeText = isLive ? hourPart : `${dayPart} · ${hourPart}`;
+                      {/* Incident List */}
+                      <div className="flex-1 overflow-y-auto max-h-64 sm:max-h-72 space-y-3 pr-1.5 custom-scrollbar">
+                        {tempStats.incidents.length === 0 ? (
+                          <div className="py-8 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
+                            <span className="text-emerald-400 text-lg font-bold">✓</span>
+                            <span>{t('dashboard.labels.noIncidents', 'No temperature anomaly incidents detected.')}</span>
+                          </div>
+                        ) : (
+                          tempStats.incidents.map((inc) => {
+                            const badge = getStageBadgeInfo(inc.stage);
+                            const isMultiple = inc.dataPointCount > 1;
+                            const diff = (inc.peakTemp - inc.warningTemp).toFixed(1);
+                            const isLive = selectedTimeRange === 'Live Feed' || selectedTimeRange === 'Live Stream';
+                            const dayPart = inc.startDay === inc.endDay ? inc.startDay : `${inc.startDay} ~ ${inc.endDay}`;
+                            const hourPart = inc.startHour === inc.endHour ? inc.startHour : `${inc.startHour} ~ ${inc.endHour}`;
+                            const timeRangeText = isLive ? hourPart : `${dayPart} · ${hourPart}`;
 
-                          return (
-                            <div
-                              key={inc.id}
-                              className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col gap-2"
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                                    {badge.name}
-                                  </span>
-                                  <span className="text-[10px] font-mono text-slate-400 font-semibold">{inc.id}</span>
-                                </div>
-                                <span className="text-[10px] font-mono text-slate-400">
-                                  {timeRangeText}
-                                </span>
-                              </div>
-
-                              <div className="text-xs text-slate-200 font-normal leading-relaxed">
-                                {inc.primaryNote}
-                              </div>
-
-                              <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-800">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-slate-400 text-[10px]">Peak:</span>
-                                  <span className="text-rose-400 font-mono font-bold">{inc.peakTemp.toFixed(1)}°C</span>
-                                  <span className="text-slate-400 text-[10px] font-mono">
-                                    (Limit {inc.warningTemp}°C, +{diff}°C over)
+                            return (
+                              <div
+                                key={inc.id}
+                                className="p-3.5 rounded-2xl bg-slate-950/80 border border-white/10 hover:border-sky-500/30 transition-all flex flex-col gap-2.5 shadow-inner"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                                      {badge.name}
+                                    </span>
+                                    <span className="text-[11px] font-mono text-slate-400 font-bold">{inc.id}</span>
+                                  </div>
+                                  <span className="text-[11px] font-mono text-slate-400">
+                                    {timeRangeText}
                                   </span>
                                 </div>
-                                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
-                                  {isMultiple ? `${inc.dataPointCount} Consecutive Excursions` : 'Single Excursion'}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
 
-                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
-                      <span>Consecutive readings are grouped into 1 incident</span>
-                      {alerts.length > 0 && (
-                        <button
-                          onClick={clearAlerts}
-                          className="text-slate-400 hover:text-slate-200 underline cursor-pointer"
-                        >
-                          Clear Live Alerts
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
+                                <div className="text-xs text-slate-200 font-normal leading-relaxed">
+                                  {inc.primaryNote}
+                                </div>
+
+                                <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/10">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-slate-400 text-[10px]">Peak:</span>
+                                    <span className="text-rose-400 font-mono font-bold">{inc.peakTemp.toFixed(1)}°C</span>
+                                    <span className="text-slate-400 text-[10px] font-mono">
+                                      (Limit {inc.warningTemp}°C, +{diff}°C over)
+                                    </span>
+                                  </div>
+                                  <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono bg-white/5 text-slate-300 border border-white/10">
+                                    {isMultiple
+                                      ? t('dashboard.labels.consecutiveExcursions', { count: inc.dataPointCount, defaultValue: `${inc.dataPointCount} Consecutive Excursions` })
+                                      : t('dashboard.labels.singleExcursion', 'Single Excursion')}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+
+                      <div className="pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
+                        <span>{t('dashboard.labels.consecutiveGroupNote', 'Consecutive readings are grouped into 1 incident')}</span>
+                        {alerts.length > 0 && (
+                          <button
+                            onClick={clearAlerts}
+                            className="text-sky-400 hover:text-sky-300 font-medium underline cursor-pointer transition-colors"
+                          >
+                            {t('dashboard.labels.clearLiveAlerts', 'Clear Live Alerts')}
+                          </button>
+                        )}
+                      </div>
+                    </Popover.Content>
+                  </Popover.Portal>
+                </Popover.Root>
               </div>
             </div>
 
