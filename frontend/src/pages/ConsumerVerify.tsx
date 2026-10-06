@@ -122,34 +122,37 @@ const ConsumerVerify: React.FC = () => {
 
     return (
         <div 
-            className="min-h-screen flex justify-center items-center font-sans p-3 sm:p-6"
+            className="min-h-screen h-screen w-full flex justify-center items-center font-sans p-2 sm:p-4 overflow-hidden"
         >
-            {/* Mobile View Glass Container */}
+            {/* Galaxy Z Fold 8 Cover Display Aspect Ratio Container (10:16 Ratio filling viewport) */}
             <div 
-                className="w-full max-w-lg flex flex-col min-h-[90vh] relative shadow-2xl rounded-3xl glass-container overflow-hidden pb-12 border border-white/20 animate-in fade-in duration-300"
+                className="h-[95vh] max-h-[96vh] max-w-[95vw] aspect-[10/16] flex flex-col relative shadow-2xl rounded-3xl glass-container overflow-hidden border border-white/20 animate-in fade-in duration-300"
+                style={{
+                    boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.12)',
+                }}
             >
                 {/* Header */}
                 <header 
-                    className="px-5 py-4 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-slate-950/40 rounded-t-3xl"
+                    className="px-4 py-3.5 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-slate-950/60 rounded-t-3xl shrink-0"
                 >
                     <Link 
                         to="/" 
-                        className="flex items-center text-xs font-semibold gap-1.5 transition-colors text-slate-300 hover:text-white pl-1"
+                        className="flex items-center text-xs font-semibold gap-1.5 transition-colors text-slate-300 hover:text-white pl-0.5"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         {t('nav.dashboard')}
                     </Link>
-                    <span className="text-xs font-medium tracking-wide text-sky-400/90 font-mono">
+                    <span className="text-[11px] font-semibold tracking-wide text-sky-400 font-mono">
                         Smart Provenance
                     </span>
                 </header>
 
-                {/* Main Content */}
-                <main className="p-5 flex-1 space-y-6">
+                {/* Main Content (Scrollable within Fold 8 aspect ratio container) */}
+                <main className="p-4 flex-1 space-y-4 overflow-y-auto custom-scrollbar">
                     {loading ? (
-                        <div className="py-24 flex flex-col items-center justify-center space-y-4">
-                            <div className="w-16 h-16 border-4 rounded-full animate-spin" style={{ borderColor: 'rgba(var(--theme-aqua-rgb), 0.2)', borderTopColor: 'var(--theme-aqua)' }}></div>
-                            <p className="text-sm font-medium animate-pulse" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
+                        <div className="py-20 flex flex-col items-center justify-center space-y-4">
+                            <div className="w-14 h-14 border-4 rounded-full animate-spin" style={{ borderColor: 'rgba(var(--theme-aqua-rgb), 0.2)', borderTopColor: 'var(--theme-aqua)' }}></div>
+                            <p className="text-xs font-medium animate-pulse" style={{ color: 'rgba(var(--theme-cream-rgb), 0.6)' }}>
                                 {isKo ? '이더리움 블록체인 무결성 대조 중...' : 'Verifying Ethereum On-Chain Integrity...'}
                             </p>
                         </div>
@@ -572,7 +575,7 @@ const ConsumerVerify: React.FC = () => {
                 </main>
 
                 {/* Footer */}
-                <footer className="p-4 text-center text-[11px] space-y-1 border-t border-white/10 text-slate-400">
+                <footer className="p-3 text-center text-[10px] space-y-0.5 border-t border-white/10 text-slate-400 bg-slate-950/40 shrink-0">
                     <p>Powered by Ethereum Blockchain & Cold Chain IoT Platform</p>
                     <p>© 2026 Tuna Supply Chain Transparency Initiative</p>
                 </footer>
