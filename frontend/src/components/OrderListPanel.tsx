@@ -221,22 +221,22 @@ export const OrderListPanel: React.FC<OrderListPanelProps> = ({ selectedPoId, on
 
     if (error) {
         return (
-            <div className="space-y-4">
-                <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col flex-1 h-full min-h-[360px]">
+                <div className="flex items-center justify-between gap-2 shrink-0">
                     <div className="flex items-center gap-2 min-w-0">
                         <Truck className="w-4 h-4 text-sky-400 shrink-0" />
                         <h3 className="text-xs sm:text-sm font-bold text-white tracking-wider font-digital truncate">{t('orderList.title')}</h3>
                     </div>
                 </div>
-                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-digital flex flex-col items-center justify-center gap-2.5 text-center min-h-[160px]">
-                    <AlertTriangle className="w-6 h-6 text-rose-400 shrink-0" />
-                    <p className="font-semibold">{error}</p>
+                <div className="flex-1 flex flex-col items-center justify-center gap-2.5 text-center p-6 text-rose-300 font-digital">
+                    <AlertTriangle className="w-10 h-10 text-rose-400 mb-1" />
+                    <p className="text-xs font-bold mb-0.5">{t('orderList.serverConnectionError')}</p>
                     <button
                         onClick={fetchOrders}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/40 text-xs font-bold transition-all"
+                        className="mt-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 hover:border-sky-400/40 text-slate-300 hover:text-white border border-white/10 text-xs font-bold transition-all cursor-pointer"
                     >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        <span>다시 시도</span>
+                        <RefreshCw className="w-3.5 h-3.5 text-sky-400" />
+                        <span>{t('common.tryAgain')}</span>
                     </button>
                 </div>
             </div>

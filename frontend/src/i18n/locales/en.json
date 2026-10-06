@@ -127,6 +127,7 @@
     "deleteOrder": "Delete",
     "quantity": "Qty:",
     "txInProgress": "On-Chain Transaction Signing in progress...",
+    "serverConnectionError": "Unable to connect to backend server. (NestJS backend server required)",
     "stages": {
       "harvested": "Harvested",
       "processing": "Cryogenic Processing",

@@ -139,16 +139,8 @@ const Dashboard: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState('72h');
   const [fleets, setFleets] = useState<Fleet[]>([]);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [backendError, setBackendError] = useState<string | null>(null);
   const [isAlertPopoverOpen, setIsAlertPopoverOpen] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsInitialLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     fetchFleets().then((data) => {
@@ -528,10 +520,10 @@ const Dashboard: React.FC = () => {
         <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 px-4 py-3 rounded-2xl flex items-center justify-between gap-3 text-xs font-digital shadow-lg animate-in fade-in">
           <div className="flex items-center gap-2.5">
             <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 animate-pulse" />
-            <span className="font-semibold">서버 연결 끊김 · 재연결 시도 중…</span>
+            <span className="font-semibold">{t('common.serverDisconnected')}</span>
           </div>
           {lastUpdated && (
-            <span className="text-[11px] text-slate-400 shrink-0">마지막 갱신: {lastUpdated}</span>
+            <span className="text-[11px] text-slate-400 shrink-0">{t('common.lastUpdated')} {lastUpdated}</span>
           )}
         </div>
       )}
@@ -619,7 +611,6 @@ const Dashboard: React.FC = () => {
               <OrderListPanel
                 selectedPoId={selectedPo ? selectedPo.id : null}
                 onSelectPo={(po) => setSelectedPo(po)}
-                isLoading={isInitialLoading}
                 onErrorChange={(err) => setBackendError(err)}
                 connectionStatus={connectionStatus}
               />
@@ -632,9 +623,7 @@ const Dashboard: React.FC = () => {
                   <MapPin className="w-4 h-4 text-sky-400" />
                   <h3 className="text-sm font-bold text-white tracking-wider">{t('dashboard.map.title')}</h3>
                 </div>
-                {isInitialLoading ? (
-                  <div className="h-3.5 w-20 bg-slate-800 rounded animate-pulse" />
-                ) : selectedPo ? (
+                {selectedPo ? (
                   <span className="text-[10px] font-semibold text-sky-300 flex items-center gap-1.5 animate-pulse">
                     <span className="w-2 h-2 rounded-full bg-sky-400" />
                     {selectedPo.poNumber}
@@ -645,16 +634,8 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Map Container */}
-              <div className="rounded-2xl overflow-hidden border border-white/10 relative flex-1 min-h-[360px] h-full shadow-inner">
-                {isInitialLoading ? (
-                  <div className="w-full h-full bg-slate-900/60 flex flex-col items-center justify-center gap-3 p-6 animate-pulse">
-                    <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center">
-                      <Compass className="w-6 h-6 text-slate-700 animate-spin-slow" />
-                    </div>
-                    <div className="h-4 w-40 bg-slate-800 rounded" />
-                    <div className="h-3 w-56 bg-slate-800/60 rounded" />
-                  </div>
-                ) : isDisconnected ? (
+              <div className="rounded-2xl overflow-hidden border border-white/10 relative flex-1 min-h-[360px] h-full shadow-inner bg-slate-900">
+                {isDisconnected ? (
                   <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 bg-slate-950/40 text-rose-300 font-digital">
                     <AlertTriangle className="w-10 h-10 text-rose-400 mb-2" />
                     <p className="text-xs font-bold mb-1">Backend Server Disconnected</p>
@@ -760,18 +741,9 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Recharts Glowing Telemetry Spline Chart / Skeleton */}
+            {/* Recharts Glowing Telemetry Spline Chart */}
             <div className="w-full h-44 sm:h-48 z-10 pt-1 -mx-2">
-              {isInitialLoading ? (
-                <div className="w-full h-full bg-slate-900/40 rounded-2xl flex flex-col justify-end p-4 gap-3 animate-pulse border border-white/5">
-                  <div className="flex justify-between items-end h-28 gap-2">
-                    {[40, 65, 30, 80, 50, 90, 75, 60, 85, 45].map((h, i) => (
-                      <div key={i} className="w-full bg-slate-800/60 rounded-t" style={{ height: `${h}%` }} />
-                    ))}
-                  </div>
-                  <div className="h-3 w-full bg-slate-800/40 rounded" />
-                </div>
-              ) : chartData.length === 0 ? (
+              {chartData.length === 0 ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 bg-slate-950/40 text-slate-400 text-xs font-digital rounded-2xl border border-white/5 gap-2">
                   <Activity className="w-8 h-8 text-slate-600 mb-1 animate-pulse" />
                   <p className="font-semibold text-slate-300">{t('dashboard.labels.noTelemetryData')}</p>
@@ -1003,83 +975,44 @@ const Dashboard: React.FC = () => {
 
             {/* Indicator Card 1: Cold Chain Health */}
             <div className={`glass-card rounded-2xl p-4 flex items-center justify-between transition-opacity ${isDisconnected ? 'opacity-60' : ''}`}>
-              {isInitialLoading ? (
-                <div className="w-full flex items-center justify-between animate-pulse">
-                  <div className="space-y-2">
-                    <div className="h-3 w-16 bg-slate-800 rounded" />
-                    <div className="h-7 w-20 bg-slate-800 rounded-md" />
-                    <div className="h-2.5 w-28 bg-slate-800/60 rounded" />
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-slate-800" />
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <p className="text-[11px] font-semibold text-slate-400">{t('dashboard.metrics.freshnessIndex')}</p>
-                    <p className="text-2xl font-black text-white font-mono mt-1">{isDisconnected ? '--' : '99.8%'}</p>
-                    <p className="text-[10px] text-emerald-400 mt-0.5">{isDisconnected ? t('dashboard.labels.needConnection') : t('dashboard.metrics.premiumQuality')}</p>
-                  </div>
-                  <div className="w-12 h-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-400 flex items-center justify-center font-bold text-xs text-emerald-300">
-                    {isDisconnected ? '--' : 'A+'}
-                  </div>
-                </>
-              )}
+              <div>
+                <p className="text-[11px] font-semibold text-slate-400">{t('dashboard.metrics.freshnessIndex')}</p>
+                <p className="text-2xl font-black text-white font-mono mt-1">{isDisconnected ? '--' : '99.8%'}</p>
+                <p className="text-[10px] text-emerald-400 mt-0.5">{isDisconnected ? t('dashboard.labels.needConnection') : t('dashboard.metrics.premiumQuality')}</p>
+              </div>
+              <div className="w-12 h-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-400 flex items-center justify-center font-bold text-xs text-emerald-300">
+                {isDisconnected ? '--' : 'A+'}
+              </div>
             </div>
 
             {/* Indicator Card 2: On-chain Verification Lock */}
             <div className={`glass-card rounded-2xl p-4 flex items-center justify-between transition-opacity ${isDisconnected ? 'opacity-60' : ''}`}>
-              {isInitialLoading ? (
-                <div className="w-full flex items-center justify-between animate-pulse">
-                  <div className="space-y-2">
-                    <div className="h-3 w-24 bg-slate-800 rounded" />
-                    <div className="h-7 w-16 bg-slate-800 rounded-md" />
-                    <div className="h-2.5 w-20 bg-slate-800/60 rounded" />
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-slate-800" />
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <p className="text-[11px] font-semibold text-slate-400">{t('dashboard.metrics.smartContractLock')}</p>
-                    <p className="text-2xl font-black text-white font-mono mt-1">{isDisconnected ? '--' : '100%'}</p>
-                    <p className="text-[10px] text-cyan-300 mt-0.5">{isDisconnected ? t('dashboard.labels.needConnection') : 'Keccak256 SHA-3'}</p>
-                  </div>
-                  <div className="w-12 h-12 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 flex items-center justify-center font-bold text-xs text-cyan-300">
-                    {isDisconnected ? '--' : 'L1'}
-                  </div>
-                </>
-              )}
+              <div>
+                <p className="text-[11px] font-semibold text-slate-400">{t('dashboard.metrics.smartContractLock')}</p>
+                <p className="text-2xl font-black text-white font-mono mt-1">{isDisconnected ? '--' : '100%'}</p>
+                <p className="text-[10px] text-cyan-300 mt-0.5">{isDisconnected ? t('dashboard.labels.needConnection') : 'Keccak256 SHA-3'}</p>
+              </div>
+              <div className="w-12 h-12 rounded-full border-4 border-cyan-500/20 border-t-cyan-400 flex items-center justify-center font-bold text-xs text-cyan-300">
+                {isDisconnected ? '--' : 'L1'}
+              </div>
             </div>
 
             {/* Indicator Card 3: Target Temp Compliance */}
             <div className={`glass-card rounded-2xl p-4 flex items-center justify-between transition-opacity ${isDisconnected ? 'opacity-60' : ''}`}>
-              {isInitialLoading ? (
-                <div className="w-full flex items-center justify-between animate-pulse">
-                  <div className="space-y-2">
-                    <div className="h-3 w-24 bg-slate-800 rounded" />
-                    <div className="h-7 w-20 bg-slate-800 rounded-md" />
-                    <div className="h-2.5 w-16 bg-slate-800/60 rounded" />
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-slate-800" />
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <p className="text-[11px] font-semibold text-slate-400">{t('dashboard.metrics.complianceRate')}</p>
-                    <p className="text-2xl font-black text-white font-mono mt-1">{isDisconnected ? '--' : '< -55°C'}</p>
-                    <p className="text-[10px] text-sky-400 mt-0.5">
-                      {isDisconnected
-                        ? 'Connection Required'
-                        : tempStats.incidentCount > 0
-                          ? `${tempStats.incidentCount} Alerts (${tempStats.anomalyCount} Excursions)`
-                          : '0 Temp Anomalies'}
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 rounded-full border-4 border-sky-500/20 border-t-sky-400 flex items-center justify-center font-bold text-xs text-sky-300">
-                    {isDisconnected ? '--' : `${tempStats.complianceRate}%`}
-                  </div>
-                </>
-              )}
+              <div>
+                <p className="text-[11px] font-semibold text-slate-400">{t('dashboard.metrics.complianceRate')}</p>
+                <p className="text-2xl font-black text-white font-mono mt-1">{isDisconnected ? '--' : '< -55°C'}</p>
+                <p className="text-[10px] text-sky-400 mt-0.5">
+                  {isDisconnected
+                    ? 'Connection Required'
+                    : tempStats.incidentCount > 0
+                      ? `${tempStats.incidentCount} Alerts (${tempStats.anomalyCount} Excursions)`
+                      : '0 Temp Anomalies'}
+                </p>
+              </div>
+              <div className="w-12 h-12 rounded-full border-4 border-sky-500/20 border-t-sky-400 flex items-center justify-center font-bold text-xs text-sky-300">
+                {isDisconnected ? '--' : `${tempStats.complianceRate}%`}
+              </div>
             </div>
 
           </div>
@@ -1214,15 +1147,8 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* User Details / Skeleton */}
-            {isInitialLoading ? (
-              <div className="flex items-center gap-3.5 w-full animate-pulse">
-                <div className="w-13 h-13 rounded-2xl bg-slate-800 shrink-0" />
-                <div className="space-y-2 flex-1">
-                  <div className="h-4 w-32 bg-slate-800 rounded" />
-                  <div className="h-3 w-44 bg-slate-800/60 rounded" />
-                </div>
-              </div>
-            ) : displayFleet ? (
+            {/* User Details */}
+            {displayFleet ? (
               <div className="flex items-center justify-between gap-3 w-full">
                 <div className="flex items-center gap-3.5">
                   <div className="relative shrink-0">
@@ -1255,22 +1181,7 @@ const Dashboard: React.FC = () => {
             )}
 
             {/* 3.2 HOLOGRAPHIC MARITIME LEDGER SMART CARD */}
-            {isInitialLoading ? (
-              <div className="rounded-2xl p-5 bg-slate-900/60 border border-white/10 h-48 flex flex-col justify-between animate-pulse">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1.5">
-                    <div className="h-3 w-28 bg-slate-800 rounded" />
-                    <div className="h-5 w-40 bg-slate-800 rounded" />
-                  </div>
-                  <div className="h-4 w-16 bg-slate-800 rounded" />
-                </div>
-                <div className="h-4 w-32 bg-slate-800 rounded" />
-                <div className="flex justify-between items-end border-t border-white/10 pt-2">
-                  <div className="h-4 w-24 bg-slate-800 rounded" />
-                  <div className="h-4 w-16 bg-slate-800 rounded" />
-                </div>
-              </div>
-            ) : selectedPo ? (
+            {selectedPo ? (
               <div className="rounded-2xl p-5 ocean-card-gradient text-white flex flex-col justify-between h-48 relative overflow-hidden border border-cyan-300/30 shadow-2xl">
                 {/* Card Watermark */}
                 <Waves className="absolute right-3 top-3 w-28 h-28 text-white/10 pointer-events-none" />
@@ -1380,7 +1291,6 @@ const Dashboard: React.FC = () => {
             <DistributionTimeline
               poNumber={selectedPo ? selectedPo.poNumber : null}
               status={selectedPo ? selectedPo.status : null}
-              isLoading={isInitialLoading}
               isBackendError={isDisconnected}
             />
           </div>

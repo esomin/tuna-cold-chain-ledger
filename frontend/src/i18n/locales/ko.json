@@ -117,7 +117,7 @@
       "tempRange": "온도범위"
     }
   },
-  "orderList": {
+    "orderList": {
     "title": "수송 배치 피드",
     "newOrder": "신규 등록",
     "demoRestricted": "배포 데모 환경에서는 신규 어획 등록이 제한됩니다 (로컬 개발 환경 전용)",
@@ -127,6 +127,7 @@
     "deleteOrder": "삭제",
     "quantity": "수량:",
     "txInProgress": "온체인 트랜잭션 체결 진행 중...",
+    "serverConnectionError": "백엔드 서버에 연결할 수 없습니다. (NestJS 서버 기동 필요)",
     "stages": {
       "harvested": "어획 완료",
       "processing": "초저온 가공",
