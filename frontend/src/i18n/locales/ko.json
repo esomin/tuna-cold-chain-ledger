@@ -42,6 +42,15 @@
       "title": "선단 및 수송 배치 상세"
     },
     "syncData": "데이터 동기화",
+    "tooltip": {
+      "measuredTemp": "실측 온도:",
+      "targetStandard": "목표 기준선:",
+      "warningThreshold": "주의 임계치:",
+      "ambientEnvironment": "외기 환경:",
+      "quickFreezing": "선내 급속동결 구간 (정상 냉각)",
+      "elapsed": "경과",
+      "day": "Day"
+    },
     "timeRanges": {
       "live": "LIVE (실시간)",
       "6h": "6 시간",

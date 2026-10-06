@@ -27,7 +27,9 @@ import {
   Compass,
   Bell,
   AlertTriangle,
-  X
+  X,
+  Pin,
+  Snowflake
 } from 'lucide-react';
 import { OrderListPanel } from '../components/OrderListPanel';
 import { DistributionTimeline } from '../components/Timeline/DistributionTimeline';
@@ -80,18 +82,30 @@ const getStageBadgeInfo = (stageKey: string) => {
 
 // Custom Tooltip for Recharts Telemetry Chart
 const RechartsCustomTooltip = ({ active, payload, label }: any) => {
+  const { t } = useTranslation();
+
   if (active && payload && payload.length) {
     const chamber = payload.find((p: any) => p.dataKey === 'chamberTemp');
     const ambient = payload.find((p: any) => p.dataKey === 'ambientTemp');
-    const ptData = chamber?.payload;
+    const ptData = chamber?.payload || payload[0]?.payload;
+
+    let headerTitle = '';
+    if (ptData?.isLive) {
+      headerTitle = ptData?.time || '';
+    } else if (ptData?.time) {
+      headerTitle = `Day ${ptData.time} (${ptData.hourLabel} ${t('dashboard.tooltip.elapsed', '경과')})`;
+    } else {
+      headerTitle = typeof label === 'number' ? `Point ${label}` : label;
+    }
+
     return (
       <div className="bg-slate-900/95 border border-cyan-500/40 backdrop-blur-md px-3.5 py-2.5 rounded-xl shadow-2xl text-xs font-sans">
-        <p className="font-bold text-slate-200 mb-1.5 border-b border-white/10 pb-1">
-          {label}
+        <p className="font-bold text-slate-200 mb-1.5 border-b border-white/10 pb-1 font-mono tracking-wide">
+          {headerTitle}
         </p>
         {chamber && chamber.value !== undefined && chamber.value !== null && (
           <p className="text-cyan-300 font-mono flex items-center justify-between gap-4 py-0.5">
-            <span className="text-slate-400 font-sans">실측 온도:</span>
+            <span className="text-slate-400 font-sans">{t('dashboard.tooltip.measuredTemp', '실측 온도:')}</span>
             <strong className="text-cyan-300 font-bold">
               {typeof chamber.value === 'number' ? `${chamber.value.toFixed(1)}°C` : `${chamber.value}°C`}
             </strong>
@@ -99,32 +113,34 @@ const RechartsCustomTooltip = ({ active, payload, label }: any) => {
         )}
         {ptData && typeof ptData.targetTemp === 'number' && (
           <p className="text-sky-300 font-mono flex items-center justify-between gap-4 py-0.5 text-[11px]">
-            <span className="text-slate-400 font-sans">목표 기준선:</span>
+            <span className="text-slate-400 font-sans">{t('dashboard.tooltip.targetStandard', '목표 기준선:')}</span>
             <strong className="text-sky-300 font-medium">{ptData.targetTemp}°C</strong>
           </p>
         )}
         {ptData && typeof ptData.warningTemp === 'number' && (
           <p className="text-amber-300 font-mono flex items-center justify-between gap-4 py-0.5 text-[11px]">
-            <span className="text-slate-400 font-sans">주의 임계치:</span>
+            <span className="text-slate-400 font-sans">{t('dashboard.tooltip.warningThreshold', '주의 임계치:')}</span>
             <strong className="text-amber-300 font-medium">{ptData.warningTemp}°C</strong>
           </p>
         )}
         {ambient && ambient.value !== undefined && ambient.value !== null && (
           <p className="text-emerald-400 font-mono flex items-center justify-between gap-4 py-0.5">
-            <span className="text-slate-400 font-sans">외기 환경:</span>
+            <span className="text-slate-400 font-sans">{t('dashboard.tooltip.ambientEnvironment', '외기 환경:')}</span>
             <strong className="text-emerald-300 font-bold">
               +{typeof ambient.value === 'number' ? `${ambient.value.toFixed(1)}°C` : `${ambient.value}°C`}
             </strong>
           </p>
         )}
         {chamber?.payload?.isFreezing && (
-          <div className="mt-1 pt-1 border-t border-cyan-500/20 text-cyan-300 text-[10px] flex items-center gap-1">
-            <span>❄️ 선내 급속동결 구간 (정상 냉각)</span>
+          <div className="mt-1.5 pt-1.5 border-t border-cyan-500/20 text-cyan-300 text-[10px] flex items-center gap-1.5">
+            <Snowflake className="w-3 h-3 text-cyan-400 shrink-0" />
+            <span>{t('dashboard.tooltip.quickFreezing', '선내 급속동결 구간 (정상 냉각)')}</span>
           </div>
         )}
         {chamber?.payload?.eventNote && (
-          <div className="mt-1 pt-1 border-t border-white/10 text-amber-300 text-[10px] flex items-center gap-1">
-            <span>📌 {chamber.payload.eventNote}</span>
+          <div className="mt-1.5 pt-1.5 border-t border-white/10 text-amber-300 text-[10px] flex items-center gap-1.5">
+            <Pin className="w-3 h-3 text-amber-400 shrink-0 fill-amber-400/20" />
+            <span className="font-medium">{chamber.payload.eventNote}</span>
           </div>
         )}
       </div>
@@ -278,6 +294,7 @@ const Dashboard: React.FC = () => {
         return {
           time: timeLabel, // numeric day or live time
           hourLabel, // e.g. "234h"
+          isLive,
           rawIndex: index, // numeric x-axis key
           chamberTemp: Number(tempVal.toFixed(1)),
           isPin: index === targetItems.length - 1,

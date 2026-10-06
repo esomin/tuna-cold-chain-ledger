@@ -42,6 +42,15 @@
       "title": "Vessel & Batch Details"
     },
     "syncData": "Sync Data",
+    "tooltip": {
+      "measuredTemp": "Actual Temp:",
+      "targetStandard": "Target Std:",
+      "warningThreshold": "Warning Thresh:",
+      "ambientEnvironment": "Ambient Env:",
+      "quickFreezing": "On-board Flash Freezing (Normal Cooling)",
+      "elapsed": "elapsed",
+      "day": "Day"
+    },
     "timeRanges": {
       "live": "LIVE (Realtime)",
       "6h": "6 Hours",
