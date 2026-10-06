@@ -3,12 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PurchaseOrder } from '../../entities/PurchaseOrder';
 import { Product } from '../../entities/Product';
+import { Fleet } from '../../entities/Fleet';
 import { SensorRawLog, SensorRawLogSchema } from '../../purchase-orders/schemas/sensor-raw-log.schema';
 import { ScenarioSeedService } from './scenario-seed.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PurchaseOrder, Product]),
+    TypeOrmModule.forFeature([PurchaseOrder, Product, Fleet]),
     MongooseModule.forFeature([{ name: SensorRawLog.name, schema: SensorRawLogSchema }]),
   ],
   providers: [ScenarioSeedService],

@@ -1,12 +1,13 @@
-import { Entity, Column, Index } from 'typeorm';
+import { Entity, Column, Index, OneToMany } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
+import { PurchaseOrder } from './PurchaseOrder';
 
 @Entity('fleets')
 @Index('idx_fleets_code', ['code'], { unique: true })
 @Index('idx_fleets_ko_name', ['koName'], { unique: true })
 export class Fleet extends BaseEntity {
   @Column({ unique: true })
-  code: string; // e.g. PC7, PF12, NP3
+  code: string; // e.g. PC7, PF12
 
   @Column()
   name: string; // e.g. Pacific Ocean Fleet No. 7
@@ -17,9 +18,15 @@ export class Fleet extends BaseEntity {
   @Column({ name: 'home_port' })
   homePort: string; // e.g. 부산항 감천항만
 
+  @Column({ name: 'home_port_en', nullable: true, default: '' })
+  homePortEn: string; // e.g. Gamcheon Port, Busan
+
   @Column({ type: 'double precision', default: 35.0784 })
   latitude: number; // e.g. 35.0784
 
   @Column({ type: 'double precision', default: 129.0069 })
   longitude: number; // e.g. 129.0069
+
+  @OneToMany(() => PurchaseOrder, (po) => po.fleet)
+  purchaseOrders: PurchaseOrder[];
 }

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PurchaseOrder } from '../entities/PurchaseOrder';
 import { Product } from '../entities/Product';
+import { Fleet } from '../entities/Fleet';
 import { CreatePurchaseOrderDto, UpdatePurchaseOrderDto } from './dto/create-purchase-order.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { InjectModel } from '@nestjs/mongoose';
@@ -40,6 +41,8 @@ export class PurchaseOrdersService {
     private poRepository: Repository<PurchaseOrder>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(Fleet)
+    private fleetRepository: Repository<Fleet>,
     @InjectModel(SensorRawLog.name)
     private sensorLogModel: Model<SensorRawLog>,
     private auditLogsService: AuditLogsService,
@@ -60,15 +63,30 @@ export class PurchaseOrdersService {
       throw new NotFoundException('Product not found');
     }
 
+    let fleet: Fleet | null = null;
+    if (createDto.fleetId) {
+      fleet = await this.fleetRepository.findOne({ where: { id: createDto.fleetId } });
+    } else if (createDto.fleetCode) {
+      fleet = await this.fleetRepository.findOne({ where: { code: createDto.fleetCode } });
+    }
+
+    if (!fleet) {
+      // Default to PF12 if not explicitly passed
+      fleet = await this.fleetRepository.findOne({ where: { code: 'PF12' } });
+    }
+
     const po = new PurchaseOrder();
     po.poNumber = this.generatePoNumber();
     po.quantity = createDto.quantity;
     po.status = 'HARVESTED';
-    po.supplierNameKo = createDto.supplierNameKo || createDto.supplierName || '';
-    po.supplierNameEn = createDto.supplierNameEn || createDto.supplierName || '';
-    po.supplierName = createDto.supplierName || po.supplierNameKo;
     po.notes = createDto.notes || '';
     po.product = product;
+    if (fleet) {
+      po.fleet = fleet;
+      po.fleetId = fleet.id;
+      po.supplierName = fleet.name;
+      po.supplierNameKo = fleet.koName;
+    }
 
     const savedPo = await this.poRepository.save(po);
 
@@ -93,7 +111,7 @@ export class PurchaseOrdersService {
 
   async findAll() {
     return this.poRepository.find({
-      relations: ['product'],
+      relations: ['product', 'fleet'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -104,7 +122,7 @@ export class PurchaseOrdersService {
 
     const po = await this.poRepository.findOne({
       where: isNumber ? { id: idOrPoNumber } : { poNumber: idOrPoNumber },
-      relations: ['product'],
+      relations: ['product', 'fleet'],
     });
 
     if (!po) throw new NotFoundException('Purchase Order not found');

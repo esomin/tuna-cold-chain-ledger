@@ -1,6 +1,8 @@
 export class CreatePurchaseOrderDto {
   skuId: string;
   quantity: number;
+  fleetId?: string;
+  fleetCode?: string;
   supplierName?: string;
   supplierNameKo?: string;
   supplierNameEn?: string;

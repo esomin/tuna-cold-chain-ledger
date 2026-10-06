@@ -1,6 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index, Check, AfterLoad } from 'typeorm';
 import { BaseEntity } from './BaseEntity';
 import { Product } from './Product';
+import { Fleet } from './Fleet';
 
 @Entity('purchase_orders')
 @Index('idx_purchase_orders_sku', ['product'])
@@ -16,6 +17,13 @@ export class PurchaseOrder extends BaseEntity {
   @ManyToOne(() => Product, (product) => product.purchaseOrders)
   @JoinColumn({ name: 'sku_id' })
   product: Product;
+
+  @Column({ name: 'fleet_id', type: 'uuid', nullable: true })
+  fleetId: string;
+
+  @ManyToOne(() => Fleet, (fleet) => fleet.purchaseOrders, { nullable: true, eager: true })
+  @JoinColumn({ name: 'fleet_id' })
+  fleet: Fleet;
 
   @Column('int')
   quantity: number;

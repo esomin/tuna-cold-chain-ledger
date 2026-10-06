@@ -25,11 +25,13 @@ export class FleetsService implements OnModuleInit {
                     "name" varchar NOT NULL,
                     "ko_name" varchar NOT NULL UNIQUE,
                     "home_port" varchar NOT NULL,
+                    "home_port_en" varchar,
                     "latitude" double precision NOT NULL DEFAULT 35.0784,
                     "longitude" double precision NOT NULL DEFAULT 129.0069,
                     "created_at" TIMESTAMP NOT NULL DEFAULT now(),
                     "updated_at" TIMESTAMP NOT NULL DEFAULT now()
                 );
+                ALTER TABLE "fleets" ADD COLUMN IF NOT EXISTS "home_port_en" varchar;
                 ALTER TABLE "fleets" ADD COLUMN IF NOT EXISTS "latitude" double precision NOT NULL DEFAULT 35.0784;
                 ALTER TABLE "fleets" ADD COLUMN IF NOT EXISTS "longitude" double precision NOT NULL DEFAULT 129.0069;
             `);
@@ -40,6 +42,7 @@ export class FleetsService implements OnModuleInit {
           name: 'Pacific Ocean Fleet No. 7',
           koName: '남태평양 원양선단 1팀',
           homePort: '부산항 감천항만',
+          homePortEn: 'Gamcheon Port, Busan',
           latitude: 35.0784,
           longitude: 129.0069,
         },
@@ -48,6 +51,7 @@ export class FleetsService implements OnModuleInit {
           name: 'Pacific Ocean Fleet No. 12',
           koName: '태평양 원양선단 2팀',
           homePort: '인천항 제3부두',
+          homePortEn: 'Pier 3, Incheon Port',
           latitude: 37.4645,
           longitude: 126.6173,
         },
@@ -61,6 +65,7 @@ export class FleetsService implements OnModuleInit {
           existing.latitude = fleetData.latitude;
           existing.longitude = fleetData.longitude;
           existing.homePort = fleetData.homePort;
+          existing.homePortEn = fleetData.homePortEn;
           existing.name = fleetData.name;
           existing.koName = fleetData.koName;
           await this.fleetRepository.save(existing);

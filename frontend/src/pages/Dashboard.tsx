@@ -161,52 +161,37 @@ const Dashboard: React.FC = () => {
   const displayFleet = useMemo(() => {
     if (!selectedPo) return null;
 
-    const sName = selectedPo.supplierName || selectedPo.supplierNameKo || '';
-    const sNameKo = selectedPo.supplierNameKo || selectedPo.supplier_name_ko || selectedPo.supplierName || '';
-    const sNameEn = selectedPo.supplierNameEn || selectedPo.supplier_name_en || selectedPo.supplierName || '';
-
-    // PO별 선단 기본 매핑 (Scenario A는 PF12 선단, Scenario B는 PC7 선단)
-    let targetFleet: Fleet | undefined;
-    if (selectedPo.poNumber === 'PO-2026-SCENARIO-A') {
-      targetFleet = fleets.find((f) => f.code === 'PF12');
-    } else if (selectedPo.poNumber === 'PO-2026-SCENARIO-B') {
-      targetFleet = fleets.find((f) => f.code === 'PC7');
-    }
-
-    if (!targetFleet) {
-      targetFleet = fleets.find(
-        (f) =>
-          f.koName === sName ||
-          f.name === sName ||
-          f.code === sName ||
-          (sName && (f.koName.includes(sName) || sName.includes(f.koName))) ||
-          (sNameKo && (f.koName.includes(sNameKo) || sNameKo.includes(f.koName))) ||
-          (sNameEn && (f.name.includes(sNameEn) || sNameEn.includes(f.name)))
-      );
-    }
-
-    if (!targetFleet && fleets.length > 0) {
-      const key = selectedPo.poNumber || selectedPo.id || sName;
-      const charSum = key.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-      targetFleet = fleets[charSum % fleets.length];
-    }
-
-    if (targetFleet) {
+    // 1. PO에 DB FK 관계(Fleet)가 직접 연결되어 있으면 최우선 사용
+    if ((selectedPo as any).fleet) {
+      const f = (selectedPo as any).fleet as Fleet;
       return {
-        ...targetFleet,
-        supplierNameKo: sNameKo || '부산 어항 물류',
-        supplierNameEn: sNameEn || 'Busan Harbor Logistics',
-        latitude: targetFleet.latitude ?? 35.0784,
-        longitude: targetFleet.longitude ?? 129.0069,
+        ...f,
+        latitude: f.latitude ?? 35.0784,
+        longitude: f.longitude ?? 129.0069,
       };
     }
 
-    return {
-      code: 'PF',
+    // 2. 만약 DB 이전 데이터로 fleet이 없을 경우 fallback 탐색
+    const sName = selectedPo.supplierName || selectedPo.supplierNameKo || '';
+    const matched = fleets.find(
+      (f) =>
+        f.koName === sName ||
+        f.name === sName ||
+        f.code === sName
+    );
+
+    if (matched) {
+      return {
+        ...matched,
+        latitude: matched.latitude ?? 35.0784,
+        longitude: matched.longitude ?? 129.0069,
+      };
+    }
+
+    return fleets[0] || {
+      code: 'PF12',
       name: 'Pacific Ocean Fleet No. 12',
       koName: '태평양 원양선단 2팀',
-      supplierNameKo: sNameKo || '부산 어항 물류',
-      supplierNameEn: sNameEn || 'Busan Harbor Logistics',
       homePort: '인천항 제3부두',
       latitude: 37.4645,
       longitude: 126.6173,
@@ -1250,17 +1235,14 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   <div>
-                    <h3
-                      title={`Logistics: ${i18n.language?.startsWith('ko') ? (displayFleet as any).supplierNameKo || '부산 어항 물류' : (displayFleet as any).supplierNameEn || 'Busan Harbor Logistics'}`}
-                      className="text-base font-bold text-white tracking-wide cursor-help"
-                    >
+                    <h3 className="text-base font-bold text-white tracking-wide">
                       {i18n.language?.startsWith('ko') ? displayFleet.koName : displayFleet.name}
                     </h3>
 
                     <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs">
                       <span className="text-cyan-300/90 font-digital flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                        <span>Home Port: {getLocalizedPort(displayFleet.homePort, i18n.language)}</span>
+                        <span>Home Port: {displayFleet.homePortEn && !i18n.language?.startsWith('ko') ? displayFleet.homePortEn : getLocalizedPort(displayFleet.homePort, i18n.language)}</span>
                       </span>
                     </div>
                   </div>

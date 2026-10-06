@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PurchaseOrder } from '../../entities/PurchaseOrder';
 import { Product } from '../../entities/Product';
+import { Fleet } from '../../entities/Fleet';
 import { SensorRawLog } from '../../purchase-orders/schemas/sensor-raw-log.schema';
 
 type Stage = 'HARVESTED' | 'PROCESSING' | 'IN_TRANSIT' | 'DELIVERED';
@@ -60,6 +61,8 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
     private readonly poRepository: Repository<PurchaseOrder>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(Fleet)
+    private readonly fleetRepository: Repository<Fleet>,
     @InjectModel(SensorRawLog.name)
     private readonly sensorLogModel: Model<SensorRawLog>,
   ) {}
@@ -88,6 +91,7 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
         ALTER TABLE products ADD COLUMN IF NOT EXISTS name_ko VARCHAR(255);
         ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS supplier_name VARCHAR(255);
         ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS supplier_name_ko VARCHAR(255);
+        ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS fleet_id UUID;
         DO $$
         BEGIN
             IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'name_en') THEN
@@ -100,12 +104,14 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
         UPDATE products SET name = 'Pacific Bluefin Tuna Loin (Frozen)', name_ko = '참다랑어 로인 (냉동)' WHERE sku = 'TUNA-BLUEFIN';
         UPDATE products SET name = 'Bigeye Tuna Loin (Frozen)', name_ko = '눈다랑어 로인 (냉동)' WHERE sku = 'TUNA-BIGEYE';
         UPDATE products SET name = 'Yellowfin Tuna Loin (Frozen)', name_ko = '황다랑어 로인 (냉동)' WHERE sku = 'TUNA-YELLOWFIN';
-        UPDATE purchase_orders SET supplier_name = 'Busan Harbor Logistics', supplier_name_ko = '부산 어항 물류' WHERE po_number = 'PO-2026-SCENARIO-A' OR supplier_name_ko LIKE '%부산%';
-        UPDATE purchase_orders SET supplier_name = 'Tongyeong Deep-Sea Fishery', supplier_name_ko = '통영 원양 수산' WHERE po_number = 'PO-2026-SCENARIO-B' OR supplier_name_ko LIKE '%통영%';
       `);
     } catch (e: any) {
       this.logger.debug(`Schema check note: ${e?.message || e}`);
     }
+
+    // 선단(Fleet) 조회 (Scenario A: PF12, Scenario B: PC7)
+    const fleetPF12 = await this.fleetRepository.findOne({ where: { code: 'PF12' } });
+    const fleetPC7 = await this.fleetRepository.findOne({ where: { code: 'PC7' } });
 
     // 상품(참다랑어) 존재 확인 및 등록
     let product = await this.productRepository.findOne({ where: { sku: 'TUNA-BLUEFIN' } });
@@ -131,10 +137,14 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
       newPoA.poNumber = 'PO-2026-SCENARIO-A';
       newPoA.quantity = 100;
       newPoA.status = 'COMPLETED';
-      newPoA.supplierName = 'Busan Harbor Logistics';
-      newPoA.supplierNameKo = '부산 어항 물류';
       newPoA.notes = '시나리오 A: 전 유통 단계 정상 완료 (블록체인 무결성 검증 통과)';
       if (product) newPoA.product = product;
+      if (fleetPF12) {
+        newPoA.fleet = fleetPF12;
+        newPoA.fleetId = fleetPF12.id;
+        newPoA.supplierName = fleetPF12.name;
+        newPoA.supplierNameKo = fleetPF12.koName;
+      }
       await this.poRepository.save(newPoA);
       this.logger.log('Synchronized PO-2026-SCENARIO-A into PostgreSQL database.');
     } else {
@@ -143,9 +153,11 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
         poA.status = 'COMPLETED';
         updated = true;
       }
-      if (!poA.supplierName || !poA.supplierNameKo) {
-        poA.supplierName = 'Busan Harbor Logistics';
-        poA.supplierNameKo = '부산 어항 물류';
+      if (fleetPF12 && (!poA.fleetId || poA.fleetId !== fleetPF12.id)) {
+        poA.fleet = fleetPF12;
+        poA.fleetId = fleetPF12.id;
+        poA.supplierName = fleetPF12.name;
+        poA.supplierNameKo = fleetPF12.koName;
         updated = true;
       }
       if (updated) await this.poRepository.save(poA);
@@ -158,10 +170,14 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
       newPoB.poNumber = 'PO-2026-SCENARIO-B';
       newPoB.quantity = 80;
       newPoB.status = 'DELIVERED';
-      newPoB.supplierName = 'Tongyeong Deep-Sea Fishery';
-      newPoB.supplierNameKo = '통영 원양 수산';
       newPoB.notes = '시나리오 B: 단계별 온도 이탈 4건 발생 건 (H:0 / P:1 / T:2 / D:1)';
       if (product) newPoB.product = product;
+      if (fleetPC7) {
+        newPoB.fleet = fleetPC7;
+        newPoB.fleetId = fleetPC7.id;
+        newPoB.supplierName = fleetPC7.name;
+        newPoB.supplierNameKo = fleetPC7.koName;
+      }
       await this.poRepository.save(newPoB);
       this.logger.log('Synchronized PO-2026-SCENARIO-B into PostgreSQL database.');
     } else {
@@ -170,9 +186,11 @@ export class ScenarioSeedService implements OnApplicationBootstrap {
         poB.status = 'DELIVERED';
         updated = true;
       }
-      if (!poB.supplierName || !poB.supplierNameKo) {
-        poB.supplierName = 'Tongyeong Deep-Sea Fishery';
-        poB.supplierNameKo = '통영 원양 수산';
+      if (fleetPC7 && (!poB.fleetId || poB.fleetId !== fleetPC7.id)) {
+        poB.fleet = fleetPC7;
+        poB.fleetId = fleetPC7.id;
+        poB.supplierName = fleetPC7.name;
+        poB.supplierNameKo = fleetPC7.koName;
         updated = true;
       }
       if (updated) await this.poRepository.save(poB);
