@@ -629,7 +629,7 @@ const Dashboard: React.FC = () => {
                     {selectedPo.poNumber}
                   </span>
                 ) : (
-                  <span className="text-[10px] text-slate-400">대기 중</span>
+                  <span className="text-[10px] text-slate-400">{t('dashboard.labels.pending', 'Pending')}</span>
                 )}
               </div>
 
@@ -641,25 +641,27 @@ const Dashboard: React.FC = () => {
                     <p className="text-xs font-bold mb-1">Backend Server Disconnected</p>
                     <p className="text-[11px] text-slate-400">Unable to receive real-time GPS telemetry.</p>
                   </div>
-                ) : liveTelemetry ? (
+                ) : selectedPo ? (
                   <div className="relative w-full h-full">
                     <LiveMaplibreMap
-                      lat={liveTelemetry.latitude}
-                      lng={liveTelemetry.longitude}
-                      poNumber={selectedPo ? selectedPo.poNumber : undefined}
+                      lat={liveTelemetry?.latitude ?? 35.1019}
+                      lng={liveTelemetry?.longitude ?? 129.0405}
+                      poNumber={selectedPo.poNumber}
                     />
                     {/* Floating HUD */}
-                    <div className="absolute top-3 left-3 z-10 text-[11px] px-3.5 py-1.5 rounded-xl bg-white/50 border border-sky-400/40 backdrop-blur-md shadow-lg shadow-slate-900/15 flex items-center gap-2.5">
-                      <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_8px_rgba(14,165,233,0.6)]" />
-                      <span className="font-mono text-xs font-bold text-slate-800 tracking-wide">
-                        GPS {liveTelemetry.latitude.toFixed(4)}°N, {liveTelemetry.longitude.toFixed(4)}°E
-                      </span>
-                    </div>
+                    {liveTelemetry && (
+                      <div className="absolute top-3 left-3 z-10 text-[11px] px-3.5 py-1.5 rounded-xl bg-white/50 border border-sky-400/40 backdrop-blur-md shadow-lg shadow-slate-900/15 flex items-center gap-2.5">
+                        <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse shadow-[0_0_8px_rgba(14,165,233,0.6)]" />
+                        <span className="font-mono text-xs font-bold text-slate-800 tracking-wide">
+                          GPS {liveTelemetry.latitude.toFixed(4)}°N, {liveTelemetry.longitude.toFixed(4)}°E
+                        </span>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-center p-6 bg-slate-950/40">
                     <Compass className="w-10 h-10 text-slate-500 mb-2 animate-spin-slow" />
-                    <p className="text-xs text-slate-300 font-medium">선택된 발주/운송 건의 실시간 GPS 관제가 표시됩니다.</p>
+                    <p className="text-xs text-slate-300 font-medium">{t('dashboard.labels.selectGpsInfo', 'Real-time GPS tracking for selected shipment will be displayed.')}</p>
                   </div>
                 )}
               </div>
