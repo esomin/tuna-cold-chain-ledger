@@ -1077,18 +1077,18 @@ const Dashboard: React.FC = () => {
                     <Popover.Content
                       align="end"
                       sideOffset={8}
-                      className="w-[92vw] sm:w-[460px] max-h-[calc(100vh-140px)] rounded-3xl bg-[#070e1b] border border-sky-500/30 shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_35px_rgba(56,189,248,0.15)] ring-1 ring-white/10 p-5 z-[9999] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150 focus:outline-none"
+                      className="w-[92vw] sm:w-[460px] max-h-[calc(100vh-140px)] rounded-3xl bg-[#1a3458]/94 backdrop-blur-2xl border border-sky-300/40 shadow-[0_25px_60px_rgba(2,10,25,0.7),0_0_35px_rgba(56,189,248,0.2)] ring-1 ring-white/20 p-5 z-[9999] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150 focus:outline-none text-white"
                     >
-                      <div className="flex items-center justify-between pb-3.5 border-b border-white/10 shrink-0">
+                      <div className="flex items-center justify-between pb-3.5 border-b border-white/15 shrink-0">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0">
-                            <AlertTriangle className="w-4.5 h-4.5 text-rose-400" />
+                          <div className="w-9 h-9 rounded-2xl bg-rose-500/20 border border-rose-400/40 flex items-center justify-center shrink-0">
+                            <AlertTriangle className="w-4.5 h-4.5 text-rose-300" />
                           </div>
                           <div>
                             <h4 className="text-sm font-bold text-white tracking-wide font-digital">
                               {t('dashboard.labels.alertListTitle', 'Cold Chain Alert Incidents')}
                             </h4>
-                            <p className="text-[11px] text-slate-400 mt-0.5">
+                            <p className="text-[11px] text-sky-200/80 mt-0.5">
                               {t('dashboard.labels.alertSummary', {
                                 defaultValue: `Total ${tempStats.incidentCount} alert incidents detected (${tempStats.anomalyCount} temp excursions)`,
                                 incidentCount: tempStats.incidentCount,
@@ -1099,7 +1099,7 @@ const Dashboard: React.FC = () => {
                         </div>
                         <Popover.Close asChild>
                           <button
-                            className="w-7 h-7 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white text-xs transition-colors cursor-pointer"
+                            className="w-7 h-7 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-slate-300 hover:text-white text-xs transition-colors cursor-pointer"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -1109,8 +1109,8 @@ const Dashboard: React.FC = () => {
                       {/* Incident List */}
                       <div className="flex-1 overflow-y-auto max-h-64 sm:max-h-72 space-y-3 pr-1.5 custom-scrollbar">
                         {tempStats.incidents.length === 0 ? (
-                          <div className="py-8 text-center text-xs text-slate-400 flex flex-col items-center gap-2">
-                            <span className="text-emerald-400 text-lg font-bold">✓</span>
+                          <div className="py-8 text-center text-xs text-sky-200/70 flex flex-col items-center gap-2">
+                            <span className="text-emerald-300 text-lg font-bold">✓</span>
                             <span>{t('dashboard.labels.noIncidents', 'No temperature anomaly incidents detected.')}</span>
                           </div>
                         ) : (
@@ -1126,33 +1126,33 @@ const Dashboard: React.FC = () => {
                             return (
                               <div
                                 key={inc.id}
-                                className="p-3.5 rounded-2xl bg-slate-950/80 border border-white/10 hover:border-sky-500/30 transition-all flex flex-col gap-2.5 shadow-inner"
+                                className="p-3.5 rounded-2xl bg-[#10233e]/70 backdrop-blur-md border border-sky-400/20 hover:border-sky-300/40 transition-all flex flex-col gap-2.5 shadow-inner"
                               >
                                 <div className="flex items-center justify-between gap-2">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                                    <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-lg bg-sky-400/20 text-sky-200 border border-sky-300/30">
                                       {badge.name}
                                     </span>
-                                    <span className="text-[11px] font-mono text-slate-400 font-bold">{inc.id}</span>
+                                    <span className="text-[11px] font-mono text-sky-200 font-bold">{inc.id}</span>
                                   </div>
-                                  <span className="text-[11px] font-mono text-slate-400">
+                                  <span className="text-[11px] font-mono text-sky-200/80">
                                     {timeRangeText}
                                   </span>
                                 </div>
 
-                                <div className="text-xs text-slate-200 font-normal leading-relaxed">
+                                <div className="text-xs text-slate-100 font-normal leading-relaxed">
                                   {inc.primaryNote}
                                 </div>
 
                                 <div className="flex items-center justify-between text-[11px] pt-2 border-t border-white/10">
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-slate-400 text-[10px]">Peak:</span>
-                                    <span className="text-rose-400 font-mono font-bold">{inc.peakTemp.toFixed(1)}°C</span>
-                                    <span className="text-slate-400 text-[10px] font-mono">
+                                    <span className="text-sky-200/70 text-[10px]">Peak:</span>
+                                    <span className="text-rose-300 font-mono font-bold">{inc.peakTemp.toFixed(1)}°C</span>
+                                    <span className="text-sky-200/70 text-[10px] font-mono">
                                       (Limit {inc.warningTemp}°C, +{diff}°C over)
                                     </span>
                                   </div>
-                                  <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono bg-white/5 text-slate-300 border border-white/10">
+                                  <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono bg-white/10 text-sky-100 border border-white/15">
                                     {isMultiple
                                       ? t('dashboard.labels.consecutiveExcursions', { count: inc.dataPointCount, defaultValue: `${inc.dataPointCount} Consecutive Excursions` })
                                       : t('dashboard.labels.singleExcursion', 'Single Excursion')}
@@ -1164,12 +1164,12 @@ const Dashboard: React.FC = () => {
                         )}
                       </div>
 
-                      <div className="pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
+                      <div className="pt-2.5 border-t border-white/15 flex items-center justify-between text-[11px] text-sky-200/70 shrink-0">
                         <span>{t('dashboard.labels.consecutiveGroupNote', 'Consecutive readings are grouped into 1 incident')}</span>
                         {alerts.length > 0 && (
                           <button
                             onClick={clearAlerts}
-                            className="text-sky-400 hover:text-sky-300 font-medium underline cursor-pointer transition-colors"
+                            className="text-cyan-300 hover:text-cyan-200 font-medium underline cursor-pointer transition-colors"
                           >
                             {t('dashboard.labels.clearLiveAlerts', 'Clear Live Alerts')}
                           </button>
